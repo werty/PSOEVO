@@ -21,6 +21,7 @@ MOPSO::MOPSO(int wiel_pop, int wiel_rep, int il_hiperk, bool mutacja, Problem * 
 
     // parser.DefineVar("x", &this->xVal);
     // parser.DefineVar("y", &this->yVal);
+    this->c=2.0;
     this->wielk_rep=wiel_rep;
     this->num_iter=0;
     this->z_mutacja = mutacja;
@@ -41,14 +42,14 @@ MOPSO::MOPSO(int wiel_pop, int wiel_rep, int il_hiperk, bool mutacja, Problem * 
 MOPSO::~MOPSO() {
 }
 
-void MOPSO::aktualizuj_wartosci() {
+void MOPSO::WyznaczWartFunkcjiKryterialnych() {
     for (int i = 0; i < populacja.size(); i++) {
         for (int x_ind = 0; x_ind < this -> il_zmiennych; x_ind++) {
             problem -> zmienne[x_ind] -> zmienna = populacja[i] -> x[x_ind];
         }
 
         for (int f_ind = 0; f_ind < this -> il_funkcji; f_ind++) {
-            populacja[i] -> fitness[f_ind] = problem -> parseryFunkcji[f_ind] -> Eval();
+            populacja[i] -> wartFunkcjiKryterialnych[f_ind] = problem -> parseryFunkcji[f_ind] -> Eval();
         }
     }
 }
@@ -80,8 +81,8 @@ void MOPSO::Inicjalizuj() {
         }
 
         for (int f_ind = 0; f_ind < this -> il_funkcji; f_ind++) {
-            populacja[i] -> fitness[f_ind] = problem -> parseryFunkcji[f_ind] -> Eval();
-            populacja[i] -> fitness_pbest[f_ind] = populacja[i] -> fitness[f_ind];
+            populacja[i] -> wartFunkcjiKryterialnych[f_ind] = problem -> parseryFunkcji[f_ind] -> Eval();
+            populacja[i] -> fitness_pbest[f_ind] = populacja[i] -> wartFunkcjiKryterialnych[f_ind];
         }
 
         pbests.push_back(new Particle(*populacja[i]));
@@ -99,6 +100,10 @@ void MOPSO::Inicjalizuj() {
 
     // wyznaczanie niezdominowanych rozwiazan
 
+    WyznaczPrzystosowanie();
+
+    PrzeskalujPrzystosowanie();
+
 
     qDebug() << "Sprawdzam zdominowanie\n";
     sprawdz_zdominowanie();
@@ -110,6 +115,7 @@ void MOPSO::Inicjalizuj() {
     generuj_kostki();
 
 
+    qDebug() << "po Generuje kostki\n";
 
     for (int i_pop = 0; i_pop < populacja.size(); i_pop++) {
         if (!populacja[i_pop] -> zdominowana) {
@@ -117,6 +123,8 @@ void MOPSO::Inicjalizuj() {
         } else {
         }
     }
+
+     qDebug() << " Generuje kostki\n";
 
     //    for (int i = 0; i < populacja.size(); i++)
     //    {
@@ -165,7 +173,11 @@ void MOPSO::Iteruj() {
     aktualizuj_pozycje();
 
     DEBUG("%s\n","Aktualizuje wartosci");
-    aktualizuj_wartosci();
+    WyznaczWartFunkcjiKryterialnych();
+
+    WyznaczPrzystosowanie();
+
+    PrzeskalujPrzystosowanie();
 
     DEBUG("%s\n","Aktualizuje pbest");
     aktualizuj_pbest();
@@ -180,7 +192,7 @@ void MOPSO::Iteruj() {
     generuj_kostki();
 
     if (wielk_rep > 0 && repozytorium.size() > wielk_rep) {
-        redukujRepozytorium();
+        RedukujRepozytorium();
         generuj_kostki();
 
     }
@@ -192,18 +204,18 @@ void MOPSO::generuj_kostki() {
 
     // wyznaczamy min i max wartosci funkcji kryterialnych w naszej populacji
     for (int i = 0; i < il_funkcji; i++) {
-        max_fitness[i] = populacja[0] -> fitness[i];
-        min_fitness[i] = populacja[0] -> fitness[i];
+        max_fitness[i] = populacja[0] -> wartFunkcjiKryterialnych[i];
+        min_fitness[i] = populacja[0] -> wartFunkcjiKryterialnych[i];
     }
 
     for (int i = 0; i < populacja.size(); i++) {
         for (int j = 0; j < il_funkcji; j++) {
-            if (populacja[i] -> fitness[j] > max_fitness[j]) {
-                max_fitness[j] = populacja[i] -> fitness[j];
+            if (populacja[i] -> wartFunkcjiKryterialnych[j] > max_fitness[j]) {
+                max_fitness[j] = populacja[i] -> wartFunkcjiKryterialnych[j];
             }
 
-            if (populacja[i] -> fitness[j] < min_fitness[j]) {
-                min_fitness[j] = populacja[i] -> fitness[j];
+            if (populacja[i] -> wartFunkcjiKryterialnych[j] < min_fitness[j]) {
+                min_fitness[j] = populacja[i] -> wartFunkcjiKryterialnych[j];
             }
         }
     }
@@ -226,7 +238,7 @@ void MOPSO::generuj_kostki() {
 
         // qDebug() << "rep " << i << " (";
         for (int j = 0; j < il_funkcji; j++) {
-            tmp = (int) ((repozytorium[i] -> fitness[j] - min_fitness[j]) / dx_fitness[j]);
+            tmp = (int) ((repozytorium[i] -> wartFunkcjiKryterialnych[j] - min_fitness[j]) / dx_fitness[j]);
 
             // qDebug() << tmp << " ";
             hiperkostki[i].polozenie.push_back(tmp);
@@ -301,7 +313,7 @@ void MOPSO::generuj_kostki() {
     // qDebug() << "v[1]=" << hip[0].polozenie[1] << hip[1].polozenie[1] << hip[2].polozenie[1];
 }
 
-int MOPSO::losuj_kostke_ruletka() {
+int MOPSO::losujKostkeRuletka() {
     //qDebug() << "hip size " << hiperkostki.size() << "\n";
     float * tab = new float[hiperkostki.size()];
     float maks = 0;
@@ -342,7 +354,7 @@ void MOPSO::aktualizuj_predkosci() {
         // c_p*((float)rand() / (float)RAND_MAX * vmax - 0.5 * vmax)*0.1*(particles_vec[i]->pbest_pos[1]-particles_vec[i]->x_pos[1])+
         // c_g*((float)rand() / (float)RAND_MAX * vmax - 0.5 * vmax)*0.1*(gbest_pos[1]-particles_vec[i]->x_pos[1]));
         //
-        h = losuj_kostke_ruletka();
+        h = losujKostkeRuletka();
         h_rep = (int) ((float) hiperkostki[h].czasteczki.size() * qrand() / RAND_MAX);
 
        // qDebug() << "h_rep " << h_rep << " z " << hiperkostki[h].czasteczki.size() << "\n";
@@ -411,7 +423,85 @@ void MOPSO::aktualizuj_pbest() {
         }
     }
 }
+void MOPSO::WyznaczPrzystosowanie()
+{
+    double skrajnaWartosc;
+    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
 
+
+        if (problem->tab_minmax[i_fun])//maksymalizacja wiec szukamy minimalnej wartosci
+        {
+
+            skrajnaWartosc =populacja[0]->wartFunkcjiKryterialnych[i_fun];
+            for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
+                if (populacja[i_rep]->wartFunkcjiKryterialnych[i_fun] < skrajnaWartosc) {
+                    skrajnaWartosc =populacja[i_rep]->wartFunkcjiKryterialnych[i_fun];
+                }
+            }
+
+            for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
+                populacja[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -populacja[i_rep]->wartFunkcjiKryterialnych[i_fun];
+            }
+
+
+        } else//minimalizacja wiec szukamy maksymalnej wartosci
+        {
+            skrajnaWartosc =populacja[0]->wartFunkcjiKryterialnych[i_fun];
+            for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
+                if (populacja[i_rep]->wartFunkcjiKryterialnych[i_fun] > skrajnaWartosc) {
+                    skrajnaWartosc =populacja[i_rep]->wartFunkcjiKryterialnych[i_fun];
+                }
+            }
+
+            for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
+                populacja[i_rep]->przystosowanie[i_fun] =populacja[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+            }
+        }
+    }
+
+
+}
+void MOPSO::PrzeskalujPrzystosowanie()
+{
+    double min, max, srednia, a, b;
+    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+        srednia = 0;
+        min =populacja[0]->przystosowanie[i_fun];
+        max = min;
+        for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
+            if (populacja[i_rep]->przystosowanie[i_fun] < min) {
+                min =populacja[i_rep]->przystosowanie[i_fun];
+            }
+            if (populacja[i_rep]->przystosowanie[i_fun] > max) {
+                max =populacja[i_rep]->przystosowanie[i_fun];
+            }
+
+            srednia +=populacja[i_rep]->przystosowanie[i_fun];
+        }
+        //  qDebug() << "suma " << srednia << "\n";
+        srednia = srednia / (double)populacja.size();
+        //  qDebug() << "srednia " << srednia << "\n";
+
+        if (min > ((c * srednia - max) / (c - 1))) {
+            a = srednia * (c - 1) / (max - srednia);
+            b = -srednia * (a + 1.0);
+        } else {
+            a = srednia / (srednia - min);
+            b = -a*min;
+        }
+
+        // qDebug() << "a " << a << " b " << b << "\n";
+        for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
+
+            populacja[i_rep]->przystosowaniePrzeskalowane[i_fun] = a *populacja[i_rep]->przystosowanie[i_fun] + b;
+        }
+
+
+
+    }
+
+
+}
 void MOPSO::sprawdz_zdominowanie() {
     // wyznaczanie niezdominowanych rozwiazan
     bool zdominowany = false;
@@ -492,7 +582,7 @@ void MOPSO::wyswietl_repozytorium() {
         }
 
         for (int j = 0; j < il_funkcji; j++) {
-            qDebug() << "\tf:" << repozytorium[i] ->fitness[j] << " ";
+            qDebug() << "\tf:" << repozytorium[i] ->wartFunkcjiKryterialnych[j] << " ";
         }
         qDebug() << "\n";
     }
@@ -607,7 +697,7 @@ void MOPSO::mutuj(int gen, int il_gen, double wsp_mutacji) {
 
 }
 
-void MOPSO::redukujRepozytorium() {
+void MOPSO::RedukujRepozytorium() {
 
 
     wek_usun.clear();

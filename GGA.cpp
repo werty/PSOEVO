@@ -316,7 +316,7 @@ void GGA::DekodujGenotyp()
             //                }
             //            }
             // qDebug() << "min " << problem->zmienne[i_zmienna]->min << " max " << problem->zmienne[i_zmienna]->max << " zakres " << zakres << " wartosc " << wartosc << "\n";
-            rodzice[i_pop]->fenotyp[i_zmienna] = problem->zmienne[i_zmienna]->min + (problem->zmienne[i_zmienna]->max - problem->zmienne[i_zmienna]->min) * rodzice[i_pop]->genotyp[i_zmienna].GetNormalisedValue();
+            rodzice[i_pop]->x[i_zmienna] = problem->zmienne[i_zmienna]->min + (problem->zmienne[i_zmienna]->max - problem->zmienne[i_zmienna]->min) * rodzice[i_pop]->genotyp[i_zmienna].GetNormalisedValue();
         }
     }
 
@@ -327,8 +327,8 @@ void GGA::WyznaczWartFunkcjiKryterialnych()
     for (int i = 0; i <rodzice.size(); i++) {
 
         for (unsigned int x_ind = 0; x_ind < problem->zmienne.size(); x_ind++) {
-            problem -> zmienne[x_ind] -> zmienna =rodzice[i] ->fenotyp[x_ind];
-            qDebug()<<rodzice[i] ->fenotyp[x_ind]<<endl;
+            problem -> zmienne[x_ind] -> zmienna =rodzice[i] ->x[x_ind];
+            qDebug()<<rodzice[i] ->x[x_ind]<<endl;
         }
 
         for (unsigned int f_ind = 0; f_ind < problem->parseryFunkcji.size(); f_ind++) {

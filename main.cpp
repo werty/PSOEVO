@@ -95,6 +95,13 @@ int main(int argc, char **argv) {
 //        tab1[i]=i;
 //    }
 
+//    QVector<unsigned int>::iterator it;
+
+//    for (auto it = tab1.begin(); it !=tab1.end()-1; ++it) {
+//        qDebug()<<*it;
+//    }
+
+
 //    qDebug()<<tab1;
 
 

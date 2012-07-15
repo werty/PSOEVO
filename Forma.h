@@ -147,6 +147,7 @@ public:
   //  QVector<QPointF>vGol;
     Wskazniki* wskazniki;
     
+
     QwtPlotCurve *curve1;
     QwtPlotCurve *curve2;
 

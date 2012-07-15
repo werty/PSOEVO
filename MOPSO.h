@@ -51,7 +51,10 @@ public:
     QVector<int> wek_usun;
     bool stopIteration;
     QMutex  mutex;
+    double c;
     
+
+    QVector<unsigned int> indSortGOL;
 
     void generuj_kostki();
 
@@ -63,8 +66,10 @@ public:
     MOPSO(const MOPSO & orig);
 
     virtual ~MOPSO();
-    int losuj_kostke_ruletka();
-    void aktualizuj_wartosci();
+    int losujKostkeRuletka();
+    void WyznaczWartFunkcjiKryterialnych();
+    void WyznaczPrzystosowanie();
+    void PrzeskalujPrzystosowanie();
     void aktualizuj_predkosci();
     void aktualizuj_pozycje();
     void aktualizuj_pbest();
@@ -74,7 +79,7 @@ public:
     void sprawdz_zdominowanie();
     void wyswietl_repozytorium();
     void wyswietl_populacje();
-    void redukujRepozytorium();
+    void RedukujRepozytorium();
     void Inicjalizuj();
     void Iteruj();
 protected:

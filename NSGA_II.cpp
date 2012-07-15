@@ -99,7 +99,7 @@ void NSGA_II::DekodujGenotyp() {
 //                }
 //            }
             // qDebug() << "min " << problem->zmienne[i_zmienna]->min << " max " << problem->zmienne[i_zmienna]->max << " zakres " << zakres << " wartosc " << wartosc << "\n";
-           pokolenie[i_pop]->fenotyp[i_zmienna] = problem->zmienne[i_zmienna]->min + (problem->zmienne[i_zmienna]->max - problem->zmienne[i_zmienna]->min) / (zakres - 1) * pokolenie[i_pop]->genotyp[i_zmienna].GetValue();
+           pokolenie[i_pop]->x[i_zmienna] = problem->zmienne[i_zmienna]->min + (problem->zmienne[i_zmienna]->max - problem->zmienne[i_zmienna]->min) / (zakres - 1) * pokolenie[i_pop]->genotyp[i_zmienna].GetValue();
         }
     }
 }
@@ -107,7 +107,7 @@ void NSGA_II::DekodujGenotyp() {
 void NSGA_II::WyznaczWartFunkcjiKryterialnych() {
     for (int i = 0; i <pokolenie.size(); i++) {
         for (unsigned int x_ind = 0; x_ind < problem->zmienne.size(); x_ind++) {
-            problem -> zmienne[x_ind] -> zmienna =pokolenie[i] ->fenotyp[x_ind];
+            problem -> zmienne[x_ind] -> zmienna =pokolenie[i] ->x[x_ind];
         }
 
         for (unsigned int f_ind = 0; f_ind < problem->parseryFunkcji.size(); f_ind++) {
@@ -228,7 +228,7 @@ void NSGA_II::WyswietlFenotyp() {
     for (int i = 0; i <pokolenie.size(); i++) {
         qDebug() << i << " : ";
         for (unsigned int j = 0; j < problem->parseryFunkcji.size(); j++) {
-            qDebug() <<pokolenie[i]->fenotyp[j] << " ";
+            qDebug() <<pokolenie[i]->x[j] << " ";
         }
         qDebug() << "\n";
     }
@@ -241,6 +241,7 @@ void NSGA_II::WyswietlPrzystosowaniePrzeskalowane(QVector<Solution*>& P) {
         for (unsigned int j = 0; j < problem->parseryFunkcji.size(); j++) {
             qDebug() <<P[i]->przystosowaniePrzeskalowane[j] << " ";
         }
+
         qDebug() << "\n";
     }
 }

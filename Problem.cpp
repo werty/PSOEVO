@@ -103,19 +103,20 @@ bool Problem::Dominuje(const Particle & a, const Particle & b) {
     for (int i = 0; i < parseryFunkcji.size(); i++) {
         // qDebug() << b.fitness[i] << " " << fitness[i] << "\n";
         
-        if (tab_minmax[i]) {//max
-            if (b.fitness[i] >= a.fitness[i]) {
 
-                return 0;
-            }
-        } else {//min
-            if (b.fitness[i] <= a.fitness[i]) {
+            if (b.przystosowaniePrzeskalowane[i] >= a.przystosowaniePrzeskalowane[i]) {
 
                 return 0;
             }
 
+//        else {//min
+//            if (b.wartFunkcjiKryterialnych[i] <= a.wartFunkcjiKryterialnych[i]) {
 
-        }
+//                return 0;
+//            }
+
+
+//        }
 
     }
 

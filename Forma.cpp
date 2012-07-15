@@ -901,7 +901,7 @@ void Forma::aktualizuj_wykres_przystosowania() {
     for (int i = 0; i < mopso->populacja.size(); i++) {
         if (mopso->populacja[i]->zdominowana) {
 
-            data_dom->append(QPointF(mopso->populacja[i]->fitness[0], mopso->populacja[i]->fitness[1]));
+            data_dom->append(QPointF(mopso->populacja[i]->wartFunkcjiKryterialnych[0], mopso->populacja[i]->wartFunkcjiKryterialnych[1]));
 
         }
     }
@@ -909,7 +909,7 @@ void Forma::aktualizuj_wykres_przystosowania() {
     for (int i = 0; i < mopso->repozytorium.size(); i++) {
 
 
-        data_nondom->append(QPointF(mopso->repozytorium[i]->fitness[0], mopso->repozytorium[i]->fitness[1]));
+        data_nondom->append(QPointF(mopso->repozytorium[i]->wartFunkcjiKryterialnych[0], mopso->repozytorium[i]->wartFunkcjiKryterialnych[1]));
 
 
 
@@ -1067,6 +1067,7 @@ void Forma::sIterujRazMOPSO() {
 
     IterujRazMOPSO();
     aktualizuj_wykres_przystosowania();
+    qDebug()<<"mopso D_EC "<<wskazniki->D_EC(mopso->repozytorium);
 }
 
 void Forma::IterujRazMOPSO() {
@@ -1109,7 +1110,8 @@ void Forma::IterujRazMOPSO() {
 
     mopso->Iteruj();
     // pso->wyswietl_repozytorium();
-    double gol = wskazniki->GOL(mopso->repozytorium, problem);
+     wskazniki->GOL(mopso->populacja,mopso->indSortGOL );
+     double gol=mopso->populacja[mopso->indSortGOL[0]]->GOL;
     //      vGol.push_back(QPointF((double)pso->num_iter,gol));
     qDebug() << "GOL = " << gol << "\n";
     wykresGOL->dodajPunkt(QPointF((double) mopso->num_iter, gol));
@@ -1908,6 +1910,12 @@ void Forma::sIterujRazGGA()
     AktualizujWykresGGA();
     qDebug()<<"spacing "<<gga->RozpFrontParWarFunKryt();
 
+    wskazniki->GOL(gga->rodzice,gga->indSortGOL );
+    double gol=gga->rodzice[gga->indSortGOL[0]]->GOL;
+   //      vGol.push_back(QPointF((double)pso->num_iter,gol));
+    qDebug()<<"D_EC_GOL "<<wskazniki->D_EC_GOL(gga->rodzice,gga->rodzice[gga->indSortGOL[0]]);
+   qDebug() << "GOL = " << gol << "\n";
+    qDebug()<<"D_EC "<<wskazniki->D_EC(gga->rodzice);
 
 }
 

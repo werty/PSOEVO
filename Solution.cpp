@@ -19,7 +19,7 @@ Solution::Solution(int il_zmiennych,int il_bitow, int il_funkcji)
     for (int i = 0; i < il_zmiennych; i++) {
         genotyp[i].Resize(il_bitow);
     }
-    fenotyp.resize(il_zmiennych);
+    x.resize(il_zmiennych);
     wartFunkcjiKryterialnych.resize(il_funkcji);
     przystosowanie.resize(il_funkcji);
     przystosowaniePrzeskalowane.resize(il_funkcji);
@@ -39,14 +39,14 @@ Solution::Solution(const Solution& orig) {
     for (int i = 0; i < orig.il_zmiennych; i++) {
         genotyp[i].Resize(il_bitow);
     }
-    fenotyp.resize(orig.il_zmiennych);
+    x.resize(orig.il_zmiennych);
     wartFunkcjiKryterialnych.resize(il_funkcji);
     przystosowanie.resize(orig.il_funkcji);
     przystosowaniePrzeskalowane.resize(orig.il_funkcji);
     
     
     for (int i_zmienna = 0; i_zmienna < orig.il_zmiennych; i_zmienna++) {
-        fenotyp[i_zmienna]=orig.fenotyp[i_zmienna];
+        x[i_zmienna]=orig.x[i_zmienna];
         for (int i_bit = 0; i_bit < orig.il_bitow; i_bit++) {
             genotyp[i_zmienna][i_bit]=orig.genotyp[i_zmienna][i_bit];
         }
@@ -64,7 +64,7 @@ Solution::Solution(const Solution& orig) {
 Solution & Solution::operator = (const Solution & orig)
 {
     for (int i_zmienna = 0; i_zmienna < orig.il_zmiennych; i_zmienna++) {
-        fenotyp[i_zmienna]=orig.fenotyp[i_zmienna];
+        x[i_zmienna]=orig.x[i_zmienna];
         for (int i_bit = 0; i_bit < orig.il_bitow; i_bit++) {
             genotyp[i_zmienna][i_bit]=orig.genotyp[i_zmienna][i_bit];
         }

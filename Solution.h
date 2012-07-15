@@ -22,7 +22,7 @@ public:
     double GOL;
     double fi;//dla GGA znormalizowany stopien suboptymalnosci
     QVector<Chromosome> genotyp;
-    QVector<double> fenotyp;
+    QVector<double> x;//fenotyp
     QVector<double> wartFunkcjiKryterialnych;
     QVector<double> przystosowanie;
     QVector<double> przystosowaniePrzeskalowane;

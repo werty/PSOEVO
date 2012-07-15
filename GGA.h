@@ -66,6 +66,8 @@ public:
 
 
 
+
+    QVector<unsigned int> indSortGOL;
     void GOL(QVector<unsigned int> &indSortGOL);
     /**
      * @brief funkcjeRodzajnikow kmkmkmkmkmkmkmkmkm
