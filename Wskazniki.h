@@ -106,7 +106,7 @@ double Wskazniki::D_EC_GOL(QVector<T*> &P,T*  gol)
 template <class T>
 double Wskazniki::D_EP_GOL(QVector<T*> &P,T* gol)
 {
-    double d_ec_gol=0;
+    double d_ep_gol=0;
 
     if(P.size()<2)
     {
@@ -114,11 +114,11 @@ double Wskazniki::D_EP_GOL(QVector<T*> &P,T* gol)
         return 0;
     }
     for (auto it1 = P.begin(); it1 != P.end();it1++) {
-            d_ec_gol+=Distance((*it1)->x,gol->x);
+            d_ep_gol+=Distance((*it1)->x,gol->x);
 
     }
 
-    return d_ec_gol/(P.size());
+    return d_ep_gol/(P.size());
 }
 
 

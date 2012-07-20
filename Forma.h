@@ -30,6 +30,8 @@
 #include "Wskazniki.h"
 #include <qtmmlwidget.h>
 
+#include "colorlisteditor.h"
+#include "stringlisteditor.h"
 
 
 #include <qwt_plot.h>
@@ -105,6 +107,55 @@ public:
     Rosenbrock* rosenbrock;
 };
 
+
+enum RodzDanych{
+    wszystkie,
+    front_pareto,
+
+};
+
+struct AxisSetting{
+   bool isParam;//parametry czy wart funkcji kryt
+   unsigned int index;//numer funkcji czy parametru
+  // unsigned int indexOfVariable;
+
+};
+struct GraphSetting{
+    QVector<AxisSetting> axisSettings;
+    bool all;//wszystkie osobniki
+    bool pareto;//czy tylko front pareto
+    int indexOfGender;//czy moze ktorys osob przyp ktoremus z rodzajnikow
+    QString color;
+    QString name;
+    QString patternName;
+    unsigned int patternIndex;
+};
+
+struct Plot2DSetting{
+    QCustomPlot* qPlot;
+    QVector<GraphSetting> graphSettings;
+};
+
+class AuxClass : public QObject{
+public:
+    AuxClass(){
+
+    };
+    AuxClass(int row,int col){
+        this->col=col;
+        this->row=row;
+    };
+    ~AuxClass()
+    {
+
+    };
+
+    int col,row;
+
+
+};
+
+
 class Forma : public QMainWindow {
     Q_OBJECT
 public:
@@ -115,8 +166,10 @@ public:
     void createMenus();
     bool wczytajProblem(QString nazwa_pliku);
     bool zapiszProblem(QString nazwa_pliku);
+    bool isFunctionInitialized;//czy funkcje zostaly wczytane
 
-    
+    QVector<Plot2DSetting> plotsSettingsGGA;
+
     QTime time;
    
     QMenu *fileMenu;
@@ -167,11 +220,15 @@ public:
     void Dodaj_zakresy_zmiennych();
     void IterujRazMOPSO();
     void Loguj();
+    void AddRowToPlotTable();
 
     void PokazWszystkieFronty();
 
+    void AddGGADataToGraph(QCPGraph* graph,QVector<AxisSetting>* as,Solution* s,float& a,float& b);
+    void UpdateAllPlots();
 
-    void AktualizujWykresGGA();
+
+
     
     // static  value_type* AddVariable(const char_type *a_szName, void *a_pUserData);
     //---------------------------------------------------------------------------
@@ -183,7 +240,14 @@ public:
     QMap<QTreeWidgetItem *,int> mFunctionAttachedToGender;
 
 
+    void AktualizujWykresFunKrytGGA();
+    void AktualizujWykresParamGGA();
+
+public slots:
+     void changeIndexSlot(int index,int row,int column);
+     void currentIndexChanged(QObject *ac);
 private slots:
+
 
     void newFile();
     void open();
@@ -233,8 +297,13 @@ private slots:
     void sRemoveFun();
     void sRemoveAllFun();
 
+    void on_pushButton_clicked();
+    void on_comboBox_currentIndexChanged(int index);
+    void on_pushButton_2_clicked();
+    void on_stworzWykresyGGA_clicked();
 
 private:
+    QSignalMapper *signalMapper;
     Ui::Forma widget;
 };
 

@@ -58,7 +58,9 @@ SOURCES += main.cpp\
     GGA.cpp \
     treemodel.cpp \
     treeitem.cpp \
-    WorkerThread.cpp
+    WorkerThread.cpp \
+    colorlisteditor.cpp \
+    stringlisteditor.cpp
 
 HEADERS  += \
     MOPSO.h \
@@ -109,7 +111,9 @@ HEADERS  += \
     qcustomplot.h \
     GGA.h \
     treemodel.h \
-    treeitem.h
+    treeitem.h \
+    colorlisteditor.h \
+    stringlisteditor.h
 
 QMAKE_CXXFLAGS += -std=c++0x
 
