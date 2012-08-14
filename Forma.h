@@ -131,9 +131,19 @@ struct GraphSetting{
     unsigned int patternIndex;
 };
 
-struct Plot2DSetting{
+class Plot2DSetting{
+public:
+    int tabIndex;//index zakladki na ktorej znajduje sie wykres
     QCustomPlot* qPlot;
+    QVector<unsigned int> algorithms;
     QVector<GraphSetting> graphSettings;
+    Plot2DSetting()
+    {
+        tabIndex=-1;
+        qPlot=nullptr;
+    }
+
+
 };
 
 class AuxClass : public QObject{
@@ -167,8 +177,20 @@ public:
     bool wczytajProblem(QString nazwa_pliku);
     bool zapiszProblem(QString nazwa_pliku);
     bool isFunctionInitialized;//czy funkcje zostaly wczytane
+    bool isGGAInitialized;
+    bool isNSGA_IIInitialized;
+    bool isMOPSOInitialized;
 
-    QVector<Plot2DSetting> plotsSettingsGGA;
+    QVector<Plot2DSetting> plotSettingsGGA;
+    QVector<Plot2DSetting> plotSettingsMOPSO;
+    QVector<Plot2DSetting> plotSettingsNSGA_II;
+    Plot2DSetting plotSettingsGOL;
+    Plot2DSetting plotSettingsSpacing;
+    Plot2DSetting plotSettingsD_EC;
+    Plot2DSetting plotSettingsD_EC_GOL;
+    Plot2DSetting plotSettingsD_EP_GOL;
+    void AddIndicatorGraphToQCPlot(QCustomPlot* qp,unsigned int index);
+    void UpdateIndicatorsGraphs();
 
     QTime time;
    
@@ -220,7 +242,10 @@ public:
     void Dodaj_zakresy_zmiennych();
     void IterujRazMOPSO();
     void Loguj();
-    void AddRowToPlotTable();
+    void AddRowToMOPSOPlotTable();
+    void AddRowToGGAPlotTable();
+    void AddRowToNSGA_IIPlotTable();
+
 
     void PokazWszystkieFronty();
 
@@ -228,6 +253,7 @@ public:
     void UpdateAllPlots();
 
 
+    unsigned int numOfIterations;
 
     
     // static  value_type* AddVariable(const char_type *a_szName, void *a_pUserData);
@@ -243,9 +269,16 @@ public:
     void AktualizujWykresFunKrytGGA();
     void AktualizujWykresParamGGA();
 
+    void showWarning(const QString &msg);
+    void AddMOPSODataToGraph(QCPGraph *graph, QVector<AxisSetting> *as, Particle *s, float &a, float &b);
+
+
+    void AddNSGA_IIDataToGraph(QCPGraph *graph, QVector<AxisSetting> *as, Solution *s, float &a, float &b);
 public slots:
-     void changeIndexSlot(int index,int row,int column);
-     void currentIndexChanged(QObject *ac);
+     void changeGGAIndexSlot(int index,int row,int column);
+     void currentGGAIndexChanged(QObject *ac);
+     void currentMOPSOIndexChanged(QObject *ac);
+     void currentNSGA_IIIndexChanged(QObject *ac);
 private slots:
 
 
@@ -297,10 +330,49 @@ private slots:
     void sRemoveFun();
     void sRemoveAllFun();
 
-    void on_pushButton_clicked();
-    void on_comboBox_currentIndexChanged(int index);
-    void on_pushButton_2_clicked();
     void on_stworzWykresyGGA_clicked();
+
+    void on_pushButtonDodajWskazniki_clicked();
+
+    void on_bDodajWykres_clicked();
+
+    void on_checkBoxMOPSO_toggled(bool checked);
+
+    void on_checkBoxNSGAII_toggled(bool checked);
+
+    void on_checkBoxGGA_toggled(bool checked);
+
+    void on_checkBoxGGA_clicked();
+
+    void on_checkBoxMOPSO_clicked();
+
+    void on_checkBoxNSGAII_clicked();
+
+
+
+    void on_bInicjalizujSymulacja_clicked();
+
+    void on_bIterujRazSymulacja_clicked();
+
+    void on_bDodajWykresMOPSO_clicked();
+
+    void on_bDodajWykresNSGA_II_clicked();
+
+    void on_stworzWykresyMOPSO_clicked();
+
+    void on_bIterujRazGGA_clicked();
+
+    void on_bIterujRazMOPSO_clicked();
+
+    void on_stworzWykresyNSGA_II_clicked();
+
+    void on_bIterujNSGA_2_clicked();
+
+    void on_bInicjalizujNSGA_clicked();
+
+    void on_bInicjalizujMOPSO_clicked();
+
+    void on_bInicjalizujGGA_clicked();
 
 private:
     QSignalMapper *signalMapper;

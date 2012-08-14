@@ -3,12 +3,7 @@
 #include "uzyteczne_funkcje.h"
 
 
-void showWarning(const QString &msg) {
-    QMessageBox::warning(0, "Warning", msg,
-            QMessageBox::Ok,
-            QMessageBox::NoButton,
-            QMessageBox::NoButton);
-}
+
 
 double losuj(double min,double max)
 {

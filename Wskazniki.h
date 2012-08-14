@@ -129,6 +129,7 @@ void Wskazniki::GOL(QVector<T*>&P,QVector<unsigned int> &indSortGOL) {
     //wyznaczamy maksymalne wartosci przystosowania przeskalowanego dla kazdej funckcji kryterialnej
     for(unsigned int i=0;i<P.size();i++)
     {
+        qDebug()<<"przystosowanie "<<P[i]->przystosowaniePrzeskalowane;
         for(unsigned int j=0;j<P[0]->przystosowaniePrzeskalowane.size();j++)
         {
             if(P[i]->przystosowaniePrzeskalowane[j]>maksWartoscPrzystosowania[j])
@@ -138,6 +139,7 @@ void Wskazniki::GOL(QVector<T*>&P,QVector<unsigned int> &indSortGOL) {
         }
     }
 
+    qDebug()<<"maksWartoscPrzystosowania "<<maksWartoscPrzystosowania;
     //wyznaczamy gol czyli najmniejsza wartosc ze znormalizowanych wartosci przesk przyst
     float wartoscGOL;
 

@@ -31,6 +31,8 @@ public:
     Problem *problem;
     bool stopIteration;
     QMutex  mutex;
+    bool zainicjalizowany;
+    QVector<unsigned int> indSortGOL;
 
     void Inicjalizuj();
     void DekodujGenotyp();

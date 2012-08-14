@@ -22,6 +22,7 @@ MOPSO::MOPSO(int wiel_pop, int wiel_rep, int il_hiperk, bool mutacja, Problem * 
     // parser.DefineVar("x", &this->xVal);
     // parser.DefineVar("y", &this->yVal);
     this->c=2.0;
+    zainicjalizowany=false;
     this->wielk_rep=wiel_rep;
     this->num_iter=0;
     this->z_mutacja = mutacja;
@@ -159,6 +160,7 @@ void MOPSO::Iteruj() {
 
 
 
+    TRACE;
     if (z_mutacja) {
         DEBUG("%s\n","Mutuje");
 
@@ -168,29 +170,30 @@ void MOPSO::Iteruj() {
     DEBUG("%s\n","Aktualizuje predkosci"); 
     aktualizuj_predkosci();
 
+    TRACE;
     //  pso->wyswietl_populacje();
     DEBUG("%s\n","Aktualizuje pozycje");
     aktualizuj_pozycje();
 
     DEBUG("%s\n","Aktualizuje wartosci");
     WyznaczWartFunkcjiKryterialnych();
-
+TRACE;
     WyznaczPrzystosowanie();
 
     PrzeskalujPrzystosowanie();
-
+TRACE;
     DEBUG("%s\n","Aktualizuje pbest");
     aktualizuj_pbest();
 
     DEBUG("%s\n","Sprawdzam zdominowanie");
     sprawdz_zdominowanie();
-
+TRACE;
     DEBUG("%s\n","Aktualizuje repozytorium");
     aktualizuj_repozytorium();
 
     DEBUG("%s\n","Generuje kostki");
     generuj_kostki();
-
+TRACE;
     if (wielk_rep > 0 && repozytorium.size() > wielk_rep) {
         RedukujRepozytorium();
         generuj_kostki();
@@ -440,7 +443,9 @@ void MOPSO::WyznaczPrzystosowanie()
             }
 
             for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
-                populacja[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -populacja[i_rep]->wartFunkcjiKryterialnych[i_fun];
+               // populacja[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -populacja[i_rep]->wartFunkcjiKryterialnych[i_fun];
+                populacja[i_rep]->przystosowanie[i_fun] = populacja[i_rep]->wartFunkcjiKryterialnych[i_fun]-skrajnaWartosc;
+
             }
 
 
@@ -454,7 +459,10 @@ void MOPSO::WyznaczPrzystosowanie()
             }
 
             for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
-                populacja[i_rep]->przystosowanie[i_fun] =populacja[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+               // populacja[i_rep]->przystosowanie[i_fun] =populacja[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+                populacja[i_rep]->przystosowanie[i_fun] =skrajnaWartosc-populacja[i_rep]->wartFunkcjiKryterialnych[i_fun]  ;
+
+
             }
         }
     }
@@ -493,7 +501,7 @@ void MOPSO::PrzeskalujPrzystosowanie()
         // qDebug() << "a " << a << " b " << b << "\n";
         for (int i_rep = 0; i_rep <populacja.size(); i_rep++) {
 
-            populacja[i_rep]->przystosowaniePrzeskalowane[i_fun] = a *populacja[i_rep]->przystosowanie[i_fun] + b;
+            populacja[i_rep]->przystosowaniePrzeskalowane[i_fun] =populacja[i_rep]->przystosowanie[i_fun]/max;// a *populacja[i_rep]->przystosowanie[i_fun] + b;
         }
 
 

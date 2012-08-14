@@ -18,22 +18,32 @@
 Forma::Forma() {
     widget.setupUi(this);
 
+
+
+
+    setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    QTextCodec::setCodecForTr(QTextCodec::codecForName("utf8"));
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf8"));
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
     isFunctionInitialized=false;
+    isGGAInitialized=false;
+    isMOPSOInitialized=false;
+    isNSGA_IIInitialized=false;
 
-    QItemEditorFactory *factory = new QItemEditorFactory;
+//    QItemEditorFactory *factory = new QItemEditorFactory;
 
-    QItemEditorCreatorBase *colorListCreator =
-            new QStandardItemEditorCreator<ColorListEditor>();
+//    QItemEditorCreatorBase *colorListCreator =
+//            new QStandardItemEditorCreator<ColorListEditor>();
 
 
 
-    QItemEditorCreatorBase *stringListCreator =
-            new QStandardItemEditorCreator<StringListEditor>();
+//    QItemEditorCreatorBase *stringListCreator =
+//            new QStandardItemEditorCreator<StringListEditor>();
 
-    factory->registerEditor(QVariant::Color, colorListCreator);
-    factory->registerEditor(QVariant::String, stringListCreator);
+//    factory->registerEditor(QVariant::Color, colorListCreator);
+//    factory->registerEditor(QVariant::String, stringListCreator);
 
-    QItemEditorFactory::setDefaultFactory(factory);
+//    QItemEditorFactory::setDefaultFactory(factory);
 
 
 
@@ -42,6 +52,7 @@ Forma::Forma() {
     nsga_ii = NULL;
     wskazniki = new Wskazniki();
     flaga_bledu = false;
+
 
 
 
@@ -133,8 +144,8 @@ Forma::Forma() {
     //                                                   << tr("Kolor")
     //                                                   );
     connect(widget.Rysuj, SIGNAL(clicked()), this, SLOT(Rysuj()));
-    connect(widget. bIterujMOPSO, SIGNAL(clicked()), this, SLOT(sIterujMOPSO()));
-    connect(widget.Funkcje, SIGNAL(currentIndexChanged(int)), this, SLOT(Zmiana_funkcji()));
+    connect(widget.bIterujMOPSO, SIGNAL(clicked()), this, SLOT(sIterujMOPSO()));
+    //connect(widget.Funkcje, SIGNAL(currentGGAIndexChanged(int)), this, SLOT(Zmiana_funkcji()));
     connect(widget.horizontalScrollBar, SIGNAL(sliderMoved(int)), this, SLOT(Suwak_poziomy()));
     connect(widget.verticalScrollBar, SIGNAL(sliderMoved(int)), this, SLOT(Suwak_pionowy()));
     connect(widget.checkBox_2, SIGNAL(stateChanged(int)), this, SLOT(Cube()));
@@ -670,7 +681,7 @@ void Forma::sDodaj_wszystkie_funkcje() {
     Dodaj_wszystkie_funkcje();
     Inicjalizuj_zmienne();
 
-    isFunctionInitialized=true;
+
 
 
 }
@@ -778,6 +789,7 @@ void Forma::Dodaj_wszystkie_funkcje() {
         widget.treeWidget->insertTopLevelItem(i, item);
 
     }
+    isFunctionInitialized=true;
 }
 
 void Forma::Dodaj_ograniczenie() {
@@ -1022,67 +1034,6 @@ void Forma::aktualizuj_wykres_przystosowania(QVector< QVector<Solution*> > *F) {
 //}
 
 void Forma::sInicjalizujMOPSO() {
-
-    bool z_mutacja;
-    bool ok;
-    unsigned int populacja = widget.populacjaMOPSO->text().toInt(&ok, 10);
-    if (!ok) {
-        showWarning("Niewlasciwy rozmiar populacji");
-        return;
-    }
-    unsigned int wiel_rep = widget.wiel_repozytMOPSO->text().toInt(&ok, 10);
-    if (!ok) {
-        showWarning("Niewlasciwy rozmiar repozytorium");
-        return;
-    }
-    unsigned int il_hiper = widget.il_hiperMOPSO->text().toInt(&ok, 10);
-    if (!ok) {
-        showWarning("Niewlasciwa ilosc hiperkostek");
-        return;
-    }
-    wykresGOL->wyczysc();
-
-
-
-
-    if (widget.z_mutacja->isChecked()) {
-        z_mutacja = true;
-
-    } else {
-        z_mutacja = false;
-
-    }
-
-    mopso = new MOPSO(populacja, wiel_rep, il_hiper, z_mutacja, problem);
-
-    connect(mopso, SIGNAL(done()), this, SLOT(sDoneMOPSO()));
-    connect(mopso, SIGNAL(finished()), this, SLOT(sFinishedMOPSO()),Qt::QueuedConnection);
-    mopso->vmax = 100.0;
-
-    mopso->Inicjalizuj();
-
-
-
-
-    //aktualizuj_wykres_przystosowania();
-
-    // d_directPainter->drawSeries(points_dom,
-    //      data_dom->size() - 1, data_dom->size() - 1);
-    //d_directPainter->drawSeries(points_nondom,
-    //    data_nondom->size() - 1, data_nondom->size() - 1);
-    //wyswietlamy populacje na wykresie funkcji celu
-
-
-
-    //  pso->wyswietl_repozytorium();
-    //   pso->wyswietl_populacje();
-
-    //  pso->Iteruj();
-    aktualizuj_wykres_przystosowania();
-
-    // qDebug() << "Generuje kostki\n";
-    //  pso->generuj_kostki();
-
 
 
 
@@ -1400,6 +1351,9 @@ bool Forma::wczytajProblem(QString nazwa_pliku) {
     Dodaj_wszystkie_funkcje();
     Dodaj_zakresy_zmiennych();
     sDodaj_wszystkie_ograniczenia();
+
+
+
     return true;
 }
 
@@ -1463,6 +1417,7 @@ bool Forma::zapiszProblem(QString nazwa_pliku) {
 
 }
 
+
 void Forma::Inicjalizuj_zmienne() {
 
     //wypelniam tabele ze zmiennymi
@@ -1503,7 +1458,193 @@ void Forma::Loguj() {
 
 }
 
-void Forma::AddRowToPlotTable()
+void Forma::AddRowToMOPSOPlotTable()
+{
+    if(!isFunctionInitialized)
+    {
+        showWarning("Funkcje nie zostaly wczytane");
+        return;
+    }
+
+
+    QVector<QString> patternNames= { "None"     ///< no scatter symbols are drawn (e.g. data only represented with lines, see \ref setLineStyle)
+                                     ,"Dot"       ///< a single pixel, \ref setScatterSize has no influence on its size.
+                                     ,"Cross"     ///< a cross (x)
+                                     ,"Plus"      ///< a plus (+)
+                                     ,"Circle"    ///< a circle which is not filled
+                                     ,"Disc"      ///< a circle which is filled with the color of the graph's pen (not the brush!)
+                                     ,"Square"    ///< a square which is not filled
+                                     ,"Star"      ///< a star with eight arms, i.e. a combination of cross and plus
+                                     ,"Triangle"  ///< an equilateral triangle which is not filled, standing on baseline
+                                     ,"TriangleInverted" ///< an equilateral triangle which is not filled, standing on corner
+                                     ,"CrossSquare"      ///< a square which is not filled, with a cross inside
+                                     ,"PlusSquare"       ///< a square which is not filled, with a plus inside
+                                     ,"CrossCircle"      ///< a circle which is not filled, with a cross inside
+                                     ,"PlusCircle"       ///< a circle which is not filled, with a plus inside
+                                     ,"Peace"    ///< a circle which is not filled, with one vertical and two downward diagonal lines
+                                     ,"Pixmap"    ///< a custom pixmap specified by setScatterPixmap, centered on the data point coordinates. \ref setScatterSize has no influence on its size.
+                                   };
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+    QComboBox* Combcolor = new QComboBox;
+    Combcolor->setMinimumWidth(40);
+    Combcolor->setMaximumWidth(40);
+    QPalette pal = Combcolor->palette(); // holds the widget's palette.
+    pal.setColor(QPalette::Highlight, Qt::transparent); // construction of palette
+    Combcolor->setPalette(pal); //set the comboBox palette
+
+    int size = Combcolor->style()->pixelMetric(QStyle::PM_SmallIconSize);
+    QPixmap pixmap(size,size);
+
+    int con=0;
+    foreach (QString name, colorNms)
+    {
+        Combcolor->addItem("", QColor(con));//Adding ComboItems
+        pixmap.fill(QColor(name));
+        Combcolor->setItemData(con, pixmap, Qt::DecorationRole);//Setting color palettes
+        con=con+1;
+
+    }
+
+
+    QComboBox* comboPattern = new QComboBox;
+
+    foreach (QString name, patternNames)
+    {
+        comboPattern->addItem(name);//Adding ComboItems
+
+    }
+
+    QVector<QString> os1Names,os2Names,dataNames,rodzNames,indexNames;
+    os1Names<<"x1"<<"x2";
+    os2Names<<"x1"<<"x2";
+    dataNames<<"wszystkie"<<"front pareto";
+
+
+
+   // for (int i = 0; i < gga->funkcjeRodzajnikow.size(); ++i) {
+        //dataNames<<"rozw. przydzielone rodzajnikowi "+QVariant(i+1).toString();
+   // }
+    rodzNames<<"fun. kryt."<<"param.";
+
+
+
+
+    for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+        indexNames<<"f"+QVariant(i+1).toString();
+    }
+
+
+    QComboBox* comboOs1Rodz = new QComboBox();
+    signalMapper = new QSignalMapper(this);
+
+
+    foreach (QString name, rodzNames)
+    {
+        comboOs1Rodz->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboOs1Index = new QComboBox();
+
+    foreach (QString name, indexNames)
+    {
+        comboOs1Index->addItem(name);//Adding ComboItems
+
+    }
+
+
+    QComboBox* comboOs2Rodz = new QComboBox;
+
+    foreach (QString name, rodzNames)
+    {
+        comboOs2Rodz->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboOs2Index = new QComboBox;
+
+    foreach (QString name, indexNames)
+    {
+        comboOs2Index->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboData = new QComboBox;
+
+
+
+    foreach (QString name, dataNames)
+    {
+        comboData->addItem(name);//Adding ComboItems
+
+    }
+
+
+
+
+    //nazwa os1 os2 rodz_danych wzor kolor
+    unsigned int row=widget.plotTableMOPSO->rowCount();
+    widget.plotTableMOPSO->insertRow(row);
+
+    //    QTableWidgetItem *colorItem = new QTableWidgetItem;
+    //    colorItem->setData(Qt::DisplayRole, QColor("red"));
+
+    //    QTableWidgetItem *os1Item = new QTableWidgetItem;
+    //    os1Item->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *os2Item = new QTableWidgetItem;
+    //    os2Item->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *daneItem = new QTableWidgetItem;
+    //    daneItem->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *wzorItem = new QTableWidgetItem;
+    //    wzorItem->setData(Qt::DisplayRole, "cos");
+
+    QLineEdit* nameItem=new QLineEdit("Wykres");
+
+
+
+
+    widget.plotTableMOPSO->setCellWidget(row, 0, nameItem);
+    widget.plotTableMOPSO->setCellWidget(row, 1, comboOs1Rodz);
+    widget.plotTableMOPSO->setCellWidget(row, 2, comboOs1Index);
+    widget.plotTableMOPSO->setCellWidget(row, 3, comboOs2Rodz);
+    widget.plotTableMOPSO->setCellWidget(row, 4, comboOs2Index);
+    widget.plotTableMOPSO->setCellWidget(row, 5, comboData);
+    widget.plotTableMOPSO->setCellWidget(row, 6, comboPattern);
+    widget.plotTableMOPSO->setCellWidget(row,7,Combcolor);
+    widget.plotTableMOPSO->resizeColumnToContents(0);
+    widget.plotTableMOPSO->horizontalHeader()->setStretchLastSection(true);
+
+
+    QObject* ac=new AuxClass(row,1);
+    connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+
+
+    signalMapper->setMapping(comboOs1Rodz,ac );
+    // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
+    connect(signalMapper, SIGNAL(mapped(QObject *)),
+            this, SLOT(currentMOPSOIndexChanged(QObject *)));
+
+    ac=new AuxClass(row,3);
+    connect(comboOs2Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+
+
+    signalMapper->setMapping(comboOs2Rodz,ac );
+    // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
+    connect(signalMapper, SIGNAL(mapped(QObject *)),
+            this, SLOT(currentMOPSOIndexChanged(QObject *)));
+
+
+
+}
+
+void Forma::AddRowToGGAPlotTable()
 {
 
     if(!isFunctionInitialized)
@@ -1675,7 +1816,7 @@ void Forma::AddRowToPlotTable()
     signalMapper->setMapping(comboOs1Rodz,ac );
     // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
     connect(signalMapper, SIGNAL(mapped(QObject *)),
-            this, SLOT(currentIndexChanged(QObject *)));
+            this, SLOT(currentGGAIndexChanged(QObject *)));
 
     ac=new AuxClass(row,3);
     connect(comboOs2Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
@@ -1684,7 +1825,185 @@ void Forma::AddRowToPlotTable()
     signalMapper->setMapping(comboOs2Rodz,ac );
     // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
     connect(signalMapper, SIGNAL(mapped(QObject *)),
-            this, SLOT(currentIndexChanged(QObject *)));
+            this, SLOT(currentGGAIndexChanged(QObject *)));
+
+}
+
+void Forma::AddRowToNSGA_IIPlotTable()
+{
+    if(!isFunctionInitialized)
+    {
+        showWarning("Funkcje nie zostaly wczytane");
+        return;
+    }
+
+
+    QVector<QString> patternNames= { "None"     ///< no scatter symbols are drawn (e.g. data only represented with lines, see \ref setLineStyle)
+                                     ,"Dot"       ///< a single pixel, \ref setScatterSize has no influence on its size.
+                                     ,"Cross"     ///< a cross (x)
+                                     ,"Plus"      ///< a plus (+)
+                                     ,"Circle"    ///< a circle which is not filled
+                                     ,"Disc"      ///< a circle which is filled with the color of the graph's pen (not the brush!)
+                                     ,"Square"    ///< a square which is not filled
+                                     ,"Star"      ///< a star with eight arms, i.e. a combination of cross and plus
+                                     ,"Triangle"  ///< an equilateral triangle which is not filled, standing on baseline
+                                     ,"TriangleInverted" ///< an equilateral triangle which is not filled, standing on corner
+                                     ,"CrossSquare"      ///< a square which is not filled, with a cross inside
+                                     ,"PlusSquare"       ///< a square which is not filled, with a plus inside
+                                     ,"CrossCircle"      ///< a circle which is not filled, with a cross inside
+                                     ,"PlusCircle"       ///< a circle which is not filled, with a plus inside
+                                     ,"Peace"    ///< a circle which is not filled, with one vertical and two downward diagonal lines
+                                     ,"Pixmap"    ///< a custom pixmap specified by setScatterPixmap, centered on the data point coordinates. \ref setScatterSize has no influence on its size.
+                                   };
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+    QComboBox* Combcolor = new QComboBox;
+    Combcolor->setMinimumWidth(40);
+    Combcolor->setMaximumWidth(40);
+    QPalette pal = Combcolor->palette(); // holds the widget's palette.
+    pal.setColor(QPalette::Highlight, Qt::transparent); // construction of palette
+    Combcolor->setPalette(pal); //set the comboBox palette
+
+    int size = Combcolor->style()->pixelMetric(QStyle::PM_SmallIconSize);
+    QPixmap pixmap(size,size);
+
+    int con=0;
+    foreach (QString name, colorNms)
+    {
+        Combcolor->addItem("", QColor(con));//Adding ComboItems
+        pixmap.fill(QColor(name));
+        Combcolor->setItemData(con, pixmap, Qt::DecorationRole);//Setting color palettes
+        con=con+1;
+
+    }
+
+
+    QComboBox* comboPattern = new QComboBox;
+
+    foreach (QString name, patternNames)
+    {
+        comboPattern->addItem(name);//Adding ComboItems
+
+    }
+
+    QVector<QString> os1Names,os2Names,dataNames,rodzNames,indexNames;
+    os1Names<<"x1"<<"x2";
+    os2Names<<"x1"<<"x2";
+    dataNames<<"wszystkie"<<"front pareto";
+
+
+    rodzNames<<"fun. kryt."<<"param.";
+
+
+    for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+        indexNames<<"f"+QVariant(i+1).toString();
+    }
+
+
+    QComboBox* comboOs1Rodz = new QComboBox();
+    signalMapper = new QSignalMapper(this);
+
+
+    foreach (QString name, rodzNames)
+    {
+        comboOs1Rodz->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboOs1Index = new QComboBox();
+
+    foreach (QString name, indexNames)
+    {
+        comboOs1Index->addItem(name);//Adding ComboItems
+
+    }
+
+
+    QComboBox* comboOs2Rodz = new QComboBox;
+
+    foreach (QString name, rodzNames)
+    {
+        comboOs2Rodz->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboOs2Index = new QComboBox;
+
+    foreach (QString name, indexNames)
+    {
+        comboOs2Index->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboData = new QComboBox;
+
+
+
+    foreach (QString name, dataNames)
+    {
+        comboData->addItem(name);//Adding ComboItems
+
+    }
+
+
+
+
+    //nazwa os1 os2 rodz_danych wzor kolor
+    unsigned int row=widget.plotTableNSGA_II->rowCount();
+    widget.plotTableNSGA_II->insertRow(row);
+
+    //    QTableWidgetItem *colorItem = new QTableWidgetItem;
+    //    colorItem->setData(Qt::DisplayRole, QColor("red"));
+
+    //    QTableWidgetItem *os1Item = new QTableWidgetItem;
+    //    os1Item->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *os2Item = new QTableWidgetItem;
+    //    os2Item->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *daneItem = new QTableWidgetItem;
+    //    daneItem->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *wzorItem = new QTableWidgetItem;
+    //    wzorItem->setData(Qt::DisplayRole, "cos");
+
+    QLineEdit* nameItem=new QLineEdit("Wykres");
+
+
+
+
+    widget.plotTableNSGA_II->setCellWidget(row, 0, nameItem);
+    widget.plotTableNSGA_II->setCellWidget(row, 1, comboOs1Rodz);
+    widget.plotTableNSGA_II->setCellWidget(row, 2, comboOs1Index);
+    widget.plotTableNSGA_II->setCellWidget(row, 3, comboOs2Rodz);
+    widget.plotTableNSGA_II->setCellWidget(row, 4, comboOs2Index);
+    widget.plotTableNSGA_II->setCellWidget(row, 5, comboData);
+    widget.plotTableNSGA_II->setCellWidget(row, 6, comboPattern);
+    widget.plotTableNSGA_II->setCellWidget(row,7,Combcolor);
+    widget.plotTableNSGA_II->resizeColumnToContents(0);
+    widget.plotTableNSGA_II->horizontalHeader()->setStretchLastSection(true);
+
+
+    QObject* ac=new AuxClass(row,1);
+    connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+
+
+    signalMapper->setMapping(comboOs1Rodz,ac );
+    // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
+    connect(signalMapper, SIGNAL(mapped(QObject *)),
+            this, SLOT(currentNSGA_IIIndexChanged(QObject*)));
+
+    ac=new AuxClass(row,3);
+    connect(comboOs2Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+
+
+    signalMapper->setMapping(comboOs2Rodz,ac );
+    // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
+    connect(signalMapper, SIGNAL(mapped(QObject *)),
+            this, SLOT(currentNSGA_IIIndexChanged(QObject *)));
 
 }
 
@@ -1692,7 +2011,6 @@ void Forma::PokazWszystkieFronty()
 {
     QVector< QVector<Solution*> > * Fi=gga->FastNonDominatedSort();
     qDebug()<<"ilosc frontow "<<Fi->size()<<"\n";
-
     widget.qPlotWidget->clearGraphs();
 
     unsigned int tmp=255/(Fi->size()-1);
@@ -1710,21 +2028,11 @@ void Forma::PokazWszystkieFronty()
             widget.qPlotWidget->graph(i)->addData((*Fi)[i][j]->wartFunkcjiKryterialnych[0],(*Fi)[i][j]->wartFunkcjiKryterialnych[1]);
 
         }
-
     }
-
-
-
 }
-
-
-
-
 
 void Forma::AktualizujWykresParamGGA()
 {
-
-
     qDebug()<<"aktualizuje wykres dla GGA";
     widget.qPlotWidget->graph(0)->clearData();
     widget.qPlotWidget->graph(1)->clearData();
@@ -1791,12 +2099,12 @@ void Forma::AktualizujWykresParamGGA()
     widget.qPlotWidget->replot();
 }
 
-void Forma::changeIndexSlot(int index, int row, int column)
+void Forma::changeGGAIndexSlot(int index, int row, int column)
 {
     showWarning("trololo");
 }
 
-void Forma::currentIndexChanged(QObject * ac)
+void Forma::currentGGAIndexChanged(QObject * ac)
 {
 
     //showWarning(" "+QVariant(((AuxClass*)ac)->col).toString());
@@ -1833,7 +2141,81 @@ void Forma::currentIndexChanged(QObject * ac)
 
 
 }
+void Forma::currentMOPSOIndexChanged(QObject * ac)
+{
 
+    //showWarning(" "+QVariant(((AuxClass*)ac)->col).toString());
+
+    int col=((AuxClass*)ac)->col+1;
+    int row=((AuxClass*)ac)->row;
+    //qDebug()<<"row "<<row<<" col "<<col;
+    //problem->funkcje.size()
+    QComboBox* cb=((QComboBox*) widget.plotTableMOPSO->cellWidget(row, col));
+
+    //qDebug()<<"1791 "<<cb->count();
+    while(cb->count()!=0)
+    {
+        cb->removeItem(0);
+    }
+    //cb->clear();
+    // qDebug()<<"1793";
+    //qDebug()<<"current index "<<cb->currentIndex();
+    if(((QComboBox*) widget.plotTableMOPSO->cellWidget(row, col-1))->currentIndex()==0)
+    {
+
+        for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+            cb->addItem("f"+QVariant(i+1).toString());
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0; i < problem->zmienne.size(); ++i) {
+            cb->addItem( QString(problem->zmienne[i]->nazwa.c_str()));
+        }
+
+    }
+
+
+
+}
+
+void Forma::currentNSGA_IIIndexChanged(QObject * ac)
+{
+
+    //showWarning(" "+QVariant(((AuxClass*)ac)->col).toString());
+
+    int col=((AuxClass*)ac)->col+1;
+    int row=((AuxClass*)ac)->row;
+    //qDebug()<<"row "<<row<<" col "<<col;
+    //problem->funkcje.size()
+    QComboBox* cb=((QComboBox*) widget.plotTableNSGA_II->cellWidget(row, col));
+
+    //qDebug()<<"1791 "<<cb->count();
+    while(cb->count()!=0)
+    {
+        cb->removeItem(0);
+    }
+    //cb->clear();
+    // qDebug()<<"1793";
+    //qDebug()<<"current index "<<cb->currentIndex();
+    if(((QComboBox*) widget.plotTableNSGA_II->cellWidget(row, col-1))->currentIndex()==0)
+    {
+
+        for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+            cb->addItem("f"+QVariant(i+1).toString());
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0; i < problem->zmienne.size(); ++i) {
+            cb->addItem( QString(problem->zmienne[i]->nazwa.c_str()));
+        }
+
+    }
+
+
+
+}
 void Forma::AktualizujWykresFunKrytGGA()
 {
 
@@ -1906,42 +2288,7 @@ void Forma::AktualizujWykresFunKrytGGA()
 
 
 void Forma::sInicjalizujNSGA() {
-    if (nsga_ii != NULL) {
-        qDebug() << "delete nsga\n";
-        delete nsga_ii;
-    }
-    bool ok;
-    unsigned int populacja = widget.populacjaNSGA_II->text().toInt(&ok, 10);
-    if (!ok) {
-        showWarning("Niewlasciwy rozmiar populacji");
-        return;
-    }
-    unsigned int il_bitow = widget.ilBitowNSGA_II->text().toInt(&ok, 10);
-    if (!ok) {
-        showWarning("Niewlasciwy ilosc bitow");
-        return;
-    }
-    float prawd_krzyz = widget.prawdKrzyzNSGA_II->text().toFloat(&ok);
-    if (!ok || prawd_krzyz < 0 || prawd_krzyz > 1.0) {
-        showWarning("Niewlasciwa wartość prawd. krzyzowania");
-        return;
-    }
-    float prawd_mut = widget.prawdMutNSGA_II->text().toFloat(&ok);
-    if (!ok || prawd_mut < 0.0 || prawd_mut > 1.0) {
-        showWarning("Niewlasciwa wartość prawd. mutacji");
-        return;
-    }
-    nsga_ii = new NSGA_II(populacja, il_bitow, prawd_mut, prawd_krzyz, problem);
-    connect(nsga_ii, SIGNAL(done()), this, SLOT(sDoneNSGA())); //,Qt::QueuedConnection);
-    connect(nsga_ii, SIGNAL(finished()), this, SLOT(sFinishedNSGA()),Qt::QueuedConnection);
 
-    DINFO;
-    nsga_ii->Inicjalizuj();
-    DINFO;
-
-    //  nsga->Inicjalizuj(&nsga->rodzenstwo);
-
-    DINFO;
 
 }
 
@@ -2013,7 +2360,1568 @@ void Forma::sFinishedNSGA()
 
 void Forma::sInicjalizujGGA()
 {
+
+
+
+}
+
+void Forma::sIterujGGA()
+{
+}
+
+void Forma::sIterujRazGGA()
+{
+
+}
+
+
+void Forma::sStopGGA()
+{
+}
+
+void Forma::sDoneGGA()
+{
+}
+
+void Forma::sFinishedGGA()
+{
+}
+
+void Forma::sAttachFunToGender()
+{
+    qDebug()<<widget.treeWidget->currentItem()->parent()<<endl;
+    qDebug()<<widget.treeWidget->currentIndex()<<endl;
+    qDebug()<< widget.functionTable->currentRow()<<endl;
+    qDebug()<<"widget.functionTable->currentItem(); "<<widget.functionTable->currentItem()<<endl;
+    if(widget.treeWidget->currentItem()->parent()==0 && widget.functionTable->currentRow()>=0)
+    {
+        QTreeWidgetItem *item = new QTreeWidgetItem();
+        qDebug()<<"address "<<item<<endl;
+        item->setText(0, problem->funkcje[mFunction[widget.functionTable->item(widget.functionTable->currentRow(),0)]]);
+        mFunctionAttachedToGender[item]=mFunction[widget.functionTable->item(widget.functionTable->currentRow(),0)];
+        qDebug()<<"mFunction["<<widget.functionTable->currentRow()<<"] "<<mFunction[widget.functionTable->item(widget.functionTable->currentRow(),0)]<<endl;
+        mFunction.remove(widget.functionTable->item(widget.functionTable->currentRow(),0));
+        //   widget.treeWidget->insertTopLevelItem(0, item);
+
+        widget.treeWidget->currentItem()->addChild(item);
+        widget.treeWidget->currentItem()->setExpanded(true);
+        widget.functionTable->removeRow(widget.functionTable->currentRow());
+        widget.functionTable->clearSelection();
+        widget.functionTable->setCurrentCell(-1,-1);
+
+    }
+
+}
+
+void Forma::sRemoveFun()
+{
+    if(widget.treeWidget->currentItem()->parent()!=0 )
+    {
+        QTableWidgetItem *item = new QTableWidgetItem(problem->funkcje[mFunctionAttachedToGender[widget.treeWidget->currentItem()]]);
+        mFunction[item]=mFunctionAttachedToGender[widget.treeWidget->currentItem()];
+        mFunctionAttachedToGender.remove(  widget.treeWidget->currentItem());
+        widget.treeWidget->currentItem()->parent()->removeChild( widget.treeWidget->currentItem());
+        widget.functionTable->insertRow( widget.functionTable->rowCount());
+        widget.functionTable->setItem(widget.functionTable->rowCount()-1,0,item);
+    }
+}
+
+void Forma::sRemoveAllFun()
+{
+    qDebug()<<"top level item "<<widget.treeWidget->topLevelItemCount()<<"\n";
+    for(int i=0;i<widget.treeWidget->topLevelItemCount();++i)
+    {
+        qDebug()<<"num item "<<widget.treeWidget->topLevelItem(i)->childCount()<<"\n";
+        for(unsigned int j=0;j<widget.treeWidget->topLevelItem(i)->childCount();j++)
+        {
+
+            QTableWidgetItem *item = new QTableWidgetItem(problem->funkcje[mFunctionAttachedToGender[widget.treeWidget->topLevelItem(i)->child(j)]]);
+            mFunction[item]=mFunctionAttachedToGender[widget.treeWidget->topLevelItem(i)->child(j)];
+            mFunctionAttachedToGender.remove(widget.treeWidget->topLevelItem(i)->child(j));
+            widget.treeWidget->topLevelItem(i)->child(j)->parent()->removeChild(widget.treeWidget->topLevelItem(i)->child(j));
+            widget.functionTable->insertRow( widget.functionTable->rowCount());
+            widget.functionTable->setItem(widget.functionTable->rowCount()-1,0,item);
+
+            j=j-1;
+
+        }
+    }
+}
+
+void Forma::sStopNSGA() {
+    widget.Debug->append(QString("Stop"));
+    nsga_ii->stop();
+}
+
+void Forma::AddGGADataToGraph(QCPGraph* graph,QVector<AxisSetting>* as,Solution* s,float& a,float& b)
+{
+    TRACE;
+
+    if((*as)[0].isParam)
+    {
+        a=s->x[(*as)[0].index];
+    }
+    else
+    {
+        a=s->wartFunkcjiKryterialnych[(*as)[0].index];
+    }
+    if((*as)[1].isParam)
+    {
+        b=s->x[(*as)[1].index];
+    }
+    else
+    {
+        b=s->wartFunkcjiKryterialnych[(*as)[1].index];
+    }
+    qDebug()<<"a "<<a<<" b "<<b;
+    graph->addData(a,b);
+    TRACE;
+}
+
+void Forma::AddNSGA_IIDataToGraph(QCPGraph* graph,QVector<AxisSetting>* as,Solution* s,float& a,float& b)
+{
+    TRACE;
+
+    if((*as)[0].isParam)
+    {
+        a=s->x[(*as)[0].index];
+    }
+    else
+    {
+        a=s->wartFunkcjiKryterialnych[(*as)[0].index];
+    }
+    if((*as)[1].isParam)
+    {
+        b=s->x[(*as)[1].index];
+    }
+    else
+    {
+        b=s->wartFunkcjiKryterialnych[(*as)[1].index];
+    }
+    qDebug()<<"a "<<a<<" b "<<b;
+    graph->addData(a,b);
+    TRACE;
+}
+
+
+void Forma::AddMOPSODataToGraph(QCPGraph* graph,QVector<AxisSetting>* as,Particle* s,float& a,float& b)
+{
+    TRACE;
+
+    if((*as)[0].isParam)
+    {
+        a=s->x[(*as)[0].index];
+    }
+    else
+    {
+        a=s->wartFunkcjiKryterialnych[(*as)[0].index];
+    }
+    if((*as)[1].isParam)
+    {
+        b=s->x[(*as)[1].index];
+    }
+    else
+    {
+        b=s->wartFunkcjiKryterialnych[(*as)[1].index];
+    }
+    qDebug()<<"a "<<a<<" b "<<b;
+    graph->addData(a,b);
+    TRACE;
+}
+
+void Forma::UpdateAllPlots()
+{
+
+    for(unsigned int i=0;i<plotSettingsGGA.size();i++)
+    {
+    QCustomPlot* qp;
+    QVector<AxisSetting>* as;
+
+    qp=plotSettingsGGA[i].qPlot;
+    TRACE;
+    qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    qp->setInteraction(QCustomPlot::iSelectPlottables); //
+
+    float a,b,minX,maxX,minY,maxY;
+    minX=numeric_limits<float>::max();
+    maxX=numeric_limits<float>::min();
+    minY=numeric_limits<float>::max();
+    maxY=numeric_limits<float>::min();
+    for (int j = 0; j <  plotSettingsGGA[i].graphSettings.size(); ++j) {
+        qp->graph(j)->clearData();
+
+        as=&plotSettingsGGA[i].graphSettings[j].axisSettings;
+        if(plotSettingsGGA[i].graphSettings[j].all)
+        {
+            for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
+
+                AddGGADataToGraph(qp->graph(j),as,gga->rodzice[iSol],a,b);
+                if(a<minX)minX=a;
+                if(b<minY)minY=b;
+                if(a>maxX)maxX=a;
+                if(b>maxY)maxY=b;
+            }
+        }
+        else if(plotSettingsGGA[i].graphSettings[j].pareto)//tylko front pareto
+        {
+            for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
+                if(gga->stopZdominowania[iSol]==0)
+                {
+                    AddGGADataToGraph(qp->graph(j),as,gga->rodzice[iSol],a,b);
+                    if(a<minX)minX=a;
+                    if(b<minY)minY=b;
+                    if(a>maxX)maxX=a;
+                    if(b>maxY)maxY=b;
+                }
+            }
+        }
+        else// wysw osob przypisane do rodzajnika
+        {
+            for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
+                if(gga->przydzieloneRodzajniki[iSol]==plotSettingsGGA[i].graphSettings[i].indexOfGender)
+                {
+                    AddGGADataToGraph(qp->graph(i),as,gga->rodzice[iSol],a,b);
+                    if(a<minX)minX=a;
+                    if(b<minY)minY=b;
+                    if(a>maxX)maxX=a;
+                    if(b>maxY)maxY=b;
+                }
+            }
+
+        }
+
+    }
+
+    qp->xAxis->setRange(min(minX,minY),max(maxX,maxY));
+    qp->yAxis->setRange(min(minX,minY),max(maxX,maxY));
+    qp->replot();
+    }
+
+
+    for(unsigned int i=0;i<plotSettingsMOPSO.size();i++)
+    {
+    QCustomPlot* qp;
+    QVector<AxisSetting>* as;
+
+    qp=plotSettingsMOPSO[i].qPlot;
+    TRACE;
+    qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    qp->setInteraction(QCustomPlot::iSelectPlottables); //
+
+    float a,b,minX,maxX,minY,maxY;
+    minX=numeric_limits<float>::max();
+    maxX=numeric_limits<float>::min();
+    minY=numeric_limits<float>::max();
+    maxY=numeric_limits<float>::min();
+    for (int j = 0; j <  plotSettingsMOPSO[i].graphSettings.size(); ++j) {
+        qp->graph(j)->clearData();
+
+        as=&plotSettingsMOPSO[i].graphSettings[j].axisSettings;
+        if(plotSettingsMOPSO[i].graphSettings[j].all)
+        {
+            for (int iSol = 0; iSol < mopso->populacja.size(); ++iSol) {
+
+                AddMOPSODataToGraph(qp->graph(j),as,mopso->populacja[iSol],a,b);
+                if(a<minX)minX=a;
+                if(b<minY)minY=b;
+                if(a>maxX)maxX=a;
+                if(b>maxY)maxY=b;
+            }
+        }
+        else if(plotSettingsMOPSO[i].graphSettings[j].pareto)//tylko front pareto
+        {
+            for (int iSol = 0; iSol < mopso->repozytorium.size(); ++iSol) {
+               // if(!mopso->repozytorium[iSol]->zdominowana)
+                //{
+                    AddMOPSODataToGraph(qp->graph(j),as,mopso->repozytorium[iSol],a,b);
+                    if(a<minX)minX=a;
+                    if(b<minY)minY=b;
+                    if(a>maxX)maxX=a;
+                    if(b>maxY)maxY=b;
+               // }
+            }
+        }
+
+
+    }
+
+    qp->xAxis->setRange(min(minX,minY),max(maxX,maxY));
+    qp->yAxis->setRange(min(minX,minY),max(maxX,maxY));
+    qp->replot();
+    }
+
+    for(unsigned int i=0;i<plotSettingsNSGA_II.size();i++)
+    {
+    QCustomPlot* qp;
+    QVector<AxisSetting>* as;
+
+    qp=plotSettingsNSGA_II[i].qPlot;
+    TRACE;
+    qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    qp->setInteraction(QCustomPlot::iSelectPlottables); //
+
+    float a,b,minX,maxX,minY,maxY;
+    minX=numeric_limits<float>::max();
+    maxX=numeric_limits<float>::min();
+    minY=numeric_limits<float>::max();
+    maxY=numeric_limits<float>::min();
+    for (int j = 0; j <  plotSettingsNSGA_II[i].graphSettings.size(); ++j) {
+        qp->graph(j)->clearData();
+
+        as=&plotSettingsNSGA_II[i].graphSettings[j].axisSettings;
+        if(plotSettingsNSGA_II[i].graphSettings[j].all)
+        {
+            for (int iSol = 0; iSol < nsga_ii->rodzice.size(); ++iSol) {
+
+                AddNSGA_IIDataToGraph(qp->graph(j),as,nsga_ii->rodzice[iSol],a,b);
+                if(a<minX)minX=a;
+                if(b<minY)minY=b;
+                if(a>maxX)maxX=a;
+                if(b>maxY)maxY=b;
+            }
+        }
+        else if(plotSettingsNSGA_II[i].graphSettings[j].pareto)//tylko front pareto
+        {
+            for (int iSol = 0; iSol < (*nsga_ii->F)[0].size(); ++iSol) {
+
+                AddNSGA_IIDataToGraph(qp->graph(j),as,(*nsga_ii->F)[0][iSol],a,b);
+                    if(a<minX)minX=a;
+                    if(b<minY)minY=b;
+                    if(a>maxX)maxX=a;
+                    if(b>maxY)maxY=b;
+
+            }
+        }
+
+
+    }
+
+    qp->xAxis->setRange(min(minX,minY),max(maxX,maxY));
+    qp->yAxis->setRange(min(minX,minY),max(maxX,maxY));
+    qp->replot();
+    }
+
+
+}
+
+void Forma::on_stworzWykresyGGA_clicked()
+{
+    //widget.Wykresy->clear();
+
+    if(widget.plotTableGGA->rowCount()==0)
+    {
+        showWarning(tr("Należy dodać przynajmniej 1 wykres"));
+        return;
+    }
+
+    QWidget* w=new QWidget;
+    QCustomPlot* qPlot=new QCustomPlot(w);
+    qPlot->setFixedWidth(550);
+    qPlot->setFixedHeight(770);
+    qPlot->setAutoMargin(false);
+    qPlot->setMargin(50,10,10,230);
+
+
+    //plotsSettingsGGA.clear();
+    plotSettingsGGA.push_back(Plot2DSetting());
+    plotSettingsGGA.back().qPlot=qPlot;
+    plotSettingsGGA.back().tabIndex=widget.Wykresy->count()-1;
+    widget.Wykresy->addTab(w,"GGA");
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+
+    TRACE;
+
+    int tmp;
+
+    for (int i = 0; i < widget.plotTableGGA->rowCount(); ++i) {
+        plotSettingsGGA.back().graphSettings.push_back(GraphSetting());
+        plotSettingsGGA.back().graphSettings.back().axisSettings.resize(2);
+        plotSettingsGGA.back().graphSettings.back().name=((QLineEdit*) widget.plotTableGGA->cellWidget(i, 0))->text();
+
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentIndex();
+
+        if(tmp==0)
+        {
+            plotSettingsGGA.back().graphSettings.back().axisSettings[0].isParam=false;
+        }
+        else
+        {
+            plotSettingsGGA.back().graphSettings.back().axisSettings[0].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 2))->currentIndex();
+
+        plotSettingsGGA.back().graphSettings.back().axisSettings[0].index=tmp;
+
+        /////
+
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 3))->currentIndex();
+
+        if(tmp==0)
+        {
+            plotSettingsGGA.back().graphSettings.back().axisSettings[1].isParam=false;
+        }
+        else
+        {
+            plotSettingsGGA.back().graphSettings.back().axisSettings[1].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 4))->currentIndex();
+
+        plotSettingsGGA.back().graphSettings.back().axisSettings[1].index=tmp;
+
+        //////
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
+
+        if(tmp<2)
+        {
+            if(tmp==0)
+            {
+                plotSettingsGGA.back().graphSettings.back().all=true;
+            }
+            else
+            {
+                plotSettingsGGA.back().graphSettings.back().pareto=true;
+            }
+        }
+        else
+        {
+            tmp=tmp-2;
+            plotSettingsGGA.back().graphSettings.back().indexOfGender=tmp;
+
+
+        }
+
+        QString str=((QComboBox*) widget.plotTableGGA->cellWidget(i, 6))->currentText();
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 6))->currentIndex();
+        plotSettingsGGA.back().graphSettings.back().patternName=str;
+        plotSettingsGGA.back().graphSettings.back().patternIndex=tmp;
+
+        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 7))->currentIndex();
+
+        qDebug()<<"tmp "<<tmp;
+
+        plotSettingsGGA.back().graphSettings.back().color=colorNms[tmp];
+
+    }
+
+
+    QTextCodec::setCodecForTr (QTextCodec::codecForName ("UTF-8"));
+
+    plotSettingsGGA.back().qPlot->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
+    plotSettingsGGA.back().qPlot->setAutoMargin(false);
+    plotSettingsGGA.back().qPlot->setMargin(50,10,10,230);
+    //  widget.qPlotWidget->setFixedSize(550,550);
+    plotSettingsGGA.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    plotSettingsGGA.back().qPlot->legend->setVisible(true);
+    QFont legendFont = font();  // start out with MainWindow's font..
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    plotSettingsGGA.back().qPlot->legend->setFont(legendFont);
+    plotSettingsGGA.back().qPlot->legend->setPositionStyle(QCPLegend::psManual);
+    plotSettingsGGA.back().qPlot->legend->setPosition(QPoint(50,560));
+    plotSettingsGGA.back().qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+
+
+
+
+    for (int i = 0; i <  plotSettingsGGA.back().graphSettings.size(); ++i) {
+        plotSettingsGGA.back().qPlot->addGraph();
+        plotSettingsGGA.back().qPlot->graph(i)->setPen(QColor(plotSettingsGGA.back().graphSettings[i].color));
+        plotSettingsGGA.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
+        plotSettingsGGA.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsGGA.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plotSettingsGGA.back().qPlot->graph(i)->setScatterSize(7);
+        plotSettingsGGA.back().qPlot->graph(i)->setName(plotSettingsGGA.back().graphSettings[i].name);
+        plotSettingsGGA.back().qPlot->graph(i)->addToLegend();
+    }
+
+
+
+
+
+    while(widget.plotTableGGA->rowCount()>0)
+    {
+        widget.plotTableGGA->removeRow(0);
+    }
+
+
+
+}
+
+void Forma::on_pushButtonDodajWskazniki_clicked()
+{
+
+    if(widget.checkBoxGOL->isChecked() && plotSettingsGOL.tabIndex==-1 )
+    {
+        QWidget* w=new QWidget;
+        QCustomPlot* qPlot=new QCustomPlot(w);
+        qPlot->setFixedWidth(550);
+        qPlot->setFixedHeight(770);
+        qPlot->setAutoMargin(false);
+        qPlot->setMargin(50,10,30,230);
+        qPlot->setTitleColor(QColor("black"));
+        qPlot->setTitle("GOL");
+        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+        qPlot->legend->setVisible(true);
+        QFont legendFont = font();  // start out with MainWindow's font..
+        legendFont.setPointSize(9); // and make a bit smaller for legend
+        qPlot->legend->setFont(legendFont);
+        qPlot->legend->setPositionStyle(QCPLegend::psManual);
+        qPlot->legend->setPosition(QPoint(50,560));
+        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        plotSettingsGOL.qPlot=qPlot;
+        plotSettingsGOL.tabIndex=widget.Wykresy->count()-1;
+        widget.Wykresy->addTab(w,"GOL");
+    }
+
+    if(widget.checkBoxSpacing->isChecked() && plotSettingsSpacing.tabIndex==-1 )
+    {
+        QWidget* w=new QWidget;
+        QCustomPlot* qPlot=new QCustomPlot(w);
+        qPlot->setFixedWidth(550);
+        qPlot->setFixedHeight(770);
+        qPlot->setAutoMargin(false);
+        qPlot->setMargin(50,10,30,230);
+        qPlot->setTitleColor(QColor("black"));
+        qPlot->setTitle("Spacing");
+        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+        qPlot->legend->setVisible(true);
+        QFont legendFont = font();  // start out with MainWindow's font..
+        legendFont.setPointSize(9); // and make a bit smaller for legend
+        qPlot->legend->setFont(legendFont);
+        qPlot->legend->setPositionStyle(QCPLegend::psManual);
+        qPlot->legend->setPosition(QPoint(50,560));
+        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        plotSettingsSpacing.qPlot=qPlot;
+        plotSettingsSpacing.tabIndex=widget.Wykresy->count()-1;
+        widget.Wykresy->addTab(w,"Spacing");
+    }
+
+    if(widget.checkBoxD_EC->isChecked() && plotSettingsD_EC.tabIndex==-1 )
+    {
+        QWidget* w=new QWidget;
+        QCustomPlot* qPlot=new QCustomPlot(w);
+        qPlot->setFixedWidth(550);
+        qPlot->setFixedHeight(770);
+        qPlot->setAutoMargin(false);
+        qPlot->setMargin(50,10,30,230);
+        qPlot->setTitleColor(QColor("black"));
+        qPlot->setTitle("D_EC");
+        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+        qPlot->legend->setVisible(true);
+        QFont legendFont = font();  // start out with MainWindow's font..
+        legendFont.setPointSize(9); // and make a bit smaller for legend
+        qPlot->legend->setFont(legendFont);
+        qPlot->legend->setPositionStyle(QCPLegend::psManual);
+        qPlot->legend->setPosition(QPoint(50,560));
+        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        plotSettingsD_EC.qPlot=qPlot;
+        plotSettingsD_EC.tabIndex=widget.Wykresy->count()-1;
+        widget.Wykresy->addTab(w,"D_EC");
+    }
+
+    if(widget.checkBoxD_EC_GOL->isChecked() && plotSettingsD_EC_GOL.tabIndex==-1 )
+    {
+        QWidget* w=new QWidget;
+        QCustomPlot* qPlot=new QCustomPlot(w);
+        qPlot->setFixedWidth(550);
+        qPlot->setFixedHeight(770);
+        qPlot->setAutoMargin(false);
+        qPlot->setMargin(50,10,30,230);
+        qPlot->setTitleColor(QColor("black"));
+        qPlot->setTitle("D_EC_GOL");
+        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+        qPlot->legend->setVisible(true);
+        QFont legendFont = font();  // start out with MainWindow's font..
+        legendFont.setPointSize(9); // and make a bit smaller for legend
+        qPlot->legend->setFont(legendFont);
+        qPlot->legend->setPositionStyle(QCPLegend::psManual);
+        qPlot->legend->setPosition(QPoint(50,560));
+        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        plotSettingsD_EC_GOL.qPlot=qPlot;
+        plotSettingsD_EC_GOL.tabIndex=widget.Wykresy->count()-1;
+        widget.Wykresy->addTab(w,"D_EC_GOL");
+    }
+
+    if(widget.checkBoxD_EP_GOL->isChecked() && plotSettingsD_EP_GOL.tabIndex==-1 )
+    {
+        QWidget* w=new QWidget;
+        QCustomPlot* qPlot=new QCustomPlot(w);
+        qPlot->setFixedWidth(550);
+        qPlot->setFixedHeight(770);
+        qPlot->setAutoMargin(false);
+        qPlot->setMargin(50,10,30,230);
+        qPlot->setTitleColor(QColor("black"));
+        qPlot->setTitle("D_EP_GOL");
+        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+        qPlot->legend->setVisible(true);
+        QFont legendFont = font();  // start out with MainWindow's font..
+        legendFont.setPointSize(9); // and make a bit smaller for legend
+        qPlot->legend->setFont(legendFont);
+        qPlot->legend->setPositionStyle(QCPLegend::psManual);
+        qPlot->legend->setPosition(QPoint(50,560));
+        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        plotSettingsD_EP_GOL.qPlot=qPlot;
+        plotSettingsD_EP_GOL.tabIndex=widget.Wykresy->count()-1;
+        widget.Wykresy->addTab(w,"D_EP_GOL");
+    }
+
+}
+void Forma::showWarning(const QString &msg) {
+
+    //    QTextCodec::setCodecForCStrings( QTextCodec::codecForName( "UTF-8" ) );
+    //    QTextCodec::setCodecForTr(QTextCodec::codecForName( "UTF-8" ) );
+    // setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    QMessageBox::warning(this, "Warning", msg,
+                         QMessageBox::Ok,
+                         QMessageBox::NoButton,
+                         QMessageBox::NoButton);
+}
+void Forma::on_bDodajWykres_clicked()
+{
+    if(!isGGAInitialized)
+    {
+        showWarning(tr("GGA nie został zainicjalizowany"));
+        return;
+    }
+//    for (int i = 0; i < widget.plotTableGGA->rowCount(); ++i) {
+//        qDebug()<<((QLineEdit*) widget.plotTableGGA->cellWidget(i, 0))->text()<<" "<<
+//                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentText()<<" "<<
+//                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
+//    }
+    qDebug()<<"ok";
+    AddRowToGGAPlotTable();
+
+    //dddd
+}
+
+void Forma::on_checkBoxMOPSO_toggled(bool checked)
+{
+
+}
+
+void Forma::on_checkBoxNSGAII_toggled(bool checked)
+{
+
+}
+
+void Forma::on_checkBoxGGA_toggled(bool checked)
+{
+
+}
+
+void Forma::on_checkBoxGGA_clicked()
+{
+    if(!isGGAInitialized)
+    {
+        widget.checkBoxGGA->setChecked(false);
+        showWarning("GGA musi zostać najpierw zainicjalizowany");
+
+    }
+}
+
+void Forma::on_checkBoxMOPSO_clicked()
+{
+    if(!isMOPSOInitialized)
+    {
+        widget.checkBoxMOPSO->setChecked(false);
+        showWarning("MOPSO musi zostać najpierw zainicjalizowany");
+
+    }
+}
+
+void Forma::on_checkBoxNSGAII_clicked()
+{
+    if(!isNSGA_IIInitialized)
+    {
+        widget.checkBoxNSGAII->setChecked(false);
+        showWarning("NSGA_II musi zostać najpierw zainicjalizowany");
+
+    }
+}
+
+void Forma::AddIndicatorGraphToQCPlot(QCustomPlot *qp, unsigned int index)
+{
+
+    unsigned int i;
+    if(index==0)
+    {
+        qp->addGraph();
+        i=qp->graphCount()-1;
+       // qp->graph(i)->setPen(QColor("red"));
+        QPen blueDotPen;
+        blueDotPen.setColor(QColor("red"));
+        blueDotPen.setStyle(Qt::DotLine);
+        blueDotPen.setWidthF(3);
+        qp->graph(i)->setPen(blueDotPen);
+        //qp->graph(i)->setScatterStyle(QCPGraph::ssNone);//QCPGraph::ssCircle);
+        // qp->graph(i)->setScatterSize(7);
+        qp->graph(i)->setName("MOPSO");
+        qp->graph(i)->addToLegend();
+    }
+    else if(index==1)
+    {
+
+        qp->addGraph();
+        i=qp->graphCount()-1;
+        QPen blueDotPen;
+        blueDotPen.setColor(QColor("green"));
+        blueDotPen.setStyle(Qt::DashDotLine);
+        blueDotPen.setWidthF(3);
+        qp->graph(i)->setPen(blueDotPen);
+        //qp->graph(i)->setPen(QColor("green"));
+        //qp->graph(i)->setLineStyle(QCPGraph::lsLine);
+        //qp->graph(i)->setScatterStyle(QCPGraph::ssNone);//QCPGraph::ssCircle);
+        // qp->graph(i)->setScatterSize(7);
+        qp->graph(i)->setName("NSGA_II");
+        qp->graph(i)->addToLegend();
+    }
+    else if(index==2)
+    {
+        qp->addGraph();
+        i=qp->graphCount()-1;
+        QPen blueDotPen;
+        blueDotPen.setColor(QColor("blue"));
+        blueDotPen.setStyle(Qt::SolidLine);
+        blueDotPen.setWidthF(3);
+        qp->graph(i)->setPen(blueDotPen);
+        //qp->graph(i)->setPen(QColor("blue"));
+       // qp->graph(i)->setLineStyle(QCPGraph::lsLine);
+       // qp->graph(i)->setScatterStyle(QCPGraph::ssNone);//QCPGraph::ssCircle);
+        // qp->graph(i)->setScatterSize(7);
+        qp->graph(i)->setName("GGA");
+        qp->graph(i)->addToLegend();
+    }
+}
+
+void Forma::UpdateIndicatorsGraphs()
+{
+    double val;
+    for (int i = 0; i < plotSettingsGOL.algorithms.size(); ++i) {
+        if(plotSettingsGOL.algorithms[i]==0)//MOPSO
+        {
+            wskazniki->GOL(mopso->populacja,mopso->indSortGOL );
+            val=mopso->populacja[mopso->indSortGOL[0]]->GOL;
+            qDebug()<<"mopso GOL "<<val;
+            plotSettingsGOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsGOL.algorithms[i]==1)//NSGA_II
+        {
+            wskazniki->GOL(nsga_ii->rodzice,nsga_ii->indSortGOL );
+            val=nsga_ii->rodzice[nsga_ii->indSortGOL[0]]->GOL;
+            qDebug()<<"nsga_ii GOL "<<val;
+            plotSettingsGOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsGOL.algorithms[i]==2)//GGA
+        {
+            wskazniki->GOL(gga->rodzice,gga->indSortGOL );
+            val=gga->rodzice[gga->indSortGOL[0]]->GOL;
+            qDebug()<<"gga GOL "<<val;
+            plotSettingsGOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+
+
+
+    }
+
+    plotSettingsGOL.qPlot->xAxis->setRange(0,numOfIterations);
+    plotSettingsGOL.qPlot->yAxis->setRange(0,1);
+    plotSettingsGOL.qPlot->replot();
+
+    ////////////////////////////////////////////////////////////////////
+    for (int i = 0; i < plotSettingsD_EC.algorithms.size(); ++i) {
+        if(plotSettingsD_EC.algorithms[i]==0)//MOPSO
+        {
+
+            val=wskazniki->D_EC(mopso->populacja );
+            qDebug()<<"mopso D_EC "<<val;
+            plotSettingsD_EC.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsD_EC.algorithms[i]==1)//NSGA_II
+        {
+
+            val=wskazniki->D_EC(nsga_ii->rodzice);
+            qDebug()<<"nsga_ii D_EC "<<val;
+            plotSettingsD_EC.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsD_EC.algorithms[i]==2)//GGA
+        {
+
+            val=wskazniki->D_EC(gga->rodzice );
+            qDebug()<<"gga D_EC "<<val;
+            plotSettingsD_EC.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+
+
+        plotSettingsD_EC.qPlot->graph(i)->rescaleAxes(true);
+
+    }
+
+    plotSettingsD_EC.qPlot->xAxis->setRange(0,numOfIterations);
+
+   // plotSettingsD_EC.qPlot->yAxis->setRange(0,1);
+    plotSettingsD_EC.qPlot->replot();
+
+    ////////////////////////////////////////////////////////////////////
+    for (int i = 0; i < plotSettingsD_EC_GOL.algorithms.size(); ++i) {
+        if(plotSettingsD_EC_GOL.algorithms[i]==0)//MOPSO
+        {
+
+            wskazniki->GOL(mopso->populacja,mopso->indSortGOL );
+
+            val=wskazniki->D_EC_GOL(mopso->populacja,mopso->populacja[mopso->indSortGOL[0]] );
+            qDebug()<<"mopso D_EC_GOL "<<val;
+            plotSettingsD_EC_GOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsD_EC_GOL.algorithms[i]==1)//NSGA_II
+        {
+
+            wskazniki->GOL(nsga_ii->rodzice,nsga_ii->indSortGOL );
+
+            val=wskazniki->D_EC_GOL(nsga_ii->rodzice,nsga_ii->rodzice[nsga_ii->indSortGOL[0]] );
+            qDebug()<<"nsga_ii D_EC_GOL "<<val;
+            plotSettingsD_EC_GOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsD_EC_GOL.algorithms[i]==2)//GGA
+        {
+            wskazniki->GOL(gga->rodzice,gga->indSortGOL );
+
+            val=wskazniki->D_EC_GOL(gga->rodzice,gga->rodzice[gga->indSortGOL[0]] );
+
+            qDebug()<<"gga D_EC_GOL "<<val;
+            plotSettingsD_EC_GOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+
+
+        plotSettingsD_EC_GOL.qPlot->graph(i)->rescaleAxes(true);
+
+    }
+
+    plotSettingsD_EC_GOL.qPlot->xAxis->setRange(0,numOfIterations);
+
+   // plotSettingsD_EC_GOL.qPlot->yAxis->setRange(0,1);
+    plotSettingsD_EC_GOL.qPlot->replot();
+
+    ////////////////////////////////////////////////////////////////////
+    for (int i = 0; i < plotSettingsD_EP_GOL.algorithms.size(); ++i) {
+        if(plotSettingsD_EP_GOL.algorithms[i]==0)//MOPSO
+        {
+
+            wskazniki->GOL(mopso->populacja,mopso->indSortGOL );
+
+            val=wskazniki->D_EP_GOL(mopso->populacja,mopso->populacja[mopso->indSortGOL[0]] );
+            qDebug()<<"mopso D_EP_GOL "<<val;
+            plotSettingsD_EP_GOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsD_EP_GOL.algorithms[i]==1)//NSGA_II
+        {
+
+            wskazniki->GOL(nsga_ii->rodzice,nsga_ii->indSortGOL );
+
+            val=wskazniki->D_EP_GOL(nsga_ii->rodzice,nsga_ii->rodzice[nsga_ii->indSortGOL[0]] );
+            qDebug()<<"nsga_ii D_EP_GOL "<<val;
+            plotSettingsD_EP_GOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+        else if(plotSettingsD_EP_GOL.algorithms[i]==2)//GGA
+        {
+            wskazniki->GOL(gga->rodzice,gga->indSortGOL );
+
+            val=wskazniki->D_EP_GOL(gga->rodzice,gga->rodzice[gga->indSortGOL[0]] );
+
+            qDebug()<<"gga D_EP_GOL "<<val;
+            plotSettingsD_EP_GOL.qPlot->graph(i)->addData(numOfIterations,val);
+        }
+
+
+        plotSettingsD_EP_GOL.qPlot->graph(i)->rescaleAxes(true);
+
+    }
+
+    plotSettingsD_EP_GOL.qPlot->xAxis->setRange(0,numOfIterations);
+
+   // plotSettingsD_EP_GOL.qPlot->yAxis->setRange(0,1);
+    plotSettingsD_EP_GOL.qPlot->replot();
+
+
+}
+
+
+void Forma::on_bInicjalizujSymulacja_clicked()
+{
+    numOfIterations=0;
+
+    if(widget.checkBoxMOPSO->isChecked())
+    {
+        if(widget.checkBoxD_EC->isChecked() )
+        {
+            plotSettingsD_EC.algorithms.push_back(0);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EC.qPlot,0);
+        }
+
+        if(widget.checkBoxD_EC_GOL->isChecked() )
+        {
+            plotSettingsD_EC_GOL.algorithms.push_back(0);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EC_GOL.qPlot,0);
+        }
+
+        if(widget.checkBoxD_EP_GOL->isChecked() )
+        {
+            plotSettingsD_EP_GOL.algorithms.push_back(0);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EP_GOL.qPlot,0);
+        }
+
+        if(widget.checkBoxGOL->isChecked())
+        {
+            plotSettingsGOL.algorithms.push_back(0);
+            AddIndicatorGraphToQCPlot(plotSettingsGOL.qPlot,0);
+        }
+
+        if(widget.checkBoxSpacing->isChecked() )
+        {
+            plotSettingsSpacing.algorithms.push_back(0);
+            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,0);
+        }
+    }
+
+
+    if(widget.checkBoxNSGAII->isChecked())
+    {
+        if(widget.checkBoxD_EC->isChecked() )
+        {
+            plotSettingsD_EC.algorithms.push_back(1);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EC.qPlot,1);
+        }
+
+        if(widget.checkBoxD_EC_GOL->isChecked() )
+        {
+            plotSettingsD_EC_GOL.algorithms.push_back(1);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EC_GOL.qPlot,1);
+        }
+
+        if(widget.checkBoxD_EP_GOL->isChecked() )
+        {
+            plotSettingsD_EP_GOL.algorithms.push_back(1);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EP_GOL.qPlot,1);
+        }
+
+        if(widget.checkBoxGOL->isChecked() )
+        {
+            plotSettingsGOL.algorithms.push_back(1);
+            AddIndicatorGraphToQCPlot(plotSettingsGOL.qPlot,1);
+        }
+
+        if(widget.checkBoxSpacing->isChecked() )
+        {
+            plotSettingsSpacing.algorithms.push_back(1);
+            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,1);
+        }
+
+    }
+
+
+    if(widget.checkBoxGGA->isChecked())
+    { if(widget.checkBoxD_EC->isChecked() )
+        {
+            plotSettingsD_EC.algorithms.push_back(2);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EC.qPlot,2);
+        }
+
+        if(widget.checkBoxD_EC_GOL->isChecked() )
+        {
+            plotSettingsD_EC_GOL.algorithms.push_back(2);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EC_GOL.qPlot,2);
+        }
+
+        if(widget.checkBoxD_EP_GOL->isChecked() )
+        {
+            plotSettingsD_EP_GOL.algorithms.push_back(2);
+            AddIndicatorGraphToQCPlot(plotSettingsD_EP_GOL.qPlot,2);
+        }
+        if(widget.checkBoxGOL->isChecked() )
+        {
+            plotSettingsGOL.algorithms.push_back(2);
+            AddIndicatorGraphToQCPlot(plotSettingsGOL.qPlot,2);
+        }
+        if(widget.checkBoxSpacing->isChecked() )
+        {
+            plotSettingsSpacing.algorithms.push_back(2);
+            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,2);
+        }
+    }
+
+    TRACE;
+    if(plotSettingsD_EC.algorithms.size()>0)
+    {
+        plotSettingsD_EC.qPlot->replot();
+
+    }
+    if(plotSettingsD_EC_GOL.algorithms.size()>0)
+    {
+        plotSettingsD_EC_GOL.qPlot->replot();
+
+    }
+    if(plotSettingsD_EP_GOL.algorithms.size()>0)
+    {
+        plotSettingsD_EP_GOL.qPlot->replot();
+
+    }
+    if(plotSettingsGOL.algorithms.size()>0)
+    {
+        plotSettingsGOL.qPlot->replot();
+
+    }
+    if(plotSettingsSpacing.algorithms.size()>0)
+    {
+        plotSettingsSpacing.qPlot->replot();
+
+    }
+    TRACE;
+
+}
+
+void Forma::on_bIterujRazSymulacja_clicked()
+{
+    if(widget.checkBoxMOPSO->isChecked())
+    {
+        mopso->Iteruj();
+    }
+
+    if(widget.checkBoxNSGAII->isChecked())
+    {
+        nsga_ii->Iteruj();
+    }
+
+    if(widget.checkBoxGGA->isChecked())
+    {
+        gga->Iteruj();
+    }
+
+    numOfIterations++;
+    UpdateIndicatorsGraphs();
+}
+
+void Forma::on_bDodajWykresMOPSO_clicked()
+{
+    if(!isMOPSOInitialized)
+    {
+        showWarning(tr("MOPSO nie został zainicjalizowany"));
+        return;
+    }
+//    for (int i = 0; i < widget.plotTableGGA->rowCount(); ++i) {
+//        qDebug()<<((QLineEdit*) widget.plotTableGGA->cellWidget(i, 0))->text()<<" "<<
+//                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentText()<<" "<<
+//                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
+//    }
+    qDebug()<<"ok";
+    AddRowToMOPSOPlotTable();
+}
+
+void Forma::on_bDodajWykresNSGA_II_clicked()
+{
+    if(!isNSGA_IIInitialized)
+    {
+        showWarning(tr("NSGA_II nie został zainicjalizowany"));
+        return;
+    }
+//    for (int i = 0; i < widget.plotTableGGA->rowCount(); ++i) {
+//        qDebug()<<((QLineEdit*) widget.plotTableGGA->cellWidget(i, 0))->text()<<" "<<
+//                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentText()<<" "<<
+//                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
+//    }
+    qDebug()<<"ok";
+    AddRowToNSGA_IIPlotTable();
+}
+
+void Forma::on_stworzWykresyMOPSO_clicked()
+{
+    //widget.Wykresy->clear();
+
+    if(widget.plotTableMOPSO->rowCount()==0)
+    {
+        showWarning(tr("Należy dodać przynajmniej 1 wykres"));
+        return;
+    }
+
+    QWidget* w=new QWidget;
+    QCustomPlot* qPlot=new QCustomPlot(w);
+    qPlot->setFixedWidth(550);
+    qPlot->setFixedHeight(770);
+    qPlot->setAutoMargin(false);
+    qPlot->setMargin(50,10,10,230);
+
+
+    //plotsSettingsMOPSO.clear();
+    plotSettingsMOPSO.push_back(Plot2DSetting());
+    plotSettingsMOPSO.back().qPlot=qPlot;
+    plotSettingsMOPSO.back().tabIndex=widget.Wykresy->count()-1;
+    widget.Wykresy->addTab(w,"MOPSO");
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+
+    TRACE;
+
+    int tmp;
+
+    for (int i = 0; i < widget.plotTableMOPSO->rowCount(); ++i) {
+        plotSettingsMOPSO.back().graphSettings.push_back(GraphSetting());
+        plotSettingsMOPSO.back().graphSettings.back().axisSettings.resize(2);
+        plotSettingsMOPSO.back().graphSettings.back().name=((QLineEdit*) widget.plotTableMOPSO->cellWidget(i, 0))->text();
+
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 1))->currentIndex();
+
+        if(tmp==0)
+        {
+            plotSettingsMOPSO.back().graphSettings.back().axisSettings[0].isParam=false;
+        }
+        else
+        {
+            plotSettingsMOPSO.back().graphSettings.back().axisSettings[0].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 2))->currentIndex();
+
+        plotSettingsMOPSO.back().graphSettings.back().axisSettings[0].index=tmp;
+
+        /////
+
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 3))->currentIndex();
+
+        if(tmp==0)
+        {
+            plotSettingsMOPSO.back().graphSettings.back().axisSettings[1].isParam=false;
+        }
+        else
+        {
+            plotSettingsMOPSO.back().graphSettings.back().axisSettings[1].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 4))->currentIndex();
+
+        plotSettingsMOPSO.back().graphSettings.back().axisSettings[1].index=tmp;
+
+        //////
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 5))->currentIndex();
+
+        if(tmp<2)
+        {
+            if(tmp==0)
+            {
+                plotSettingsMOPSO.back().graphSettings.back().all=true;
+            }
+            else
+            {
+                plotSettingsMOPSO.back().graphSettings.back().pareto=true;
+            }
+        }
+        else
+        {
+            //tmp=tmp-2;
+           // plotSettingsMOPSO.back().graphSettings.back().indexOfGender=tmp;
+
+
+        }
+
+        QString str=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 6))->currentText();
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 6))->currentIndex();
+        plotSettingsMOPSO.back().graphSettings.back().patternName=str;
+        plotSettingsMOPSO.back().graphSettings.back().patternIndex=tmp;
+
+        tmp=((QComboBox*) widget.plotTableMOPSO->cellWidget(i, 7))->currentIndex();
+
+        qDebug()<<"tmp "<<tmp;
+
+        plotSettingsMOPSO.back().graphSettings.back().color=colorNms[tmp];
+
+    }
+
+
+    QTextCodec::setCodecForTr (QTextCodec::codecForName ("UTF-8"));
+
+    plotSettingsMOPSO.back().qPlot->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
+    plotSettingsMOPSO.back().qPlot->setAutoMargin(false);
+    plotSettingsMOPSO.back().qPlot->setMargin(50,10,10,230);
+    //  widget.qPlotWidget->setFixedSize(550,550);
+    plotSettingsMOPSO.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    plotSettingsMOPSO.back().qPlot->legend->setVisible(true);
+    QFont legendFont = font();  // start out with MainWindow's font..
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    plotSettingsMOPSO.back().qPlot->legend->setFont(legendFont);
+    plotSettingsMOPSO.back().qPlot->legend->setPositionStyle(QCPLegend::psManual);
+    plotSettingsMOPSO.back().qPlot->legend->setPosition(QPoint(50,560));
+    plotSettingsMOPSO.back().qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+
+
+
+
+    for (int i = 0; i <  plotSettingsMOPSO.back().graphSettings.size(); ++i) {
+        plotSettingsMOPSO.back().qPlot->addGraph();
+        plotSettingsMOPSO.back().qPlot->graph(i)->setPen(QColor(plotSettingsMOPSO.back().graphSettings[i].color));
+        plotSettingsMOPSO.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
+        plotSettingsMOPSO.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsMOPSO.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plotSettingsMOPSO.back().qPlot->graph(i)->setScatterSize(7);
+        plotSettingsMOPSO.back().qPlot->graph(i)->setName(plotSettingsMOPSO.back().graphSettings[i].name);
+        plotSettingsMOPSO.back().qPlot->graph(i)->addToLegend();
+    }
+
+
+
+
+
+    while(widget.plotTableMOPSO->rowCount()>0)
+    {
+        widget.plotTableMOPSO->removeRow(0);
+    }
+
+
+}
+
+void Forma::on_bIterujRazGGA_clicked()
+{
+    qDebug()<<"iteruj raz GGA\n";
+    gga->Iteruj();
+    AktualizujWykresParamGGA();
+    qDebug()<<"spacing "<<gga->RozpFrontParWarFunKryt();
+
+    wskazniki->GOL(gga->rodzice,gga->indSortGOL );
+    double gol=gga->rodzice[gga->indSortGOL[0]]->GOL;
+    //      vGol.push_back(QPointF((double)pso->num_iter,gol));
+    qDebug()<<"D_EC_GOL "<<wskazniki->D_EC_GOL(gga->rodzice,gga->rodzice[gga->indSortGOL[0]]);
+    qDebug() << "GOL = " << gol << "\n";
+    qDebug()<<"D_EC "<<wskazniki->D_EC(gga->rodzice);
+
+
+    UpdateAllPlots();
+}
+
+void Forma::on_bIterujRazMOPSO_clicked()
+{
+    qDebug()<<"iteruj raz MOPSO\n";
+    mopso->Iteruj();
+    TRACE;
+    //AktualizujWykresParamGGA();
+   // qDebug()<<"spacing "<<gga->RozpFrontParWarFunKryt();
+
+ //   wskazniki->GOL(gga->rodzice,gga->indSortGOL );
+ //   double gol=gga->rodzice[gga->indSortGOL[0]]->GOL;
+    //      vGol.push_back(QPointF((double)pso->num_iter,gol));
+  //  qDebug()<<"D_EC_GOL "<<wskazniki->D_EC_GOL(gga->rodzice,gga->rodzice[gga->indSortGOL[0]]);
+   // qDebug() << "GOL = " << gol << "\n";
+   // qDebug()<<"D_EC "<<wskazniki->D_EC(gga->rodzice);
+
+
+    UpdateAllPlots();
+}
+
+void Forma::on_stworzWykresyNSGA_II_clicked()
+{
+
+    //widget.Wykresy->clear();
+
+    if(widget.plotTableNSGA_II->rowCount()==0)
+    {
+        showWarning(tr("Należy dodać przynajmniej 1 wykres"));
+        return;
+    }
+
+    QWidget* w=new QWidget;
+    QCustomPlot* qPlot=new QCustomPlot(w);
+    qPlot->setFixedWidth(550);
+    qPlot->setFixedHeight(770);
+    qPlot->setAutoMargin(false);
+    qPlot->setMargin(50,10,10,230);
+
+
+    //plotsSettingsNSGA_II.clear();
+    plotSettingsNSGA_II.push_back(Plot2DSetting());
+    plotSettingsNSGA_II.back().qPlot=qPlot;
+    plotSettingsNSGA_II.back().tabIndex=widget.Wykresy->count()-1;
+    widget.Wykresy->addTab(w,"NSGA II");
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+
+    TRACE;
+
+    int tmp;
+
+    for (int i = 0; i < widget.plotTableNSGA_II->rowCount(); ++i) {
+        plotSettingsNSGA_II.back().graphSettings.push_back(GraphSetting());
+        plotSettingsNSGA_II.back().graphSettings.back().axisSettings.resize(2);
+        plotSettingsNSGA_II.back().graphSettings.back().name=((QLineEdit*) widget.plotTableNSGA_II->cellWidget(i, 0))->text();
+
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 1))->currentIndex();
+
+        if(tmp==0)
+        {
+            plotSettingsNSGA_II.back().graphSettings.back().axisSettings[0].isParam=false;
+        }
+        else
+        {
+            plotSettingsNSGA_II.back().graphSettings.back().axisSettings[0].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 2))->currentIndex();
+
+        plotSettingsNSGA_II.back().graphSettings.back().axisSettings[0].index=tmp;
+
+        /////
+
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 3))->currentIndex();
+
+        if(tmp==0)
+        {
+            plotSettingsNSGA_II.back().graphSettings.back().axisSettings[1].isParam=false;
+        }
+        else
+        {
+            plotSettingsNSGA_II.back().graphSettings.back().axisSettings[1].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 4))->currentIndex();
+
+        plotSettingsNSGA_II.back().graphSettings.back().axisSettings[1].index=tmp;
+
+        //////
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 5))->currentIndex();
+
+        if(tmp<2)
+        {
+            if(tmp==0)
+            {
+                plotSettingsNSGA_II.back().graphSettings.back().all=true;
+            }
+            else
+            {
+                plotSettingsNSGA_II.back().graphSettings.back().pareto=true;
+            }
+        }
+        else
+        {
+            //tmp=tmp-2;
+           // plotSettingsNSGA_II.back().graphSettings.back().indexOfGender=tmp;
+
+
+        }
+
+        QString str=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 6))->currentText();
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 6))->currentIndex();
+        plotSettingsNSGA_II.back().graphSettings.back().patternName=str;
+        plotSettingsNSGA_II.back().graphSettings.back().patternIndex=tmp;
+
+        tmp=((QComboBox*) widget.plotTableNSGA_II->cellWidget(i, 7))->currentIndex();
+
+        qDebug()<<"tmp "<<tmp;
+
+        plotSettingsNSGA_II.back().graphSettings.back().color=colorNms[tmp];
+
+    }
+
+
+    QTextCodec::setCodecForTr (QTextCodec::codecForName ("UTF-8"));
+
+    plotSettingsNSGA_II.back().qPlot->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
+    plotSettingsNSGA_II.back().qPlot->setAutoMargin(false);
+    plotSettingsNSGA_II.back().qPlot->setMargin(50,10,10,230);
+    //  widget.qPlotWidget->setFixedSize(550,550);
+    plotSettingsNSGA_II.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    plotSettingsNSGA_II.back().qPlot->legend->setVisible(true);
+    QFont legendFont = font();  // start out with MainWindow's font..
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    plotSettingsNSGA_II.back().qPlot->legend->setFont(legendFont);
+    plotSettingsNSGA_II.back().qPlot->legend->setPositionStyle(QCPLegend::psManual);
+    plotSettingsNSGA_II.back().qPlot->legend->setPosition(QPoint(50,560));
+    plotSettingsNSGA_II.back().qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+
+
+
+
+    for (int i = 0; i <  plotSettingsNSGA_II.back().graphSettings.size(); ++i) {
+        plotSettingsNSGA_II.back().qPlot->addGraph();
+        plotSettingsNSGA_II.back().qPlot->graph(i)->setPen(QColor(plotSettingsNSGA_II.back().graphSettings[i].color));
+        plotSettingsNSGA_II.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
+        plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsNSGA_II.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterSize(7);
+        plotSettingsNSGA_II.back().qPlot->graph(i)->setName(plotSettingsNSGA_II.back().graphSettings[i].name);
+        plotSettingsNSGA_II.back().qPlot->graph(i)->addToLegend();
+    }
+
+
+    int i=plotSettingsNSGA_II.back().graphSettings.size();
+    plotSettingsNSGA_II.back().qPlot->addGraph();
+    plotSettingsNSGA_II.back().qPlot->graph(i)->setPen(QColor("black"));
+    plotSettingsNSGA_II.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsLine);
+   // plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsNSGA_II.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+  //  plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterSize(7);
+    plotSettingsNSGA_II.back().qPlot->graph(i)->setName("true Pareto front");
+    plotSettingsNSGA_II.back().qPlot->graph(i)->addToLegend();
+
+
+    for (float  x = 0; x <=1.0; x+=0.01) {
+        plotSettingsNSGA_II.back().qPlot->graph(i)->addData(x,1.0-qSqrt(x));
+    }
+
+    while(widget.plotTableNSGA_II->rowCount()>0)
+    {
+        widget.plotTableNSGA_II->removeRow(0);
+    }
+
+}
+
+void Forma::on_bIterujNSGA_2_clicked()
+{
+    nsga_ii->Iteruj();
+    UpdateAllPlots();
+}
+
+void Forma::on_bInicjalizujNSGA_clicked()
+{
+    if(!isFunctionInitialized)
+    {
+        showWarning(tr("Problem musi zostać najpierw załadowany"));
+        return;
+    }
+
+    if (nsga_ii != NULL) {
+        qDebug() << "delete nsga\n";
+        delete nsga_ii;
+    }
+    bool ok;
+    unsigned int populacja = widget.populacjaNSGA_II->text().toInt(&ok, 10);
+    if (!ok) {
+        showWarning("Niewlasciwy rozmiar populacji");
+        return;
+    }
+    unsigned int il_bitow = widget.ilBitowNSGA_II->text().toInt(&ok, 10);
+    if (!ok) {
+        showWarning("Niewlasciwy ilosc bitow");
+        return;
+    }
+    float prawd_krzyz = widget.prawdKrzyzNSGA_II->text().toFloat(&ok);
+    if (!ok || prawd_krzyz < 0 || prawd_krzyz > 1.0) {
+        showWarning("Niewlasciwa wartość prawd. krzyzowania");
+        return;
+    }
+    float prawd_mut = widget.prawdMutNSGA_II->text().toFloat(&ok);
+    if (!ok || prawd_mut < 0.0 || prawd_mut > 1.0) {
+        showWarning("Niewlasciwa wartość prawd. mutacji");
+        return;
+    }
+    nsga_ii = new NSGA_II(populacja, il_bitow, prawd_mut, prawd_krzyz, problem);
+    connect(nsga_ii, SIGNAL(done()), this, SLOT(sDoneNSGA())); //,Qt::QueuedConnection);
+    connect(nsga_ii, SIGNAL(finished()), this, SLOT(sFinishedNSGA()),Qt::QueuedConnection);
+
+    DINFO;
+    nsga_ii->Inicjalizuj();
+    DINFO;
+
+    //  nsga->Inicjalizuj(&nsga->rodzenstwo);
+
+    DINFO;
+
+    nsga_ii->zainicjalizowany=true;
+    isNSGA_IIInitialized=true;
+    UpdateAllPlots();
+}
+
+void Forma::on_bInicjalizujMOPSO_clicked()
+{
+
+    if(!isFunctionInitialized)
+    {
+        showWarning(tr("Problem musi zostać najpierw załadowany"));
+        return;
+    }
+
+    bool z_mutacja;
+    bool ok;
+    unsigned int populacja = widget.populacjaMOPSO->text().toInt(&ok, 10);
+    if (!ok) {
+        showWarning("Niewlasciwy rozmiar populacji");
+        return;
+    }
+    unsigned int wiel_rep = widget.wiel_repozytMOPSO->text().toInt(&ok, 10);
+    if (!ok) {
+        showWarning("Niewlasciwy rozmiar repozytorium");
+        return;
+    }
+    unsigned int il_hiper = widget.il_hiperMOPSO->text().toInt(&ok, 10);
+    if (!ok) {
+        showWarning("Niewlasciwa ilosc hiperkostek");
+        return;
+    }
+    wykresGOL->wyczysc();
+
+
+
+
+    if (widget.z_mutacja->isChecked()) {
+        z_mutacja = true;
+
+    } else {
+        z_mutacja = false;
+
+    }
+
+    mopso = new MOPSO(populacja, wiel_rep, il_hiper, z_mutacja, problem);
+
+    connect(mopso, SIGNAL(done()), this, SLOT(sDoneMOPSO()));
+    connect(mopso, SIGNAL(finished()), this, SLOT(sFinishedMOPSO()),Qt::QueuedConnection);
+    mopso->vmax = 100.0;
+
+    mopso->Inicjalizuj();
+
+
+
+
+    //aktualizuj_wykres_przystosowania();
+
+    // d_directPainter->drawSeries(points_dom,
+    //      data_dom->size() - 1, data_dom->size() - 1);
+    //d_directPainter->drawSeries(points_nondom,
+    //    data_nondom->size() - 1, data_nondom->size() - 1);
+    //wyswietlamy populacje na wykresie funkcji celu
+
+
+
+    //  pso->wyswietl_repozytorium();
+    //   pso->wyswietl_populacje();
+
+    //  pso->Iteruj();
+    aktualizuj_wykres_przystosowania();
+
+    // qDebug() << "Generuje kostki\n";
+    //  pso->generuj_kostki();
+
+    mopso->zainicjalizowany=true;
+
+
+    isMOPSOInitialized=true;
+
+    UpdateAllPlots();
+
+}
+
+void Forma::on_bInicjalizujGGA_clicked()
+{
     ////////
+
+    if(!isFunctionInitialized)
+    {
+        showWarning(tr("Problem musi zostać najpierw załadowany"));
+        return;
+    }
+
 
     //    widget.qPlotWidget->addGraph();
     //    widget.qPlotWidget->graph(0)->setPen(QPen(Qt::blue)); // line color blue for first graph
@@ -2222,361 +4130,12 @@ void Forma::sInicjalizujGGA()
 
 
 
+    gga->zainicjalizowany=true;
+
+    isGGAInitialized=true;
 
 
     qDebug()<<"spacing "<<gga->RozpFrontParWarFunKryt();
-
-}
-
-void Forma::sIterujGGA()
-{
-}
-
-void Forma::sIterujRazGGA()
-{
-    qDebug()<<"iteruj raz GGA\n";
-    gga->Iteruj();
-    AktualizujWykresParamGGA();
-    qDebug()<<"spacing "<<gga->RozpFrontParWarFunKryt();
-
-    wskazniki->GOL(gga->rodzice,gga->indSortGOL );
-    double gol=gga->rodzice[gga->indSortGOL[0]]->GOL;
-    //      vGol.push_back(QPointF((double)pso->num_iter,gol));
-    qDebug()<<"D_EC_GOL "<<wskazniki->D_EC_GOL(gga->rodzice,gga->rodzice[gga->indSortGOL[0]]);
-    qDebug() << "GOL = " << gol << "\n";
-    qDebug()<<"D_EC "<<wskazniki->D_EC(gga->rodzice);
-
     UpdateAllPlots();
-}
-
-
-void Forma::sStopGGA()
-{
-}
-
-void Forma::sDoneGGA()
-{
-}
-
-void Forma::sFinishedGGA()
-{
-}
-
-void Forma::sAttachFunToGender()
-{
-    qDebug()<<widget.treeWidget->currentItem()->parent()<<endl;
-    qDebug()<<widget.treeWidget->currentIndex()<<endl;
-    qDebug()<< widget.functionTable->currentRow()<<endl;
-    qDebug()<<"widget.functionTable->currentItem(); "<<widget.functionTable->currentItem()<<endl;
-    if(widget.treeWidget->currentItem()->parent()==0 && widget.functionTable->currentRow()>=0)
-    {
-        QTreeWidgetItem *item = new QTreeWidgetItem();
-        qDebug()<<"address "<<item<<endl;
-        item->setText(0, problem->funkcje[mFunction[widget.functionTable->item(widget.functionTable->currentRow(),0)]]);
-        mFunctionAttachedToGender[item]=mFunction[widget.functionTable->item(widget.functionTable->currentRow(),0)];
-        qDebug()<<"mFunction["<<widget.functionTable->currentRow()<<"] "<<mFunction[widget.functionTable->item(widget.functionTable->currentRow(),0)]<<endl;
-        mFunction.remove(widget.functionTable->item(widget.functionTable->currentRow(),0));
-        //   widget.treeWidget->insertTopLevelItem(0, item);
-
-        widget.treeWidget->currentItem()->addChild(item);
-        widget.treeWidget->currentItem()->setExpanded(true);
-        widget.functionTable->removeRow(widget.functionTable->currentRow());
-        widget.functionTable->clearSelection();
-        widget.functionTable->setCurrentCell(-1,-1);
-
-    }
-
-}
-
-void Forma::sRemoveFun()
-{
-    if(widget.treeWidget->currentItem()->parent()!=0 )
-    {
-        QTableWidgetItem *item = new QTableWidgetItem(problem->funkcje[mFunctionAttachedToGender[widget.treeWidget->currentItem()]]);
-        mFunction[item]=mFunctionAttachedToGender[widget.treeWidget->currentItem()];
-        mFunctionAttachedToGender.remove(  widget.treeWidget->currentItem());
-        widget.treeWidget->currentItem()->parent()->removeChild( widget.treeWidget->currentItem());
-        widget.functionTable->insertRow( widget.functionTable->rowCount());
-        widget.functionTable->setItem(widget.functionTable->rowCount()-1,0,item);
-    }
-}
-
-void Forma::sRemoveAllFun()
-{
-    qDebug()<<"top level item "<<widget.treeWidget->topLevelItemCount()<<"\n";
-    for(int i=0;i<widget.treeWidget->topLevelItemCount();++i)
-    {
-        qDebug()<<"num item "<<widget.treeWidget->topLevelItem(i)->childCount()<<"\n";
-        for(unsigned int j=0;j<widget.treeWidget->topLevelItem(i)->childCount();j++)
-        {
-
-            QTableWidgetItem *item = new QTableWidgetItem(problem->funkcje[mFunctionAttachedToGender[widget.treeWidget->topLevelItem(i)->child(j)]]);
-            mFunction[item]=mFunctionAttachedToGender[widget.treeWidget->topLevelItem(i)->child(j)];
-            mFunctionAttachedToGender.remove(widget.treeWidget->topLevelItem(i)->child(j));
-            widget.treeWidget->topLevelItem(i)->child(j)->parent()->removeChild(widget.treeWidget->topLevelItem(i)->child(j));
-            widget.functionTable->insertRow( widget.functionTable->rowCount());
-            widget.functionTable->setItem(widget.functionTable->rowCount()-1,0,item);
-
-            j=j-1;
-
-        }
-    }
-}
-
-void Forma::sStopNSGA() {
-    widget.Debug->append(QString("Stop"));
-    nsga_ii->stop();
-}
-
-void Forma::on_pushButton_clicked()
-{
-
-
-    for (int i = 0; i < widget.plotTableGGA->rowCount(); ++i) {
-        qDebug()<<((QLineEdit*) widget.plotTableGGA->cellWidget(i, 0))->text()<<" "<<
-                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentText()<<" "<<
-                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
-    }
-
-
-    qDebug()<<"ok";
-
-
-
-
-    AddRowToPlotTable();
-
-}
-
-void Forma::on_comboBox_currentIndexChanged(int index)
-{
-
-}
-
-void Forma::on_pushButton_2_clicked()
-{
-
-}
-
-void Forma::AddGGADataToGraph(QCPGraph* graph,QVector<AxisSetting>* as,Solution* s,float& a,float& b)
-{
-    TRACE;
-
-    if((*as)[0].isParam)
-    {
-        a=s->x[(*as)[0].index];
-    }
-    else
-    {
-        a=s->wartFunkcjiKryterialnych[(*as)[0].index];
-    }
-    if((*as)[1].isParam)
-    {
-        b=s->x[(*as)[1].index];
-    }
-    else
-    {
-        b=s->wartFunkcjiKryterialnych[(*as)[1].index];
-    }
-    qDebug()<<"a "<<a<<" b "<<b;
-    graph->addData(a,b);
-    TRACE;
-}
-void Forma::UpdateAllPlots()
-{
-    QCustomPlot* qp;
-    QVector<AxisSetting>* as;
-
-    qp=plotsSettingsGGA[0].qPlot;
-    TRACE;
-    qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
-    qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-    qp->setInteraction(QCustomPlot::iSelectPlottables); //
-
-    float a,b,minX,maxX,minY,maxY;
-    minX=numeric_limits<float>::max();
-    maxX=numeric_limits<float>::min();
-    minY=numeric_limits<float>::max();
-    maxY=numeric_limits<float>::min();
-    for (int i = 0; i <  plotsSettingsGGA.back().graphSettings.size(); ++i) {
-        qp->graph(i)->clearData();
-
-        as=&plotsSettingsGGA.back().graphSettings[i].axisSettings;
-        if(plotsSettingsGGA.back().graphSettings[i].all)
-        {
-            for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
-
-                AddGGADataToGraph(qp->graph(i),as,gga->rodzice[iSol],a,b);
-                if(a<minX)minX=a;
-                if(b<minY)minY=b;
-                if(a>maxX)maxX=a;
-                if(b>maxY)maxY=b;
-            }
-        }
-        else if(plotsSettingsGGA.back().graphSettings[i].pareto)//tylko front pareto
-        {
-            for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
-                if(gga->stopZdominowania[iSol]==0)
-                {
-                    AddGGADataToGraph(qp->graph(i),as,gga->rodzice[iSol],a,b);
-                    if(a<minX)minX=a;
-                    if(b<minY)minY=b;
-                    if(a>maxX)maxX=a;
-                    if(b>maxY)maxY=b;
-                }
-            }
-        }
-        else// wysw osob przypisane do rodzajnika
-        {
-            for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
-                if(gga->przydzieloneRodzajniki[iSol]==plotsSettingsGGA.back().graphSettings[i].indexOfGender)
-                {
-                    AddGGADataToGraph(qp->graph(i),as,gga->rodzice[iSol],a,b);
-                    if(a<minX)minX=a;
-                    if(b<minY)minY=b;
-                    if(a>maxX)maxX=a;
-                    if(b>maxY)maxY=b;
-                }
-            }
-
-        }
-
-    }
-
-    qp->xAxis->setRange(min(minX,minY),max(maxX,maxY));
-    qp->yAxis->setRange(min(minX,minY),max(maxX,maxY));
-    qp->replot();
-}
-
-void Forma::on_stworzWykresyGGA_clicked()
-{
-    widget.Wykresy->clear();
-    QWidget* w=new QWidget;
-    QCustomPlot* qPlot=new QCustomPlot(w);
-    qPlot->setFixedWidth(550);
-    qPlot->setFixedHeight(770);
-    qPlot->setAutoMargin(false);
-    qPlot->setMargin(50,10,10,230);
-
-
-    plotsSettingsGGA.clear();
-    plotsSettingsGGA.push_back(Plot2DSetting());
-    plotsSettingsGGA.back().qPlot=qPlot;
-    widget.Wykresy->addTab(w,"on");
-
-    QStringList colorNms;
-    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
-
-
-    TRACE;
-
-    int tmp;
-
-    for (int i = 0; i < widget.plotTableGGA->rowCount(); ++i) {
-        plotsSettingsGGA.back().graphSettings.push_back(GraphSetting());
-        plotsSettingsGGA.back().graphSettings.back().axisSettings.resize(2);
-        plotsSettingsGGA.back().graphSettings.back().name=((QLineEdit*) widget.plotTableGGA->cellWidget(i, 0))->text();
-
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentIndex();
-
-        if(tmp==0)
-        {
-            plotsSettingsGGA.back().graphSettings.back().axisSettings[0].isParam=false;
-        }
-        else
-        {
-            plotsSettingsGGA.back().graphSettings.back().axisSettings[0].isParam=true;
-        }
-
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 2))->currentIndex();
-
-        plotsSettingsGGA.back().graphSettings.back().axisSettings[0].index=tmp;
-
-        /////
-
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 3))->currentIndex();
-
-        if(tmp==0)
-        {
-            plotsSettingsGGA.back().graphSettings.back().axisSettings[1].isParam=false;
-        }
-        else
-        {
-            plotsSettingsGGA.back().graphSettings.back().axisSettings[1].isParam=true;
-        }
-
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 4))->currentIndex();
-
-        plotsSettingsGGA.back().graphSettings.back().axisSettings[1].index=tmp;
-
-        //////
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
-
-        if(tmp<2)
-        {
-            if(tmp==0)
-            {
-                plotsSettingsGGA.back().graphSettings.back().all=true;
-            }
-            else
-            {
-                plotsSettingsGGA.back().graphSettings.back().pareto=true;
-            }
-        }
-        else
-        {
-            tmp=tmp-2;
-            plotsSettingsGGA.back().graphSettings.back().indexOfGender=tmp;
-
-
-        }
-
-        QString str=((QComboBox*) widget.plotTableGGA->cellWidget(i, 6))->currentText();
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 6))->currentIndex();
-        plotsSettingsGGA.back().graphSettings.back().patternName=str;
-        plotsSettingsGGA.back().graphSettings.back().patternIndex=tmp;
-
-        tmp=((QComboBox*) widget.plotTableGGA->cellWidget(i, 7))->currentIndex();
-
-        qDebug()<<"tmp "<<tmp;
-
-        plotsSettingsGGA.back().graphSettings.back().color=colorNms[tmp];
-
-    }
-
-
-    QTextCodec::setCodecForTr (QTextCodec::codecForName ("UTF-8"));
-
-    plotsSettingsGGA.back().qPlot->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
-    plotsSettingsGGA.back().qPlot->setAutoMargin(false);
-    plotsSettingsGGA.back().qPlot->setMargin(50,10,10,230);
-    //  widget.qPlotWidget->setFixedSize(550,550);
-    plotsSettingsGGA.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
-    plotsSettingsGGA.back().qPlot->legend->setVisible(true);
-    QFont legendFont = font();  // start out with MainWindow's font..
-    legendFont.setPointSize(9); // and make a bit smaller for legend
-    plotsSettingsGGA.back().qPlot->legend->setFont(legendFont);
-    plotsSettingsGGA.back().qPlot->legend->setPositionStyle(QCPLegend::psManual);
-    plotsSettingsGGA.back().qPlot->legend->setPosition(QPoint(50,560));
-    plotsSettingsGGA.back().qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
-
-
-
-
-    for (int i = 0; i <  plotsSettingsGGA.back().graphSettings.size(); ++i) {
-        plotsSettingsGGA.back().qPlot->addGraph();
-        plotsSettingsGGA.back().qPlot->graph(i)->setPen(QColor(plotsSettingsGGA.back().graphSettings[i].color));
-        plotsSettingsGGA.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
-        plotsSettingsGGA.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotsSettingsGGA.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
-        plotsSettingsGGA.back().qPlot->graph(i)->setScatterSize(7);
-        plotsSettingsGGA.back().qPlot->graph(i)->setName(plotsSettingsGGA.back().graphSettings[i].name);
-        plotsSettingsGGA.back().qPlot->graph(i)->addToLegend();
-    }
-
-
-
-
-
-    int a=3;
 
 }

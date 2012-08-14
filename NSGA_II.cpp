@@ -27,6 +27,7 @@ NSGA_II::NSGA_II(int wielk_pop, int il_bitow, double prawd_mutacji, double prawd
     this->prawd_krzyz = prawd_krzyz;
     this->problem = problem;
 
+    zainicjalizowany=false;
     for (int i = 0; i < wiel_pop; i++) {
         rodzice.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
         rodzenstwo.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
@@ -132,7 +133,10 @@ void NSGA_II::WyznaczPrzystosowanie() {
             }
 
             for (int i_rep = 0; i_rep <pokolenie.size(); i_rep++) {
-               pokolenie[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -pokolenie[i_rep]->wartFunkcjiKryterialnych[i_fun];
+              // pokolenie[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -pokolenie[i_rep]->wartFunkcjiKryterialnych[i_fun];
+                pokolenie[i_rep]->przystosowanie[i_fun] = pokolenie[i_rep]->wartFunkcjiKryterialnych[i_fun]-skrajnaWartosc;
+
+
             }
 
 
@@ -146,7 +150,11 @@ void NSGA_II::WyznaczPrzystosowanie() {
             }
 
             for (int i_rep = 0; i_rep <pokolenie.size(); i_rep++) {
-               pokolenie[i_rep]->przystosowanie[i_fun] =pokolenie[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+             //  pokolenie[i_rep]->przystosowanie[i_fun] =pokolenie[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+                pokolenie[i_rep]->przystosowanie[i_fun] = skrajnaWartosc-pokolenie[i_rep]->wartFunkcjiKryterialnych[i_fun] ;
+
+
+
             }
         }
     }
@@ -187,7 +195,7 @@ void NSGA_II::PrzeskalujPrzystosowanie() {
         // qDebug() << "a " << a << " b " << b << "\n";
         for (int i_rep = 0; i_rep <pokolenie.size(); i_rep++) {
 
-           pokolenie[i_rep]->przystosowaniePrzeskalowane[i_fun] = a *pokolenie[i_rep]->przystosowanie[i_fun] + b;
+           pokolenie[i_rep]->przystosowaniePrzeskalowane[i_fun] = pokolenie[i_rep]->przystosowanie[i_fun]/max ;//a *pokolenie[i_rep]->przystosowanie[i_fun] + b;
         }
 
 
@@ -218,6 +226,68 @@ void NSGA_II::Inicjalizuj() {
                 //  DINFO;
             }
         }
+    }
+    for (int i = 0; i < wiel_pop; i++) {
+        pokolenie[i] = rodzice[i];
+        pokolenie[i + wiel_pop] = rodzice[i];
+    }
+
+
+    DEBUG("%s\n","dekoduje genotyp ... ");
+    DekodujGenotyp();
+    DEBUG("%s\n","ok");
+
+    // WyswietlFenotyp(&pokolenie);
+    DEBUG("%s\n","wyznaczam wart funkcji kryt ... ");
+    WyznaczWartFunkcjiKryterialnych();
+
+    DEBUG("%s\n","wyznaczam przystosowanie ... ");
+    WyznaczPrzystosowanie();
+
+
+    // WyswietlPrzystosowanie(&pokolenie);
+    DEBUG("%s\n","przeskalowywuje przystosowanie ... ");
+    PrzeskalujPrzystosowanie();
+
+
+    // WyswietlPrzystosowaniePrzeskalowane(&pokolenie);
+    // DINFO;
+    DEBUG("%s\n","fast non dominated sort ... ");
+    F = FastNonDominatedSort();
+
+    DEBUG("il frontow %i\n",(*F).size());
+    DEBUG("size of F = %i", F->size());
+
+    // rodzice.clear();
+    int i_front = 0;
+    int i_sol = 0;
+    // DINFO;
+    while ((i_sol + (*F)[i_front].size()) <= wiel_pop) {
+        //DINFO;
+        CrowdingDistanceAssignement((*F)[i_front]);
+        // DINFO;
+        for (int i = 0; i < (*F)[i_front].size(); i++) {
+            rodzice[i_sol] = (*F)[i_front][i];
+            i_sol++;
+        }
+
+        // DINFO;
+        i_front++;
+    }
+    // DINFO;
+    //    i_front=0;
+    if (i_sol < wiel_pop) {
+        CrowdingDistanceAssignement((*F)[i_front]);
+        //  DINFO;
+        //    qSort((*F)[i_front].begin(), (*F)[i_front].end(), CrowdedComparisonOperator);
+
+        DEBUG("rozmiar ostatniego frontu %i\n", (*F)[i_front].size());
+        DEBUG("wiel_pop - i_sol %i", wiel_pop - i_sol);
+        for (int i = 0; i < wiel_pop - i_sol; i++) {
+            rodzice[i_sol] = (*F)[i_front][i];
+            i_sol++;
+        }
+
     }
 
     // DINFO;
@@ -360,6 +430,9 @@ void NSGA_II::CrowdingDistanceAssignement(QVector<Solution*>&F) {
 }
 
 void NSGA_II::Iteruj() {
+
+    MakeNewPop();
+
     for (int i = 0; i < wiel_pop; i++) {
         pokolenie[i] = rodzice[i];
         pokolenie[i + wiel_pop] = rodzenstwo[i];
@@ -423,7 +496,7 @@ void NSGA_II::Iteruj() {
     }
     //DINFO;
     //MakeNewPop(&(*F)[i_front], &rodzenstwo
-    MakeNewPop();
+
     //  DINFO;
     // WyswietlRangiZatloczenia(&(*F)[i_front]);
 

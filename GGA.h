@@ -51,6 +51,7 @@ public:
     unsigned int ilOsElitarnych;//ile osobnikow z najwyzszym GOL przechodzi do nastepnego pokolenia.Czy jest elitaryzm
     unsigned int ilOsNieElit;
     double prawd_mutacji, prawd_krzyz, c; /**< TODO */
+    bool zainicjalizowany;
     /**
      * @brief rodzice l,l,l,l
      */

@@ -37,6 +37,7 @@ GGA::GGA(unsigned int wielk_pop, unsigned int il_bitow, double prawd_mutacji, do
 
     }
 
+    zainicjalizowany=false;
     this->wiel_pop=ilOsElitarnych+ilOsNieElit;
 
     for (int i = 0; i < wiel_pop; i++) {
@@ -303,6 +304,8 @@ void GGA::Inicjalizuj()
 
 
 
+
+
 }
 
 void GGA::DekodujGenotyp()
@@ -422,7 +425,9 @@ void GGA::WyznaczPrzystosowanie()
             }
 
             for (int i_rep = 0; i_rep <rodzice.size(); i_rep++) {
-                rodzice[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -rodzice[i_rep]->wartFunkcjiKryterialnych[i_fun];
+                //rodzice[i_rep]->przystosowanie[i_fun] = skrajnaWartosc -rodzice[i_rep]->wartFunkcjiKryterialnych[i_fun];
+                rodzice[i_rep]->przystosowanie[i_fun] = rodzice[i_rep]->wartFunkcjiKryterialnych[i_fun]-skrajnaWartosc;
+
             }
 
 
@@ -436,7 +441,10 @@ void GGA::WyznaczPrzystosowanie()
             }
 
             for (int i_rep = 0; i_rep <rodzice.size(); i_rep++) {
-                rodzice[i_rep]->przystosowanie[i_fun] =rodzice[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+               // rodzice[i_rep]->przystosowanie[i_fun] =rodzice[i_rep]->wartFunkcjiKryterialnych[i_fun] - skrajnaWartosc;
+                rodzice[i_rep]->przystosowanie[i_fun] = skrajnaWartosc-rodzice[i_rep]->wartFunkcjiKryterialnych[i_fun] ;
+
+
             }
         }
     }
@@ -714,7 +722,7 @@ void GGA::PrzeskalujPrzystosowanie()
         // qDebug() << "a " << a << " b " << b << "\n";
         for (int i_rep = 0; i_rep <rodzice.size(); i_rep++) {
 
-            rodzice[i_rep]->przystosowaniePrzeskalowane[i_fun] = a *rodzice[i_rep]->przystosowanie[i_fun] + b;
+            rodzice[i_rep]->przystosowaniePrzeskalowane[i_fun] =rodzice[i_rep]->przystosowanie[i_fun]/max;// a *rodzice[i_rep]->przystosowanie[i_fun] + b;
         }
 
 

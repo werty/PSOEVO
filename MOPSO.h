@@ -52,6 +52,7 @@ public:
     bool stopIteration;
     QMutex  mutex;
     double c;
+    bool zainicjalizowany;
     
 
     QVector<unsigned int> indSortGOL;
