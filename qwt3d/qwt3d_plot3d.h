@@ -41,6 +41,9 @@ public:
   Plot3D ( QWidget * parent = 0, const QGLWidget * shareWidget = 0 );
   virtual ~Plot3D();
  QVector<Point3d*> data_wek;
+
+
+ void createCoordinateSystem(const ParallelEpiped &h);
   void drawPoints();
   QPixmap renderPixmap (int w=0, int h=0, bool useContext=false);	  
   void updateData(); //!< Recalculate data
@@ -141,6 +144,7 @@ protected:
   virtual void createOpenGlData(const Plotlet& pl) = 0;
 
 	void createCoordinateSystem();
+
 	void setHull(Qwt3D::ParallelEpiped const& h) {hull_ = h;}
   
   std::vector<Plotlet> plotlets_p;

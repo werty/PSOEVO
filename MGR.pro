@@ -117,8 +117,8 @@ HEADERS  += \
 
 QMAKE_CXXFLAGS += -std=c++0x
 
-INCLUDEPATH += /usr/local/qwt-6.1.0-svn/include
-LIBS += -L../muparser_v2_2_2/lib -lmuparser -lglut -lGLU -L/usr/local/qwt-6.1.0-svn/lib -lqwt
+INCLUDEPATH += /home/werty/werty/Programowanie/install/qwt-6.0.1/src
+LIBS += -L../muparser_v2_2_2/lib -lmuparser -lglut -lGLU -L/home/werty/werty/Programowanie/install/qwt-6.0.1/lib -lqwt
 FORMS    += Forma.ui
 
 

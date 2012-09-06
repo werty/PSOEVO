@@ -194,6 +194,17 @@ void Plot3D::createCoordinateSystem()
   createCoordinateSystem(beg, end);
 }
 
+ void Plot3D::createCoordinateSystem(ParallelEpiped const& h)
+ {
+
+     Triple beg = h.minVertex;
+     Triple end = h.maxVertex;
+     createCoordinateSystem(beg, end);
+
+ }
+
+
+
 /*!
   Show a color legend
 */

@@ -133,9 +133,10 @@ struct GraphSetting{
 
 class Plot2DSetting{
 public:
+    QString windowCaption,xAxisCaption,yAxisCaption;
     int tabIndex;//index zakladki na ktorej znajduje sie wykres
     QCustomPlot* qPlot;
-    QVector<unsigned int> algorithms;
+    QVector<unsigned int> algorithms;//0- MOPSO, 1-NSGA-II, 2-GGA
     QVector<GraphSetting> graphSettings;
     Plot2DSetting()
     {
@@ -184,6 +185,8 @@ public:
     QVector<Plot2DSetting> plotSettingsGGA;
     QVector<Plot2DSetting> plotSettingsMOPSO;
     QVector<Plot2DSetting> plotSettingsNSGA_II;
+    QVector<Plot2DSetting> plot2DSettings;
+
     Plot2DSetting plotSettingsGOL;
     Plot2DSetting plotSettingsSpacing;
     Plot2DSetting plotSettingsD_EC;
@@ -212,7 +215,7 @@ public:
     
     Plot* plot3d;
     
-    Wykres2d* wykresGOL;
+   // Wykres2d* wykresGOL;
     
     QCustomPlot* qPlot;
 
@@ -243,6 +246,8 @@ public:
     void IterujRazMOPSO();
     void Loguj();
     void AddRowToMOPSOPlotTable();
+    void AddRowTo2DPlotsTable();
+    void AddRowTo3DPlotsTable();
     void AddRowToGGAPlotTable();
     void AddRowToNSGA_IIPlotTable();
 
@@ -278,6 +283,8 @@ public slots:
      void changeGGAIndexSlot(int index,int row,int column);
      void currentGGAIndexChanged(QObject *ac);
      void currentMOPSOIndexChanged(QObject *ac);
+     void currentPlot2DIndexChanged(QObject *ac);
+     void currentPlot3DIndexChanged(QObject *ac);
      void currentNSGA_IIIndexChanged(QObject *ac);
 private slots:
 
@@ -373,6 +380,14 @@ private slots:
     void on_bInicjalizujMOPSO_clicked();
 
     void on_bInicjalizujGGA_clicked();
+
+    void on_bDodajWykres2D_clicked();
+
+    void on_bStworzOkno2D_clicked();
+
+    void on_bIterujSymulacja_clicked();
+
+    void on_qPlotWidget_customContextMenuRequested(const QPoint &pos);
 
 private:
     QSignalMapper *signalMapper;

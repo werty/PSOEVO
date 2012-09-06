@@ -148,6 +148,10 @@
 #include "qcustomplot.h"
 #include <cmath>
 #include <limits>
+#include <QAction>
+#include <QMenu>
+#include <QFileDialog>
+#include <QDir>
 
 // ================================================================================
 // =================== QCPData
@@ -6872,8 +6876,10 @@ void QCustomPlot::rescaleAxes()
   
   mPlottables.at(0)->rescaleAxes(false); // onlyEnlarge disabled on first plottable
   for (int i=1; i<mPlottables.size(); ++i)
-    mPlottables.at(i)->rescaleAxes(true);  // onlyEnlarge enabled on all other plottables
+      mPlottables.at(i)->rescaleAxes(true);  // onlyEnlarge enabled on all other plottables
 }
+
+
 
 /*!
   Saves a PDF with the vectorized plot to the file \a fileName. The axis ratio as well as the scale
@@ -9999,4 +10005,32 @@ QCPRange QCPStatisticalBox::getValueRange(bool &validRange, SignDomain inSignDom
 
 
 
+void QCustomPlot::save()
+{
+    qDebug()<<"save";
+    QFileDialog *dialog = new QFileDialog();
 
+
+    QString str = QDir::currentPath();
+    QString filename = dialog->getSaveFileName(this, tr("Save File"), str +
+                                               "/zapiane/wykres.png",
+                                               tr("Images (*.png)"));
+    savePngScaled(filename,2.0);
+   // fileDialog.setNameFilter("PDF-Files (*.pdf)");
+}
+
+
+void QCustomPlot::contextMenuEvent(QContextMenuEvent *event)
+{
+    qDebug()<<"menu";
+
+    QAction * saveAct = new QAction(tr("&Save"), this);
+   // saveAct->setShortcuts(QKeySequence::Save);
+   // saveAct->setStatusTip(tr("Save the document to disk"));
+    connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
+    QMenu menu(this);
+    menu.addAction(saveAct);
+     // //   menu.addAction(copyAct);
+     //    menu.addAction(pasteAct);
+         menu.exec(event->globalPos());
+}

@@ -1176,6 +1176,7 @@ public slots:
   void deselectAll();
   void replot();
   void rescaleAxes();
+  void save();
   
 signals:
   void mouseDoubleClick(QMouseEvent *event);
@@ -1198,6 +1199,10 @@ signals:
   void afterReplot();
   
 protected:
+
+
+     void contextMenuEvent(QContextMenuEvent *event);
+
   QPixmap buffer;
   QString mTitle;
   QFont mTitleFont;

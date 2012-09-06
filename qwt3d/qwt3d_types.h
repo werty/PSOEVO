@@ -283,8 +283,9 @@ struct QWT3D_EXPORT ParallelEpiped
 
 inline ParallelEpiped sum(const ParallelEpiped& a, const ParallelEpiped& b)
 {
+
   Triple mi = a.minVertex - b.minVertex;
-  mi.x = (mi.x<0) ? a.minVertex.x : b.minVertex.x; 
+  mi.x = (mi.x<0) ? a.minVertex.x : b.minVertex.x;
   mi.y = (mi.y<0) ? a.minVertex.y : b.minVertex.y; 
   mi.z = (mi.z<0) ? a.minVertex.z : b.minVertex.z; 
   

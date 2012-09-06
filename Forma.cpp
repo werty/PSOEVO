@@ -98,6 +98,15 @@ Forma::Forma() {
     plot3d = new Plot();
 
     plot3d->setParent(widget.Plot3D);
+   // plot3d->rosenbrock->parser.SetExpr("log((1 - x)*(1 - x) + 100 * (y - x * x)*(y - x * x)) / 8");
+    plot3d->resize(600, 570);
+
+
+
+
+
+
+    Rysuj();
 
     // mu::ParserInt int_parser;
 
@@ -114,7 +123,6 @@ Forma::Forma() {
     //
     //
     //
-    plot3d->rosenbrock->parser.SetExpr("log((1 - x)*(1 - x) + 100 * (y - x * x)*(y - x * x)) / 8");
     //
     //
     //
@@ -179,7 +187,6 @@ Forma::Forma() {
     connect(widget.bRemoveFun, SIGNAL(clicked()), this, SLOT(sRemoveFun()));
     connect(widget.bRemoveAllFun, SIGNAL(clicked()), this, SLOT(sRemoveAllFun()));
 
-    plot3d->resize(600, 570);
 
 
     //    plotGOL = new QwtPlot(QwtText("GOL"), (QWidget*) widget.PlotGOL);
@@ -193,7 +200,7 @@ Forma::Forma() {
     //    plotGOL->setAxisTitle(QwtPlot::xBottom, "Pokolenia");
     //    plotGOL->setAxisTitle(QwtPlot::yLeft, "GOL");
 
-    wykresGOL = new Wykres2d((QWidget*) widget.PlotGOL, 500, 500, "Globalny poziom optymalności", "Pokolenia", "GOL");
+   // wykresGOL = new Wykres2d((QWidget*) widget.PlotGOL, 500, 500, "Globalny poziom optymalności", "Pokolenia", "GOL");
 
     //////////////////////////////////////
 
@@ -242,45 +249,45 @@ Forma::Forma() {
 
     //////////////////////////////////////////
 
-    plot2d = new QwtPlot(QwtText("Two Curves"), (QWidget*) widget.Plot2D);
-    plot2d->setFixedSize(500, 500);
-    // add curves
-    curve1 = new QwtPlotCurve("Curve 1");
-    curve2 = new QwtPlotCurve("Curve 2");
+//    plot2d = new QwtPlot(QwtText("Two Curves"), (QWidget*) widget.Plot2D);
+//    plot2d->setFixedSize(500, 500);
+//    // add curves
+//    curve1 = new QwtPlotCurve("Curve 1");
+//    curve2 = new QwtPlotCurve("Curve 2");
 
 
-    points_nondom = new QwtPlotCurve("Test Curve");
-    points_nondom->setStyle(QwtPlotCurve::NoCurve);
-    points_nondom->setData(new CurveData());
+//    points_nondom = new QwtPlotCurve("Test Curve");
+//    points_nondom->setStyle(QwtPlotCurve::NoCurve);
+//    points_nondom->setData(new CurveData());
 
-    points_nondom->setSymbol(new QwtSymbol(QwtSymbol::XCross,
-                                           Qt::NoBrush, QPen(Qt::blue), QSize(4, 4)));
+//    points_nondom->setSymbol(new QwtSymbol(QwtSymbol::XCross,
+//                                           Qt::NoBrush, QPen(Qt::blue), QSize(4, 4)));
 
-    points_nondom->attach(plot2d);
+//    points_nondom->attach(plot2d);
 
 
 
-    points_dom = new QwtPlotCurve("Test Curve");
-    points_dom->setStyle(QwtPlotCurve::NoCurve);
-    points_dom->setData(new CurveData());
+//    points_dom = new QwtPlotCurve("Test Curve");
+//    points_dom->setStyle(QwtPlotCurve::NoCurve);
+//    points_dom->setData(new CurveData());
 
-    points_dom->setSymbol(new QwtSymbol(QwtSymbol::XCross,
-                                        Qt::NoBrush, QPen(Qt::red), QSize(4, 4)));
+//    points_dom->setSymbol(new QwtSymbol(QwtSymbol::XCross,
+//                                        Qt::NoBrush, QPen(Qt::red), QSize(4, 4)));
 
-    points_dom->attach(plot2d);
+//    points_dom->attach(plot2d);
 
-    //d_directPainter = new QwtPlotDirectPainter(plot2d);
-    // copy the data into the curves
-    //curve1->setRawSamples();
-    //  curve2->setData(...);
+//    //d_directPainter = new QwtPlotDirectPainter(plot2d);
+//    // copy the data into the curves
+//    //curve1->setRawSamples();
+//    //  curve2->setData(...);
 
-    plot2d->setAxisAutoScale(plot2d->xBottom, true);
-    plot2d->setAxisAutoScale(plot2d->yLeft, true);
-    //curve1->attach(plot2d);
-    //  curve2->attach(plot2d);
+//    plot2d->setAxisAutoScale(plot2d->xBottom, true);
+//    plot2d->setAxisAutoScale(plot2d->yLeft, true);
+//    //curve1->attach(plot2d);
+//    //  curve2->attach(plot2d);
 
-    // finally, refresh the plot
-    plot2d->replot();
+//    // finally, refresh the plot
+//    plot2d->replot();
 
 
     Zaladuj_wzor(widget.Wzor_PSO, "wzor_pso.mml");
@@ -427,12 +434,37 @@ void Forma::Rysuj() {
     //
     //
     //
-    plot3d->rosenbrock->create();
+
+
+
+    //plot3d->rosenbrock->create();
+
+
+   // plot3d->setHull();
+    cout<<"hull x.min "<<plot3d->hull().minVertex.x<<endl;
+    cout<<"hull x.max "<<plot3d->hull().maxVertex.x<<endl;
+    cout<<"hull y.min "<<plot3d->hull().minVertex.y<<endl;
+    cout<<"hull y.max "<<plot3d->hull().maxVertex.y<<endl;
+    cout<<"hull z.min "<<plot3d->hull().minVertex.z<<endl;
+    cout<<"hull z.max "<<plot3d->hull().maxVertex.z<<endl;
+    ParallelEpiped hull(Triple(0,0,0),Triple(100,100,100));
+
+    plot3d->createCoordinateSystem(hull);
+
+
+
+    for (int i = 0; i < 30; ++i) {
+        plot3d->data_wek.push_back(new Point3d(rand()%100,rand()%100,rand()%100));
+    }
 
     for (unsigned i = 0; i != plot3d->coordinates()->axes.size(); ++i) {
         plot3d->coordinates()->axes[i].setMajors(7);
         plot3d->coordinates()->axes[i].setMinors(4);
+
+
     }
+
+
 
 
     plot3d->coordinates()->axes[X1].setLabelString("x-axis");
@@ -485,7 +517,7 @@ void Forma::sStopMOPSO() {
 }
 
 void Forma::sDoneMOPSO() {
-    aktualizuj_wykres_przystosowania();
+   // aktualizuj_wykres_przystosowania();
 
     // qDebug() << "iteracja " << mopso->num_iter << " z " << mopso->il_iter << "\n";
     //  qWarning("num it %i\n",mopso->num_iter);
@@ -1043,7 +1075,7 @@ void Forma::sIterujRazMOPSO() {
 
 
     IterujRazMOPSO();
-    aktualizuj_wykres_przystosowania();
+   // aktualizuj_wykres_przystosowania();
     qDebug()<<"mopso D_EC "<<wskazniki->D_EC(mopso->repozytorium);
 }
 
@@ -1091,8 +1123,8 @@ void Forma::IterujRazMOPSO() {
     double gol=mopso->populacja[mopso->indSortGOL[0]]->GOL;
     //      vGol.push_back(QPointF((double)pso->num_iter,gol));
     qDebug() << "GOL = " << gol << "\n";
-    wykresGOL->dodajPunkt(QPointF((double) mopso->num_iter, gol));
-    wykresGOL->aktualizuj();
+    //wykresGOL->dodajPunkt(QPointF((double) mopso->num_iter, gol));
+   // wykresGOL->aktualizuj();
     //aktualizuj_wykres_gol();
 
 
@@ -1174,6 +1206,7 @@ void Forma::open() {
 
 void Forma::save() {
     QFileDialog *dialog = new QFileDialog();
+
 
     QString str = QDir::currentPath();
     QString filename = dialog->getSaveFileName(this, tr("Save File"), str +
@@ -2141,6 +2174,83 @@ void Forma::currentGGAIndexChanged(QObject * ac)
 
 
 }
+
+
+void Forma::currentPlot2DIndexChanged(QObject * ac)
+{
+
+    //showWarning(" "+QVariant(((AuxClass*)ac)->col).toString());
+
+    int col=((AuxClass*)ac)->col+1;
+    int row=((AuxClass*)ac)->row;
+    //qDebug()<<"row "<<row<<" col "<<col;
+    //problem->funkcje.size()
+    QComboBox* cb=((QComboBox*) widget.wykresy2D->cellWidget(row, col));
+
+    //qDebug()<<"1791 "<<cb->count();
+    while(cb->count()!=0)
+    {
+        cb->removeItem(0);
+    }
+    //cb->clear();
+    // qDebug()<<"1793";
+    //qDebug()<<"current index "<<cb->currentIndex();
+    if(((QComboBox*) widget.wykresy2D->cellWidget(row, col-1))->currentIndex()==0)
+    {
+
+        for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+            cb->addItem("f"+QVariant(i+1).toString());
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0; i < problem->zmienne.size(); ++i) {
+            cb->addItem( QString(problem->zmienne[i]->nazwa.c_str()));
+        }
+
+    }
+
+
+
+}
+
+void Forma::currentPlot3DIndexChanged(QObject * ac)
+{
+
+    //showWarning(" "+QVariant(((AuxClass*)ac)->col).toString());
+
+    int col=((AuxClass*)ac)->col+1;
+    int row=((AuxClass*)ac)->row;
+    //qDebug()<<"row "<<row<<" col "<<col;
+    //problem->funkcje.size()
+    QComboBox* cb=((QComboBox*) widget.wykresy3D->cellWidget(row, col));
+
+    //qDebug()<<"1791 "<<cb->count();
+    while(cb->count()!=0)
+    {
+        cb->removeItem(0);
+    }
+    //cb->clear();
+    // qDebug()<<"1793";
+    //qDebug()<<"current index "<<cb->currentIndex();
+    if(((QComboBox*) widget.wykresy3D->cellWidget(row, col-1))->currentIndex()==0)
+    {
+
+        for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+            cb->addItem("f"+QVariant(i+1).toString());
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0; i < problem->zmienne.size(); ++i) {
+            cb->addItem( QString(problem->zmienne[i]->nazwa.c_str()));
+        }
+
+    }
+
+
+
+}
 void Forma::currentMOPSOIndexChanged(QObject * ac)
 {
 
@@ -2339,7 +2449,7 @@ void Forma::sIterujRazNSGA() {
 
 void Forma::sDoneNSGA() {
 
-    aktualizuj_wykres_przystosowania(nsga_ii->F);
+   // aktualizuj_wykres_przystosowania(nsga_ii->F);
 
     //qDebug() << "iteracja " << nsga_ii->num_iter << " z " << nsga_ii->il_iter << "\n";
     widget.progressBarNSGA_II->setValue(nsga_ii->num_iter);
@@ -3786,6 +3896,9 @@ void Forma::on_bIterujNSGA_2_clicked()
 
 void Forma::on_bInicjalizujNSGA_clicked()
 {
+    qDebug()<<"3821";
+
+
     if(!isFunctionInitialized)
     {
         showWarning(tr("Problem musi zostać najpierw załadowany"));
@@ -3831,6 +3944,7 @@ void Forma::on_bInicjalizujNSGA_clicked()
 
     nsga_ii->zainicjalizowany=true;
     isNSGA_IIInitialized=true;
+    qDebug()<<"3866";
     UpdateAllPlots();
 }
 
@@ -3860,7 +3974,7 @@ void Forma::on_bInicjalizujMOPSO_clicked()
         showWarning("Niewlasciwa ilosc hiperkostek");
         return;
     }
-    wykresGOL->wyczysc();
+    //wykresGOL->wyczysc();
 
 
 
@@ -3898,7 +4012,7 @@ void Forma::on_bInicjalizujMOPSO_clicked()
     //   pso->wyswietl_populacje();
 
     //  pso->Iteruj();
-    aktualizuj_wykres_przystosowania();
+   // aktualizuj_wykres_przystosowania();
 
     // qDebug() << "Generuje kostki\n";
     //  pso->generuj_kostki();
@@ -4138,4 +4252,378 @@ void Forma::on_bInicjalizujGGA_clicked()
     qDebug()<<"spacing "<<gga->RozpFrontParWarFunKryt();
     UpdateAllPlots();
 
+}
+
+void Forma::on_bDodajWykres2D_clicked()
+{
+    AddRowTo2DPlotsTable();
+}
+
+
+void Forma::AddRowTo2DPlotsTable()
+{
+    if(!isFunctionInitialized)
+    {
+        showWarning("Funkcje nie zostaly wczytane");
+        return;
+    }
+
+
+    QVector<QString> patternNames= { "None"     ///< no scatter symbols are drawn (e.g. data only represented with lines, see \ref setLineStyle)
+                                     ,"Dot"       ///< a single pixel, \ref setScatterSize has no influence on its size.
+                                     ,"Cross"     ///< a cross (x)
+                                     ,"Plus"      ///< a plus (+)
+                                     ,"Circle"    ///< a circle which is not filled
+                                     ,"Disc"      ///< a circle which is filled with the color of the graph's pen (not the brush!)
+                                     ,"Square"    ///< a square which is not filled
+                                     ,"Star"      ///< a star with eight arms, i.e. a combination of cross and plus
+                                     ,"Triangle"  ///< an equilateral triangle which is not filled, standing on baseline
+                                     ,"TriangleInverted" ///< an equilateral triangle which is not filled, standing on corner
+                                     ,"CrossSquare"      ///< a square which is not filled, with a cross inside
+                                     ,"PlusSquare"       ///< a square which is not filled, with a plus inside
+                                     ,"CrossCircle"      ///< a circle which is not filled, with a cross inside
+                                     ,"PlusCircle"       ///< a circle which is not filled, with a plus inside
+                                     ,"Peace"    ///< a circle which is not filled, with one vertical and two downward diagonal lines
+                                     ,"Pixmap"    ///< a custom pixmap specified by setScatterPixmap, centered on the data point coordinates. \ref setScatterSize has no influence on its size.
+                                   };
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+    QComboBox* Combcolor = new QComboBox;
+    Combcolor->setMinimumWidth(40);
+    Combcolor->setMaximumWidth(40);
+    QPalette pal = Combcolor->palette(); // holds the widget's palette.
+    pal.setColor(QPalette::Highlight, Qt::transparent); // construction of palette
+    Combcolor->setPalette(pal); //set the comboBox palette
+
+    int size = Combcolor->style()->pixelMetric(QStyle::PM_SmallIconSize);
+    QPixmap pixmap(size,size);
+
+    int con=0;
+    foreach (QString name, colorNms)
+    {
+        Combcolor->addItem("", QColor(con));//Adding ComboItems
+        pixmap.fill(QColor(name));
+        Combcolor->setItemData(con, pixmap, Qt::DecorationRole);//Setting color palettes
+        con=con+1;
+
+    }
+
+
+    QComboBox* comboPattern = new QComboBox;
+
+    foreach (QString name, patternNames)
+    {
+        comboPattern->addItem(name);//Adding ComboItems
+
+    }
+
+    comboPattern->setCurrentIndex(3);
+
+
+    QVector<QString> algorytmNames,os1Names,os2Names,dataNames,rodzNames,indexNames;
+    os1Names<<"x1"<<"x2";
+    os2Names<<"x1"<<"x2";
+    dataNames<<"wszystkie"<<"front pareto";
+
+
+
+   // for (int i = 0; i < gga->funkcjeRodzajnikow.size(); ++i) {
+        //dataNames<<"rozw. przydzielone rodzajnikowi "+QVariant(i+1).toString();
+   // }
+    rodzNames<<"fun. kryt."<<"param.";
+    algorytmNames<<"MOPSO"<<"NSGA-II"<<"GGA";
+
+
+
+
+    for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+        indexNames<<"f"+QVariant(i+1).toString();
+    }
+
+    QComboBox* comboAlgorytm = new QComboBox();
+
+
+
+    foreach (QString name, algorytmNames)
+    {
+        comboAlgorytm->addItem(name);//Adding ComboItems
+
+    }
+
+
+    QComboBox* comboOs1Rodz = new QComboBox();
+    signalMapper = new QSignalMapper(this);
+
+
+    foreach (QString name, rodzNames)
+    {
+        comboOs1Rodz->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboOs1Index = new QComboBox();
+
+    foreach (QString name, indexNames)
+    {
+        comboOs1Index->addItem(name);//Adding ComboItems
+
+    }
+
+
+    QComboBox* comboOs2Rodz = new QComboBox;
+
+    foreach (QString name, rodzNames)
+    {
+        comboOs2Rodz->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboOs2Index = new QComboBox;
+
+    foreach (QString name, indexNames)
+    {
+        comboOs2Index->addItem(name);//Adding ComboItems
+
+    }
+
+    QComboBox* comboData = new QComboBox;
+
+
+
+    foreach (QString name, dataNames)
+    {
+        comboData->addItem(name);//Adding ComboItems
+
+    }
+
+
+
+
+    //nazwa os1 os2 rodz_danych wzor kolor
+    unsigned int row=widget.plotTableMOPSO->rowCount();
+    widget.wykresy2D->insertRow(row);
+
+    //    QTableWidgetItem *colorItem = new QTableWidgetItem;
+    //    colorItem->setData(Qt::DisplayRole, QColor("red"));
+
+    //    QTableWidgetItem *os1Item = new QTableWidgetItem;
+    //    os1Item->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *os2Item = new QTableWidgetItem;
+    //    os2Item->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *daneItem = new QTableWidgetItem;
+    //    daneItem->setData(Qt::DisplayRole, "cos");
+
+    //    QTableWidgetItem *wzorItem = new QTableWidgetItem;
+    //    wzorItem->setData(Qt::DisplayRole, "cos");
+
+    QLineEdit* nameItem=new QLineEdit("Wykres");
+
+
+
+    widget.wykresy2D->setCellWidget(row, 0, comboAlgorytm);
+    widget.wykresy2D->setCellWidget(row, 1, nameItem);
+    widget.wykresy2D->setCellWidget(row, 2, comboOs1Rodz);
+    widget.wykresy2D->setCellWidget(row, 3, comboOs1Index);
+    widget.wykresy2D->setCellWidget(row, 4, comboOs2Rodz);
+    widget.wykresy2D->setCellWidget(row, 5, comboOs2Index);
+    widget.wykresy2D->setCellWidget(row, 6, comboData);
+    widget.wykresy2D->setCellWidget(row, 7, comboPattern);
+    widget.wykresy2D->setCellWidget(row,8,Combcolor);
+    widget.wykresy2D->resizeColumnToContents(0);
+    widget.wykresy2D->horizontalHeader()->setStretchLastSection(true);
+
+
+    QObject* ac=new AuxClass(row,2);
+    connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+
+
+    signalMapper->setMapping(comboOs1Rodz,ac );
+    // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
+    connect(signalMapper, SIGNAL(mapped(QObject *)),
+            this, SLOT(currentPlot2DIndexChanged(QObject *)));
+
+    ac=new AuxClass(row,4);
+    connect(comboOs2Rodz,SIGNAL(currentIndexChanged(int)), signalMapper, SLOT(map()));
+
+
+    signalMapper->setMapping(comboOs2Rodz,ac );
+    // connect(comboOs1Rodz,SIGNAL(currentIndexChanged(int)), this, SLOT());
+    connect(signalMapper, SIGNAL(mapped(QObject *)),
+            this, SLOT(currentPlot2DIndexChanged(QObject *)));
+}
+
+
+void Forma::AddRowTo3DPlotsTable()
+{
+
+}
+
+void Forma::on_bStworzOkno2D_clicked()
+{
+    //widget.Wykresy->clear();
+
+    if(widget.wykresy2D->rowCount()==0)
+    {
+        showWarning(tr("Należy dodać przynajmniej 1 wykres"));
+        return;
+    }
+
+    QWidget* w=new QWidget;
+    QCustomPlot* qPlot=new QCustomPlot(w);
+    qPlot->setFixedWidth(550);
+    qPlot->setFixedHeight(770);
+    qPlot->setAutoMargin(false);
+    qPlot->setMargin(50,10,10,230);
+
+
+    //plotsSettingsMOPSO.clear();
+    plot2DSettings.push_back(Plot2DSetting());
+    plot2DSettings.back().qPlot=qPlot;
+    plot2DSettings.back().tabIndex=widget.Wykresy->count()-1;
+
+
+
+    widget.Wykresy->addTab(w,"MOPSO");
+
+
+    QStringList colorNms;
+    colorNms<<"darkGreen"<<"green"<<"gray"<<"red"<<"white"<<"blue"<<"cyan"<<"darkMagenta"<<"yellow"<<"darkRed"<<"black"<<"magenta";
+
+
+    TRACE;
+
+
+     plot2DSettings.back().windowCaption=widget.nazwaOkna2D->text();
+     plot2DSettings.back().xAxisCaption=widget.podpisOsiX2D->text();
+     plot2DSettings.back().yAxisCaption=widget.podpisOsiY2D->text();
+
+    int tmp;
+
+    for (int i = 0; i < widget.wykresy2D->rowCount(); ++i) {
+        plot2DSettings.back().algorithms.push_back(((QComboBox*) widget.wykresy2D->cellWidget(i, 0))->currentIndex());
+        plot2DSettings.back().graphSettings.push_back(GraphSetting());
+        plot2DSettings.back().graphSettings.back().axisSettings.resize(2);
+        plot2DSettings.back().graphSettings.back().name=((QLineEdit*) widget.wykresy2D->cellWidget(i, 1))->text();
+
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 2))->currentIndex();
+
+        if(tmp==0)
+        {
+            plot2DSettings.back().graphSettings.back().axisSettings[0].isParam=false;
+        }
+        else
+        {
+            plot2DSettings.back().graphSettings.back().axisSettings[0].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 3))->currentIndex();
+
+        plot2DSettings.back().graphSettings.back().axisSettings[0].index=tmp;
+
+        /////
+
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 4))->currentIndex();
+
+        if(tmp==0)
+        {
+            plot2DSettings.back().graphSettings.back().axisSettings[1].isParam=false;
+        }
+        else
+        {
+            plot2DSettings.back().graphSettings.back().axisSettings[1].isParam=true;
+        }
+
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 5))->currentIndex();
+
+        plot2DSettings.back().graphSettings.back().axisSettings[1].index=tmp;
+
+        //////
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 6))->currentIndex();
+
+        if(tmp<2)
+        {
+            if(tmp==0)
+            {
+                plot2DSettings.back().graphSettings.back().all=true;
+            }
+            else
+            {
+                plot2DSettings.back().graphSettings.back().pareto=true;
+            }
+        }
+        else
+        {
+            //tmp=tmp-2;
+           // plot2DSettings.back().graphSettings.back().indexOfGender=tmp;
+
+
+        }
+
+        QString str=((QComboBox*) widget.wykresy2D->cellWidget(i, 7))->currentText();
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 7))->currentIndex();
+        plot2DSettings.back().graphSettings.back().patternName=str;
+        plot2DSettings.back().graphSettings.back().patternIndex=tmp;
+
+        tmp=((QComboBox*) widget.wykresy2D->cellWidget(i, 8))->currentIndex();
+
+        qDebug()<<"tmp "<<tmp;
+
+        plot2DSettings.back().graphSettings.back().color=colorNms[tmp];
+
+    }
+
+
+    QTextCodec::setCodecForTr (QTextCodec::codecForName ("UTF-8"));
+
+    plot2DSettings.back().qPlot->setTitle(plot2DSettings.back().windowCaption);
+    plot2DSettings.back().qPlot->setAutoMargin(false);
+    plot2DSettings.back().qPlot->setMargin(50,10,10,230);
+    //  widget.qPlotWidget->setFixedSize(550,550);
+    plot2DSettings.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    plot2DSettings.back().qPlot->legend->setVisible(true);
+    QFont legendFont = font();  // start out with MainWindow's font..
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    plot2DSettings.back().qPlot->legend->setFont(legendFont);
+    plot2DSettings.back().qPlot->legend->setPositionStyle(QCPLegend::psManual);
+    plot2DSettings.back().qPlot->legend->setPosition(QPoint(50,590));
+    plot2DSettings.back().qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+    plot2DSettings.back().qPlot->xAxis->setLabel( plot2DSettings.back().xAxisCaption);
+    plot2DSettings.back().qPlot->yAxis->setLabel( plot2DSettings.back().yAxisCaption);
+
+
+
+    for (int i = 0; i <  plot2DSettings.back().graphSettings.size(); ++i) {
+        plot2DSettings.back().qPlot->addGraph();
+        plot2DSettings.back().qPlot->graph(i)->setPen(QColor(plot2DSettings.back().graphSettings[i].color));
+        plot2DSettings.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
+        plot2DSettings.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plot2DSettings.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plot2DSettings.back().qPlot->graph(i)->setScatterSize(7);
+        plot2DSettings.back().qPlot->graph(i)->setName(plot2DSettings.back().graphSettings[i].name);
+        plot2DSettings.back().qPlot->graph(i)->addToLegend();
+    }
+
+
+
+
+
+    while(widget.wykresy2D->rowCount()>0)
+    {
+        widget.wykresy2D->removeRow(0);
+    }
+
+}
+
+void Forma::on_bIterujSymulacja_clicked()
+{
+
+}
+
+void Forma::on_qPlotWidget_customContextMenuRequested(const QPoint &pos)
+{
+    qDebug()<<"menu";
 }

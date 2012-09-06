@@ -135,7 +135,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
@@ -349,7 +349,7 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_7">
        <attribute name="title">
@@ -1688,6 +1688,304 @@
       </widget>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab_5">
+     <attribute name="title">
+      <string>Wykresy</string>
+     </attribute>
+     <widget class="QTabWidget" name="tabWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>631</width>
+        <height>651</height>
+       </rect>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_9">
+       <attribute name="title">
+        <string>2D</string>
+       </attribute>
+       <widget class="QLineEdit" name="nazwaOkna2D">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>30</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="bStworzOkno2D">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>340</y>
+          <width>131</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Stwórz okno</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Nazwa okna</string>
+        </property>
+       </widget>
+       <widget class="QTableWidget" name="wykresy2D">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>120</y>
+          <width>601</width>
+          <height>211</height>
+         </rect>
+        </property>
+        <column>
+         <property name="text">
+          <string>Algorytm</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Nazwa Wykresu</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 1 rodz</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 1 index</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 2 rodz</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 2 index</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Dane</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Wzor</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Kolor</string>
+         </property>
+        </column>
+       </widget>
+       <widget class="QPushButton" name="bDodajWykres2D">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>340</y>
+          <width>98</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Dodaj wykres</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_3">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Podpis osi x</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="podpisOsiX2D">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>60</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_4">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>90</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Podpis osi y</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="podpisOsiY2D">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>90</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab_19">
+       <attribute name="title">
+        <string>3D</string>
+       </attribute>
+       <widget class="QLineEdit" name="nazwaOkna3D">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>80</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="bStworzOkno3D">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>330</y>
+          <width>131</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Stwórz okno</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>80</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Nazwa okna</string>
+        </property>
+       </widget>
+       <widget class="QTableWidget" name="wykresy3D">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>110</y>
+          <width>601</width>
+          <height>211</height>
+         </rect>
+        </property>
+        <column>
+         <property name="text">
+          <string>Algorytm</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Nazwa Wykresu</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 1 rodz</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 1 index</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 2 rodz</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 2 index</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 3 rodz</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Oś 3 index</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Dane</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Wzor</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Kolor</string>
+         </property>
+        </column>
+       </widget>
+       <widget class="QPushButton" name="bDodajWykres3D">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>330</y>
+          <width>98</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Dodaj wykres</string>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </widget>
     <widget class="QWidget" name="tab_6">
      <attribute name="title">
       <string>Wskażniki opt.</string>
@@ -2273,21 +2571,6 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_5">
-     <attribute name="title">
-      <string>2D</string>
-     </attribute>
-     <widget class="QWidget" name="Plot2D" native="true">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>600</width>
-        <height>571</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
     <widget class="QWidget" name="tab_10">
      <attribute name="title">
       <string>Page</string>
@@ -2306,21 +2589,6 @@
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_9">
-     <attribute name="title">
-      <string>GOL</string>
-     </attribute>
-     <widget class="QWidget" name="PlotGOL" native="true">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>600</width>
-        <height>571</height>
-       </rect>
       </property>
      </widget>
     </widget>
