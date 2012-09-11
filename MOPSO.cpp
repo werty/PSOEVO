@@ -429,7 +429,7 @@ void MOPSO::aktualizuj_pbest() {
 void MOPSO::WyznaczPrzystosowanie()
 {
     double skrajnaWartosc;
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
 
 
         if (problem->tab_minmax[i_fun])//maksymalizacja wiec szukamy minimalnej wartosci
@@ -472,7 +472,7 @@ void MOPSO::WyznaczPrzystosowanie()
 void MOPSO::PrzeskalujPrzystosowanie()
 {
     double min, max, srednia, a, b;
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
         srednia = 0;
         min =populacja[0]->przystosowanie[i_fun];
         max = min;

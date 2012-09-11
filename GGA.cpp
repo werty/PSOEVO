@@ -411,7 +411,7 @@ QVector< QVector<Solution*> > * GGA::FastNonDominatedSort() {
 void GGA::WyznaczPrzystosowanie()
 {
     double skrajnaWartosc;
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
 
 
         if (problem->tab_minmax[i_fun])//maksymalizacja wiec szukamy minimalnej wartosci
@@ -693,7 +693,7 @@ void GGA::WyznaczRangi()
 void GGA::PrzeskalujPrzystosowanie()
 {
     double min, max, srednia, a, b;
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
         srednia = 0;
         min =rodzice[0]->przystosowanie[i_fun];
         max = min;
@@ -737,7 +737,7 @@ void GGA::WyswietlPrzystosowanie()
     qDebug() << "PrzystosowaniePrzeskalowane" << "\n";
     for (int i = 0; i <rodzice.size(); i++) {
         qDebug() << i << " : ";
-        for (unsigned int j = 0; j < problem->parseryFunkcji.size(); j++) {
+        for (unsigned int j = 0; j < problem->funkcje.size(); j++) {
             qDebug() <<rodzice[i]->przystosowanie[j] << " ";
         }
         qDebug() << "\n";

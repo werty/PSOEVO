@@ -10009,8 +10009,6 @@ void QCustomPlot::save()
 {
     qDebug()<<"save";
     QFileDialog *dialog = new QFileDialog();
-
-
     QString str = QDir::currentPath();
     QString filename = dialog->getSaveFileName(this, tr("Save File"), str +
                                                "/zapiane/wykres.png",

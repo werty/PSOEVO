@@ -68,7 +68,7 @@ public:
 
     virtual ~MOPSO();
     int losujKostkeRuletka();
-    void WyznaczWartFunkcjiKryterialnych();
+    virtual  void WyznaczWartFunkcjiKryterialnych();
     void WyznaczPrzystosowanie();
     void PrzeskalujPrzystosowanie();
     void aktualizuj_predkosci();

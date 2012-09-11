@@ -111,7 +111,7 @@ void NSGA_II::WyznaczWartFunkcjiKryterialnych() {
             problem -> zmienne[x_ind] -> zmienna =pokolenie[i] ->x[x_ind];
         }
 
-        for (unsigned int f_ind = 0; f_ind < problem->parseryFunkcji.size(); f_ind++) {
+        for (unsigned int f_ind = 0; f_ind < problem->funkcje.size(); f_ind++) {
            pokolenie[i] -> wartFunkcjiKryterialnych[f_ind] = problem -> parseryFunkcji[f_ind] -> Eval();
         }
     }
@@ -119,7 +119,7 @@ void NSGA_II::WyznaczWartFunkcjiKryterialnych() {
 
 void NSGA_II::WyznaczPrzystosowanie() {
     double skrajnaWartosc;
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
 
 
         if (problem->tab_minmax[i_fun])//maksymalizacja wiec szukamy minimalnej wartosci
@@ -297,7 +297,7 @@ void NSGA_II::WyswietlFenotyp() {
     qDebug() << "Fenotyp" << "\n";
     for (int i = 0; i <pokolenie.size(); i++) {
         qDebug() << i << " : ";
-        for (unsigned int j = 0; j < problem->parseryFunkcji.size(); j++) {
+        for (unsigned int j = 0; j < problem->funkcje.size(); j++) {
             qDebug() <<pokolenie[i]->x[j] << " ";
         }
         qDebug() << "\n";
@@ -308,7 +308,7 @@ void NSGA_II::WyswietlPrzystosowaniePrzeskalowane(QVector<Solution*>& P) {
     qDebug() << "PrzystosowaniePrzeskalowane" << "\n";
     for (int i = 0; i <P.size(); i++) {
         qDebug() << i << " : ";
-        for (unsigned int j = 0; j < problem->parseryFunkcji.size(); j++) {
+        for (unsigned int j = 0; j < problem->funkcje.size(); j++) {
             qDebug() <<P[i]->przystosowaniePrzeskalowane[j] << " ";
         }
 
@@ -320,7 +320,7 @@ void NSGA_II::WyswietlPrzystosowanie() {
     qDebug() << "Przystosowanie" << "\n";
     for (int i = 0; i <pokolenie.size(); i++) {
         qDebug() << i << " : ";
-        for (unsigned int j = 0; j < problem->parseryFunkcji.size(); j++) {
+        for (unsigned int j = 0; j < problem->funkcje.size(); j++) {
             qDebug() <<pokolenie[i]->przystosowanie[j] << " ";
         }
         qDebug() << "\n";
@@ -414,7 +414,7 @@ void NSGA_II::CrowdingDistanceAssignement(QVector<Solution*>&F) {
     for (int i = 0; i < F.size(); i++) {
         F[i]->zatloczenie = 0;
     }
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
         Solution::tmp = 0;
         qSort(F.begin(), F.end(), lessThenSolution);
         F[0]->zatloczenie = numeric_limits<double>::max();

@@ -13,6 +13,7 @@
 #include "Forma.h"
 #include <utility>
 #include <QItemEditorFactory>
+#include <vector>
 //int Solution::tmp;
 
 Forma::Forma() {
@@ -171,7 +172,7 @@ Forma::Forma() {
 
 
     connect(widget.bInicjalizujMOPSO, SIGNAL(clicked()), this, SLOT(sInicjalizujMOPSO()));
-    connect(widget.bIterujRazMOPSO, SIGNAL(clicked()), this, SLOT(sIterujRazMOPSO()));
+  //  connect(widget.bIterujRazMOPSO, SIGNAL(clicked()), this, SLOT(sIterujRazMOPSO()));
 
     connect(widget.bInicjalizujNSGA, SIGNAL(clicked()), this, SLOT(sInicjalizujNSGA()));
     connect(widget.bIterujNSGA, SIGNAL(clicked()), this, SLOT(sIterujNSGA()));
@@ -328,6 +329,90 @@ Forma::Forma() {
     //    stdModel->setData(stdModel->index(1, 0), "subject");
     //  widget.funtionTable->ins;
 
+   widget.qPlotWidget->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
+    widget.qPlotWidget->setAutoMargin(false);
+    widget.qPlotWidget->setMargin(50,10,10,230);
+    //  widget.qPlotWidget->setFixedSize(550,550);
+    widget.qPlotWidget->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+    widget.qPlotWidget->legend->setVisible(true);
+    QFont legendFont = font();  // start out with MainWindow's font..
+    legendFont.setPointSize(9); // and make a bit smaller for legend
+    widget.qPlotWidget->legend->setFont(legendFont);
+    widget.qPlotWidget->legend->setPositionStyle(QCPLegend::psManual);
+    widget.qPlotWidget->legend->setPosition(QPoint(50,560));
+    widget.qPlotWidget->legend->setBrush(QBrush(QColor(255,255,255,230)));
+
+
+
+
+SysClosedLoopYsWithPID sys;
+    //PlotStepResponse(&sys,1.8859,1.0/2.9903,0.9430,20.0,0.01);
+ //   PlotStepResponse(&sys,3.1302,1.0/2.7712,0.8978,20.0,0.01);
+// PlotImpulseResponse(&sys,20.0,0.01);
+// PlotStepResponse(&sys,1,1,1,20.0,0.01);
+
+float maxOvershoot,riseTime,settlingTime;
+
+QVector<QPair<float,float>> dataXY;
+
+float time,dt;
+dt=0.01;
+time=40;
+
+GetStepResponse(&sys,1.8859,1.0/2.9903,0.9430,time,dt,dataXY);
+AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::red));
+qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+
+GetStepResponse(&sys,3.1302,1.0/2.7712,0.8978,time,dt,dataXY);
+AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::blue));
+qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+
+GetStepResponse(&sys,2.3261,1.0/2.3897,0.5162,time,dt,dataXY);
+AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::green));
+qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+
+GetStepResponse(&sys,4.1484,1.0/2.9842,0.746,time,dt,dataXY);
+AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::black));
+GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+
+dataXY.clear();
+for (float  i= 0;  i< time; i+=dt) {
+    dataXY.push_back({i,1.0});
+}
+AddPlot(widget.qPlotWidget,dataXY,"skok",QColor(Qt::gray));
+
+dataXY.clear();
+for (float  i= 0;  i< time; i+=dt) {
+    dataXY.push_back({i,1.02});
+}
+AddPlot(widget.qPlotWidget,dataXY,"1.02",QColor(Qt::gray));
+
+dataXY.clear();
+for (float  i= 0;  i< time; i+=dt) {
+    dataXY.push_back({i,0.98});
+}
+AddPlot(widget.qPlotWidget,dataXY,"0.98",QColor(Qt::gray));
+
+qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+
+
+
+
+ qDebug()<<"stability for pid 3.1302 1/2.7712 0.8978 "<<CheckStabilityOfMySystem(1,1,1)<<endl;
+
+
+
+ MOPSO_for_ssmodel mopso_ssmodel;
+
+ mopso_ssmodel.WyznaczWartFunkcjiKryterialnych();
+
 }
 
 Forma::~Forma() {
@@ -479,34 +564,7 @@ void Forma::Rysuj() {
 
 void Forma::sIterujMOPSO() {
 
-    qDebug() << "nsga start";
 
-
-
-    bool ok;
-    unsigned int il_iter = widget.ilIterMOPSO->text().toInt(&ok, 10);
-    if (!ok) {
-        showWarning("Niewlasciwa ilosc iteracji");
-        return;
-    }
-    widget.Debug->append(QString("il iteracji ") + QString::number(il_iter));
-    qDebug() << "il iteracji " << il_iter << "\n";
-    mopso->il_iter = il_iter;
-    widget.progressBarMOPSO->setMaximum(il_iter);
-    mopso->koniec=false;
-    time.start();
-    //
-    //    QThreadEx nsgaThread;
-    //    nsga->moveToThread(&nsgaThread);
-    //
-    //    (*nsga).connect(&nsgaThread,
-    //            SIGNAL(started()),
-    //            SLOT(doTheWork()));
-    //
-    //    nsgaThread.connect(&nsgaThread,
-    //                           SIGNAL(finished()),
-    //                           SLOT(quit()));
-    mopso->start();
 
 }
 
@@ -1071,13 +1129,6 @@ void Forma::sInicjalizujMOPSO() {
 
 }
 
-void Forma::sIterujRazMOPSO() {
-
-
-    IterujRazMOPSO();
-   // aktualizuj_wykres_przystosowania();
-    qDebug()<<"mopso D_EC "<<wskazniki->D_EC(mopso->repozytorium);
-}
 
 void Forma::IterujRazMOPSO() {
 
@@ -1117,12 +1168,7 @@ void Forma::IterujRazMOPSO() {
     //  pso->wyswietl_populacje();
     //  pso->wyswietl_repozytorium();
 
-    mopso->Iteruj();
-    // pso->wyswietl_repozytorium();
-    wskazniki->GOL(mopso->populacja,mopso->indSortGOL );
-    double gol=mopso->populacja[mopso->indSortGOL[0]]->GOL;
-    //      vGol.push_back(QPointF((double)pso->num_iter,gol));
-    qDebug() << "GOL = " << gol << "\n";
+
     //wykresGOL->dodajPunkt(QPointF((double) mopso->num_iter, gol));
    // wykresGOL->aktualizuj();
     //aktualizuj_wykres_gol();
@@ -2039,6 +2085,84 @@ void Forma::AddRowToNSGA_IIPlotTable()
             this, SLOT(currentNSGA_IIIndexChanged(QObject *)));
 
 }
+void Forma::AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<float,float>> &dataXY,QString name,QColor color)
+{
+    qPlotWidget->addGraph();
+    qPlotWidget->graph(qPlotWidget->graphCount()-1)->setPen(color);
+    qPlotWidget->graph(qPlotWidget->graphCount()-1)->setLineStyle(QCPGraph::lsLine);
+   // widget.qPlotWidget->graph(0)->setScatterStyle(QCPGraph::ssPlus);
+   // widget.qPlotWidget->graph(0)->setScatterSize(4);
+    qPlotWidget->graph(qPlotWidget->graphCount()-1)->setName(name);
+
+    for(unsigned int i=0;i<dataXY.size();i++)
+    {
+        qPlotWidget->graph(qPlotWidget->graphCount()-1)->addData(dataXY[i].first,dataXY[i].second);
+
+    }
+
+    qPlotWidget->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    qPlotWidget->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    qPlotWidget->setInteraction(QCustomPlot::iSelectPlottables); //
+
+    // PokazWszystkieFronty();
+    qPlotWidget->rescaleAxes();
+  //  qPlotWidget->replot();
+
+
+}
+
+void Forma::PlotStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd, float time, float dt)
+{
+      QVector<QPair<float,float>> dataXY;
+      GetStepResponse(sys,Kp,Ki,Kd,time,dt,dataXY);
+      //widget.qPlotWidget->clearGraphs();
+      widget.qPlotWidget->addGraph();
+      widget.qPlotWidget->graph(0)->setPen(QColor(255, 200, 0, 255));
+      widget.qPlotWidget->graph(0)->setLineStyle(QCPGraph::lsLine);
+     // widget.qPlotWidget->graph(0)->setScatterStyle(QCPGraph::ssPlus);
+     // widget.qPlotWidget->graph(0)->setScatterSize(4);
+      widget.qPlotWidget->graph(0)->setName(tr("Rozwiązania przyporządkowane rodzajnikowi 1"));
+
+      for(unsigned int i=0;i<dataXY.size();i++)
+      {
+          widget.qPlotWidget->graph(0)->addData(dataXY[i].first,dataXY[i].second);
+
+      }
+
+      widget.qPlotWidget->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+      widget.qPlotWidget->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+      widget.qPlotWidget->setInteraction(QCustomPlot::iSelectPlottables); //
+
+      // PokazWszystkieFronty();
+      widget.qPlotWidget->rescaleAxes();
+      widget.qPlotWidget->replot();
+}
+void Forma::PlotImpulseResponse(ContinuousDynamicalSystem *sys, float Kp, float Ki, float Kd, float time, float dt)
+{
+      QVector<QPair<float,float>> dataXY;
+      GetImpulseResponse(sys,Kp,Ki,Kd,time,dt,dataXY);
+      widget.qPlotWidget->clearGraphs();
+      widget.qPlotWidget->addGraph();
+      widget.qPlotWidget->graph(0)->setPen(QColor(255, 200, 0, 255));
+      widget.qPlotWidget->graph(0)->setLineStyle(QCPGraph::lsLine);
+     // widget.qPlotWidget->graph(0)->setScatterStyle(QCPGraph::ssPlus);
+     // widget.qPlotWidget->graph(0)->setScatterSize(4);
+      widget.qPlotWidget->graph(0)->setName(tr("Rozwiązania przyporządkowane rodzajnikowi 1"));
+
+      for(unsigned int i=0;i<dataXY.size();i++)
+      {
+          widget.qPlotWidget->graph(0)->addData(dataXY[i].first,dataXY[i].second);
+
+      }
+
+      widget.qPlotWidget->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+      widget.qPlotWidget->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+      widget.qPlotWidget->setInteraction(QCustomPlot::iSelectPlottables); //
+
+      // PokazWszystkieFronty();
+      widget.qPlotWidget->rescaleAxes();
+      widget.qPlotWidget->replot();
+}
 
 void Forma::PokazWszystkieFronty()
 {
@@ -2738,6 +2862,17 @@ void Forma::UpdateAllPlots()
                 if(b<minY)minY=b;
                 if(a>maxX)maxX=a;
                 if(b>maxY)maxY=b;
+            }
+
+            for (int iSol = 0; iSol < mopso->repozytorium.size(); ++iSol) {
+               // if(!mopso->repozytorium[iSol]->zdominowana)
+                //{
+                    AddMOPSODataToGraph(qp->graph(j),as,mopso->repozytorium[iSol],a,b);
+                    if(a<minX)minX=a;
+                    if(b<minY)minY=b;
+                    if(a>maxX)maxX=a;
+                    if(b>maxY)maxY=b;
+               // }
             }
         }
         else if(plotSettingsMOPSO[i].graphSettings[j].pareto)//tylko front pareto
@@ -4626,4 +4761,39 @@ void Forma::on_bIterujSymulacja_clicked()
 void Forma::on_qPlotWidget_customContextMenuRequested(const QPoint &pos)
 {
     qDebug()<<"menu";
+}
+
+void Forma::on_bIterujMOPSO_clicked()
+{
+   // IterujRazMOPSO();
+   // aktualizuj_wykres_przystosowania();
+   // qDebug()<<"mopso D_EC "<<wskazniki->D_EC(mopso->repozytorium);
+    qDebug() << "nsga start";
+
+
+
+    bool ok;
+    unsigned int il_iter = widget.ilIterMOPSO->text().toInt(&ok, 10);
+    if (!ok) {
+        showWarning("Niewlasciwa ilosc iteracji");
+        return;
+    }
+    widget.Debug->append(QString("il iteracji ") + QString::number(il_iter));
+    qDebug() << "il iteracji " << il_iter << "\n";
+    mopso->il_iter = il_iter;
+    widget.progressBarMOPSO->setMaximum(il_iter);
+    mopso->koniec=false;
+    time.start();
+    //
+    //    QThreadEx nsgaThread;
+    //    nsga->moveToThread(&nsgaThread);
+    //
+    //    (*nsga).connect(&nsgaThread,
+    //            SIGNAL(started()),
+    //            SLOT(doTheWork()));
+    //
+    //    nsgaThread.connect(&nsgaThread,
+    //                           SIGNAL(finished()),
+    //                           SLOT(quit()));
+    mopso->start();
 }

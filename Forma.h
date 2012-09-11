@@ -25,6 +25,7 @@
 #include "qwt3d/qwt3d_gridplot.h"
 #include "qwt3d/qwt3d_function.h"
 #include "MOPSO.h"
+#include "mopso_for_ssmodel.h"
 #include "NSGA_II.h"
 #include "GGA.h"
 #include "Wskazniki.h"
@@ -45,6 +46,7 @@
 #include "struktury.h"
 
 #include "qcustomplot.h"
+#include "ssmodels.h"
 
 
 #include <QStandardItemModel>
@@ -250,7 +252,10 @@ public:
     void AddRowTo3DPlotsTable();
     void AddRowToGGAPlotTable();
     void AddRowToNSGA_IIPlotTable();
+    void PlotImpulseResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd, float time, float dt);
+    void PlotStepResponse(ContinuousDynamicalSystem*sys,float Kp,float Ki,float Kd, float time, float dt);
 
+    void AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<float,float>> &dataXY,QString name,QColor color);
 
     void PokazWszystkieFronty();
 
@@ -313,7 +318,7 @@ private slots:
     
     void sInicjalizujMOPSO();
     void sIterujMOPSO();
-    void sIterujRazMOPSO();
+
     void sStopMOPSO();
     void sDoneMOPSO();
     void sFinishedMOPSO();
@@ -388,6 +393,8 @@ private slots:
     void on_bIterujSymulacja_clicked();
 
     void on_qPlotWidget_customContextMenuRequested(const QPoint &pos);
+
+    void on_bIterujMOPSO_clicked();
 
 private:
     QSignalMapper *signalMapper;
