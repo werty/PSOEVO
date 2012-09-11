@@ -252,10 +252,10 @@ public:
     void AddRowTo3DPlotsTable();
     void AddRowToGGAPlotTable();
     void AddRowToNSGA_IIPlotTable();
-    void PlotImpulseResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd, float time, float dt);
-    void PlotStepResponse(ContinuousDynamicalSystem*sys,float Kp,float Ki,float Kd, float time, float dt);
+    void PlotImpulseResponse(ContinuousDynamicalSystem *sys,double Kp,double Ki,double Kd, double time, double dt);
+    void PlotStepResponse(ContinuousDynamicalSystem*sys,double Kp,double Ki,double Kd, double time, double dt);
 
-    void AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<float,float>> &dataXY,QString name,QColor color);
+    void AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<double,double>> &dataXY,QString name,QColor color);
 
     void PokazWszystkieFronty();
 
@@ -275,6 +275,9 @@ public:
     QMap<QTableWidgetItem*,int> mFunction;
     QMap<QTreeWidgetItem *,int> mFunctionAttachedToGender;
 
+    SysClosedLoopYsWithPID sys;
+
+    MOPSO_for_ssmodel* mopso_ssmodel;
 
     void AktualizujWykresFunKrytGGA();
     void AktualizujWykresParamGGA();
@@ -395,6 +398,8 @@ private slots:
     void on_qPlotWidget_customContextMenuRequested(const QPoint &pos);
 
     void on_bIterujMOPSO_clicked();
+
+    void on_pushButton_clicked();
 
 private:
     QSignalMapper *signalMapper;

@@ -28,11 +28,11 @@ MOPSO::MOPSO(int wiel_pop, int wiel_rep, int il_hiperk, bool mutacja, Problem * 
     this->z_mutacja = mutacja;
     this -> il_hiperkostek = il_hiperk;
     this -> problem = problem;
-    this -> il_funkcji = problem -> parseryFunkcji.size();
+    this -> il_funkcji = problem -> funkcje.size();
     this -> il_ograniczen = problem -> ograniczenia.size();
-    this -> min_fitness = new float[problem -> parseryFunkcji.size()];
-    this -> max_fitness = new float[problem -> parseryFunkcji.size()];
-    this -> dx_fitness = new float[problem -> parseryFunkcji.size()];
+    this -> min_fitness = new float[problem -> funkcje.size()];
+    this -> max_fitness = new float[problem -> funkcje.size()];
+    this -> dx_fitness = new float[problem -> funkcje.size()];
     this -> il_zmiennych = problem -> zmienne.size();
 
     for (int i = 0; i < wiel_pop; i++) {
@@ -174,7 +174,7 @@ void MOPSO::Iteruj() {
     //  pso->wyswietl_populacje();
     DEBUG("%s\n","Aktualizuje pozycje");
     aktualizuj_pozycje();
-
+TRACE;
     DEBUG("%s\n","Aktualizuje wartosci");
     WyznaczWartFunkcjiKryterialnych();
 TRACE;
@@ -225,16 +225,16 @@ void MOPSO::generuj_kostki() {
 
     // wyznaczamy szerokosc jednej hiperkostki
     for (int i = 0; i < il_funkcji; i++) {
-        //  qDebug() << "max  " << i << " =" << max_fitness[i];
-        // qDebug() << "min  " << i << " =" << min_fitness[i];
+          qDebug() << "max  " << i << " =" << max_fitness[i];
+         qDebug() << "min  " << i << " =" << min_fitness[i];
 
         dx_fitness[i] = (max_fitness[i] - min_fitness[i]) / il_hiperkostek;
 
-        //  qDebug() << "dx  " << i << " =" << dx_fitness[i] << "\n";
+          qDebug() << "dx  " << i << " =" << dx_fitness[i] << "\n";
     }
 
     int tmp;
-  //  qDebug() << "rep size " << repozytorium.size() << "\n";
+    qDebug() << "rep size " << repozytorium.size() << "\n";
     for (int i = 0; i < repozytorium.size(); i++) {
         hiperkostki.push_back(Hiperkostka());
         hiperkostki[i].czasteczki.push_back(i);
@@ -364,6 +364,8 @@ void MOPSO::aktualizuj_predkosci() {
         w = 1;
 
         for (unsigned int i_v = 0; i_v < problem -> zmienne.size(); i_v++) {
+            qDebug() << " przed populacja[i]->v[i_v] " << populacja[i] -> v[i_v] << "\n";
+
            // DINFO;
             populacja[i] ->
                     v[i_v] = (w * populacja[i] -> v[i_v]
@@ -371,12 +373,14 @@ void MOPSO::aktualizuj_predkosci() {
                     + ((float) qrand() / (float) RAND_MAX)
                     * (repozytorium[hiperkostki[h].czasteczki[h_rep]] -> x[i_v] - populacja[i] -> x[i_v]));
 
-            //            qDebug() << "populacja[i]->v[i_v]" << populacja[i] -> v[i_v] << "\n";
-            //            qDebug() << "populacja[i]->x[i_v]" << populacja[i] -> x[i_v] << "\n";
-            //            qDebug() << "repozytorium[hiperkostki[h].czasteczki[h_rep]]-> x[i_v] = "
-            //                     << repozytorium[hiperkostki[h].czasteczki[h_rep]] -> x[i_v] << "\n";
-            //            qDebug() << "pbests[i]->x[i_v] " << pbests[i] -> x[i_v] << "\n";
-            //            qDebug() << "w " << w << "\n";
+
+
+                        qDebug() << "populacja[i]->v[i_v]" << populacja[i] -> v[i_v] << "\n";
+                        qDebug() << "populacja[i]->x[i_v]" << populacja[i] -> x[i_v] << "\n";
+                        qDebug() << "repozytorium[hiperkostki[h].czasteczki[h_rep]]-> x[i_v] = "
+                                 << repozytorium[hiperkostki[h].czasteczki[h_rep]] -> x[i_v] << "\n";
+                        qDebug() << "pbests[i]->x[i_v] " << pbests[i] -> x[i_v] << "\n";
+                        qDebug() << "w " << w << "\n";
 
             if (populacja[i] -> v[i_v] > vmax) {
                 populacja[i] -> v[i_v] = vmax;
@@ -386,7 +390,7 @@ void MOPSO::aktualizuj_predkosci() {
                 populacja[i] -> v[i_v] = -vmax;
             }
 
-            //  qDebug() << "populacja[i]->v[i_v] " << populacja[i] -> v[i_v] << "\n";
+              qDebug() << "populacja[i]->v[i_v] " << populacja[i] -> v[i_v] << "\n";
         }
     }
 }
@@ -396,7 +400,7 @@ void MOPSO::aktualizuj_pozycje() {
         for (unsigned int i_v = 0; i_v < problem -> zmienne.size(); i_v++) {
             populacja[i] -> x[i_v] = populacja[i] -> x[i_v] + populacja[i] -> v[i_v];
 
-            //   qDebug() << "x_old " << populacja[i] -> x[i_v] << " v " << populacja[i] -> v[i_v] << "\n";
+               qDebug() << "x_old " << populacja[i] -> x[i_v] << " v " << populacja[i] -> v[i_v] << "\n";
 
             if (populacja[i] -> x[i_v] < problem -> zmienne[i_v] -> min) {
                 populacja[i] -> x[i_v] = problem -> zmienne[i_v] -> min;
@@ -529,7 +533,7 @@ void MOPSO::sprawdz_zdominowanie() {
                 break;
             }
 
-            // qDebug() << "niezdominowany";
+           //  qDebug() << "niezdominowany";
             populacja[i_pop] -> zdominowana = false;
 
             // qDebug() << "127";

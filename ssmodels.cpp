@@ -39,13 +39,14 @@ y[0] =4*p[1]*x[0]-(-4*p[0]+p[1])*x[1]-(p[0]+0.5*p[1]-4*p[2])*x[2]-(0.5*p[0]+p[2]
 
 END_DEFINITION
 
-int GetStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd,float time,float dt,QVector<QPair<float,float>>& data)
+int GetStepResponse(ContinuousDynamicalSystem *sys,double Kp,double Ki,double Kd,double time,double dt,QVector<QPair<double,double>>& data)
 {
 
+   // cout<<"w get step reposonse "<<endl;
     data.clear();
-    cout << "Hello World!" << endl;
+   // cout << "Hello World!" << endl;
    // SysClosedLoopYsWithPID RC_Circuit;
-    cout<<"78\n";
+   // cout<<"78\n";
     double out;
 
     sys->SetTimeStep(dt);
@@ -64,13 +65,13 @@ int GetStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd,fl
 
     //// RC_Circuit.SetParameter(0,10.0e3);
     // RC_Circuit.SetParameter(1,47.0e-6);
-    cout<<"x[0] x[1] "<<sys->GetStates()[0]<<" "<<sys->GetStates()[0]<<endl;
+   // cout<<"x[0] x[1] "<<sys->GetStates()[0]<<" "<<sys->GetStates()[0]<<endl;
    do
     {
         out = sys->Output(0);
 
 //        // Pen.Draw(RC_Circuit.GetTime(),out);
-        data.push_back({(float)sys->GetTime(),(float)out});
+        data.push_back({(double)sys->GetTime(),(double)out});
        // cout<<RC_Circuit.GetTime()<<" "<<out<<endl;
 
     //  getchar();
@@ -84,16 +85,16 @@ int GetStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd,fl
     // if (!getch()) getch();
 
 
-//    float dt=0.01;
-//    float Kd=0.01;
-//    float Kp=0.1;
-//    float Ki=0.005;
+//    double dt=0.01;
+//    double Kd=0.01;
+//    double Kp=0.1;
+//    double Ki=0.005;
 
-//    float czas=3;
-//    float calka=0;
-//    vector<float> y(czas/dt);
-//    float e_pop=0;
-//    float e_akt=1;
+//    double czas=3;
+//    double calka=0;
+//    vector<double> y(czas/dt);
+//    double e_pop=0;
+//    double e_akt=1;
 //    y[0]=0;
 //    for (int i = 1; i < czas/dt; ++i) {
 //        e_akt=(1.0-y[i-1]);
@@ -109,9 +110,10 @@ int GetStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd,fl
 
 
 
+   //cout<<"po get step repsponse"<<endl;
     return 0;
 }
-int GetImpulseResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd,float time,float dt,QVector<QPair<float,float>>& data)
+int GetImpulseResponse(ContinuousDynamicalSystem *sys,double Kp,double Ki,double Kd,double time,double dt,QVector<QPair<double,double>>& data)
 {
 
     data.clear();
@@ -154,7 +156,7 @@ int GetImpulseResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd
         out = sys->Output(0);
 
 //        // Pen.Draw(RC_Circuit.GetTime(),out);
-        data.push_back({(float)sys->GetTime(),(float)out});
+        data.push_back({(double)sys->GetTime(),(double)out});
        // cout<<RC_Circuit.GetTime()<<" "<<out<<endl;
 
     //  getchar();
@@ -168,16 +170,16 @@ int GetImpulseResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd
     // if (!getch()) getch();
 
 
-//    float dt=0.01;
-//    float Kd=0.01;
-//    float Kp=0.1;
-//    float Ki=0.005;
+//    double dt=0.01;
+//    double Kd=0.01;
+//    double Kp=0.1;
+//    double Ki=0.005;
 
-//    float czas=3;
-//    float calka=0;
-//    vector<float> y(czas/dt);
-//    float e_pop=0;
-//    float e_akt=1;
+//    double czas=3;
+//    double calka=0;
+//    vector<double> y(czas/dt);
+//    double e_pop=0;
+//    double e_akt=1;
 //    y[0]=0;
 //    for (int i = 1; i < czas/dt; ++i) {
 //        e_akt=(1.0-y[i-1]);
@@ -197,10 +199,13 @@ int GetImpulseResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd
 }
 
 
-int CheckStabilityOfMySystem(float Kp,float Ki,float Kd)
+int CheckStabilityOfMySystem(double Kp,double Ki,double Kd)
 {
 
-    return CheckStabilityRouthHurwitz({(float)4.0*Ki,(float)-(Ki-4.0*Kp),(float)-(0.5*Ki-4.0*Kd+Kp-20.0),(float)-(Kd+0.5*Kp-22.0),(float)-(0.5*Kd-8.0),(float)1.0});
+
+    return CheckStabilityRouthHurwitz({(double)4.0*Ki,(double)-(Ki-4.0*Kp),(double)-(0.5*Ki-4.0*Kd+Kp-20.0),(double)-(Kd+0.5*Kp-22.0),(double)-(0.5*Kd-8.0),(double)1.0});
+
+
 }
 
 //
@@ -208,15 +213,18 @@ int CheckStabilityOfMySystem(float Kp,float Ki,float Kd)
 //poly = {2,1,8,3}
 //zwraca ilosc biegunow w prawej polkuli
 //0 oznacza stabilnosc
-int CheckStabilityRouthHurwitz(vector<float> poly)
+int CheckStabilityRouthHurwitz(vector<double> poly)
 {
-    float e=0.000001;
-    vector<float> aux_poly;
+
+
+   // cout<<"";
+    double e=0.000001;
+    vector<double> aux_poly;
     int size=poly.size();
     size=(size+1)/2+1;
     //cout<<"size "<<size<<endl;
 
-    vector<vector<float> > tab(poly.size(),vector<float>(size,0));
+    vector<vector<double> > tab(poly.size(),vector<double>(size,0));
     int index=0;
     for (int  i= poly.size()-1;  i>= 0; i-=2) {
         tab[tab.size()-1][index++]=poly[i];
@@ -254,14 +262,14 @@ int CheckStabilityRouthHurwitz(vector<float> poly)
         if(same_zera)//podstawiamy pochodna wielomianu
         {
             //cout<<"same zera\n";
-            getchar();
+          //  getchar();
             aux_poly.clear();
-            cout<<"aux poly :";
+           // cout<<"aux poly :";
             for (int i = poly.size()-wiersz; i  >=0; i-=2) {
                 aux_poly.push_back(i);
-                cout<<aux_poly.back()<<" ";
+               // cout<<aux_poly.back()<<" ";
             }
-            cout<<endl;
+           // cout<<endl;
 
             for (int kolumna = 0; kolumna < aux_poly.size(); ++kolumna) {
                 tab[wiersz][kolumna]=aux_poly[kolumna]*tab[wiersz+1][kolumna];
@@ -288,7 +296,7 @@ int CheckStabilityRouthHurwitz(vector<float> poly)
         //}
         //cout<<endl;
    // }
-    float ost=tab[0][0];
+    double ost=tab[0][0];
     int il_zmian_znaku=0;
     for (int wiersz = 1; wiersz < tab.size(); ++wiersz) {
         if(ost*tab[wiersz][0]<0)
@@ -297,15 +305,17 @@ int CheckStabilityRouthHurwitz(vector<float> poly)
         }
         ost=tab[wiersz][0];
     }
+    //cout<<"po check "<<endl;
     return il_zmian_znaku;
 }
 
 
 
-void GetStepResponseCharacteristics(QVector<QPair<float,float>>& data,float &MaxOvershoot,float &RiseTime,float &SettlingTime)
+void GetStepResponseCharacteristics(QVector<QPair<double,double>>& data,double &MaxOvershoot,double &RiseTime,double &SettlingTime)
 {
     //zakladamy ze skok o amplitudzie 1 wiec wiec mierzymy risetime od 0.1 do 0.9 , czas ustalania dla widelek 0.98-1.02 czyli +-2 %
-    float rise_time_begin,rise_time_end;//10% 90%
+    double rise_time_begin=-1.0,rise_time_end=-1.0;//10% 90%
+
 
     for (int i = 0; i < data.size(); ++i) {
         if(data[i].second>=0.1)
@@ -324,7 +334,15 @@ void GetStepResponseCharacteristics(QVector<QPair<float,float>>& data,float &Max
     }
 
 
+    if(rise_time_end==-1.0 || rise_time_begin==-1.0)
+    {
+        RiseTime=100.0;//kara za nieosiagniecie progow;
+    }
+    else
+    {
+
     RiseTime=rise_time_end-rise_time_begin;
+    }
 
 
     MaxOvershoot=0;
@@ -335,26 +353,35 @@ void GetStepResponseCharacteristics(QVector<QPair<float,float>>& data,float &Max
         }
     }
 
-    if(MaxOvershoot>1.0)
+    if(MaxOvershoot>=1.0)
     {
         MaxOvershoot=(MaxOvershoot-1)*100;
     }
     else
     {
-        MaxOvershoot=0;
+        MaxOvershoot=(1-MaxOvershoot)*200;
     }
 
 
     //settling time
 
-//    float settling_time_min,settling_time_max;
+//    double settling_time_min,settling_time_max;
 //    settling_time_min=data.back().first;
 //    settling_time_max=data.back().first;
 
     for (int i = data.size()-1; i >0; i--) {
         if(data[i].second<0.98 || data[i].second>1.02)
         {
+            if(i==data.size()-1)
+            {
+                SettlingTime=100.0;
+                MaxOvershoot+=100.0;
+                RiseTime+=100.0;
+            }
+            else
+            {
             SettlingTime=data[i].first;
+            }
             break;
         }
     }

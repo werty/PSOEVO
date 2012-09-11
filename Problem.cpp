@@ -99,13 +99,17 @@ bool Problem::Dominuje(const Particle & a, const Particle & b) {
     else
     {
         
-    
-    for (int i = 0; i < parseryFunkcji.size(); i++) {
-        // qDebug() << b.fitness[i] << " " << fitness[i] << "\n";
+        cout<<"check domination "<<endl;
+        cout<<"osob a "<<a.przystosowanie[0]<<" "<<a.przystosowanie[1]<<" "<<a.przystosowanie[2]<<endl;
+
+        cout<<"osob b "<<b.przystosowanie[0]<<" "<<b.przystosowanie[1]<<" "<<b.przystosowanie[2]<<endl;
+    for (int i = 0; i < funkcje.size(); i++) {
+        // qDebug() << b.przystosowaniePrzeskalowane[i] << " " <<[i] << "\n";
         
 
-            if (b.przystosowaniePrzeskalowane[i] >= a.przystosowaniePrzeskalowane[i]) {
+            if (b.przystosowanie[i] >= a.przystosowanie[i]) {
 
+                cout<<"return 0"<<endl;
                 return 0;
             }
 
@@ -121,6 +125,7 @@ bool Problem::Dominuje(const Particle & a, const Particle & b) {
     }
 
     }
+    cout<<"return 1"<<endl;
     return 1;
 
 }

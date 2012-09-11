@@ -81,7 +81,7 @@ public:
     void wyswietl_repozytorium();
     void wyswietl_populacje();
     void RedukujRepozytorium();
-    void Inicjalizuj();
+    virtual void Inicjalizuj();
     void Iteruj();
 protected:
     void run();

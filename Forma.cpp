@@ -329,7 +329,7 @@ Forma::Forma() {
     //    stdModel->setData(stdModel->index(1, 0), "subject");
     //  widget.funtionTable->ins;
 
-   widget.qPlotWidget->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
+   widget.qPlotWidget->setTitle(tr("Odpowiedzi skokowe najlepszych rozwiazan"));
     widget.qPlotWidget->setAutoMargin(false);
     widget.qPlotWidget->setMargin(50,10,10,230);
     //  widget.qPlotWidget->setFixedSize(550,550);
@@ -345,73 +345,110 @@ Forma::Forma() {
 
 
 
-SysClosedLoopYsWithPID sys;
-    //PlotStepResponse(&sys,1.8859,1.0/2.9903,0.9430,20.0,0.01);
- //   PlotStepResponse(&sys,3.1302,1.0/2.7712,0.8978,20.0,0.01);
-// PlotImpulseResponse(&sys,20.0,0.01);
-// PlotStepResponse(&sys,1,1,1,20.0,0.01);
+        //PlotStepResponse(&sys,1.8859,1.0/2.9903,0.9430,20.0,0.01);
+     //   PlotStepResponse(&sys,3.1302,1.0/2.7712,0.8978,20.0,0.01);
+    // PlotImpulseResponse(&sys,20.0,0.01);
+    // PlotStepResponse(&sys,1,1,1,20.0,0.01);
 
-float maxOvershoot,riseTime,settlingTime;
+    double maxOvershoot,riseTime,settlingTime;
 
-QVector<QPair<float,float>> dataXY;
+    QVector<QPair<double,double>> dataXY;
 
-float time,dt;
-dt=0.01;
-time=40;
+    double time,dt;
+    dt=0.01;
+    time=40;
 
-GetStepResponse(&sys,1.8859,1.0/2.9903,0.9430,time,dt,dataXY);
-AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::red));
-qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
-GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
-qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+    //GetStepResponse(&sys,1.8859,1.0/2.9903,0.9430,time,dt,dataXY);
+    //AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::red));
+    //qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+    //GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+    //qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
 
-GetStepResponse(&sys,3.1302,1.0/2.7712,0.8978,time,dt,dataXY);
-AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::blue));
-qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
-GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
-qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+    //GetStepResponse(&sys,3.1302,1.0/2.7712,0.8978,time,dt,dataXY);
+    //AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::blue));
+    //qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+    //GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+    //qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
 
-GetStepResponse(&sys,2.3261,1.0/2.3897,0.5162,time,dt,dataXY);
-AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::green));
-qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
-GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
-qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+    //GetStepResponse(&sys,2.3261,1.0/2.3897,0.5162,time,dt,dataXY);
+    //AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::green));
+    //qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
+    //GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+    //qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
 
-GetStepResponse(&sys,4.1484,1.0/2.9842,0.746,time,dt,dataXY);
-AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::black));
-GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
-qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
+    //GetStepResponse(&sys,4.1484,1.0/2.9842,0.746,time,dt,dataXY);
+    //AddPlot(widget.qPlotWidget,dataXY,"QString name",QColor(Qt::black));
+    //GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
+    //qDebug()<<"MaxOvershoot "<<maxOvershoot<<" RiseTime "<<riseTime<<" SettlingTime "<<settlingTime<<endl;
 
-dataXY.clear();
-for (float  i= 0;  i< time; i+=dt) {
-    dataXY.push_back({i,1.0});
-}
-AddPlot(widget.qPlotWidget,dataXY,"skok",QColor(Qt::gray));
+    dataXY.clear();
+    for (float  i= 0;  i< time; i+=dt) {
+        dataXY.push_back({i,1.0});
+    }
+    AddPlot(widget.qPlotWidget,dataXY,"skok",QColor(Qt::gray));
 
-dataXY.clear();
-for (float  i= 0;  i< time; i+=dt) {
-    dataXY.push_back({i,1.02});
-}
-AddPlot(widget.qPlotWidget,dataXY,"1.02",QColor(Qt::gray));
+    dataXY.clear();
+    for (float  i= 0;  i< time; i+=dt) {
+        dataXY.push_back({i,1.02});
+    }
+    AddPlot(widget.qPlotWidget,dataXY,"1.02",QColor(Qt::gray));
 
-dataXY.clear();
-for (float  i= 0;  i< time; i+=dt) {
-    dataXY.push_back({i,0.98});
-}
-AddPlot(widget.qPlotWidget,dataXY,"0.98",QColor(Qt::gray));
+    dataXY.clear();
+    for (float  i= 0;  i< time; i+=dt) {
+        dataXY.push_back({i,0.98});
+    }
+    AddPlot(widget.qPlotWidget,dataXY,"0.98",QColor(Qt::gray));
 
-qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
-
+    //qDebug()<<"wyk1 "<<dataXY[0].second<<endl;
 
 
 
- qDebug()<<"stability for pid 3.1302 1/2.7712 0.8978 "<<CheckStabilityOfMySystem(1,1,1)<<endl;
+
+     qDebug()<<"stability for pid 3.1302 1/2.7712 0.8978 "<<CheckStabilityOfMySystem(1,1,1)<<endl;
 
 
 
- MOPSO_for_ssmodel mopso_ssmodel;
+     problem = new Problem();
+     problem->tab_minmax = new bool[3];
 
- mopso_ssmodel.WyznaczWartFunkcjiKryterialnych();
+     for (int i = 0; i < 3; ++i) {
+         problem->funkcje.push_back("pid");
+         problem->zmienne.push_back(new Zmienna("pid"));
+         problem->tab_minmax[i] = false;
+     }
+     problem->zmienne[0]->min=0;
+     problem->zmienne[0]->max=10;
+     problem->zmienne[1]->min=0;
+     problem->zmienne[1]->max=6;
+     problem->zmienne[2]->min=0;
+     problem->zmienne[2]->max=1;
+     problem->cos = 666;
+
+     mopso_ssmodel=new MOPSO_for_ssmodel(30,10,10,false,problem);
+     mopso_ssmodel->vmax = 100.0;
+     qDebug()<<"il osob "<<mopso_ssmodel->populacja.size()<<endl;
+
+     mopso_ssmodel->Inicjalizuj();
+
+
+
+
+
+     for (int i = 0; i < mopso_ssmodel->populacja.size(); ++i) {
+         if(CheckStabilityOfMySystem(mopso_ssmodel->populacja[i]->x[0],mopso_ssmodel->populacja[i]->x[1],mopso_ssmodel->populacja[i]->x[2])==0)//plotujemy stabilne rozwiazania
+         {
+             GetStepResponse(&sys,mopso_ssmodel->populacja[i]->x[0],mopso_ssmodel->populacja[i]->x[1],mopso_ssmodel->populacja[i]->x[2],time,dt,dataXY);
+             AddPlot(widget.qPlotWidget,dataXY,""+QVariant(mopso_ssmodel->populacja[i]->x[0]).toString()+" , "+QVariant(mopso_ssmodel->populacja[i]->x[1]).toString()+" , "+QVariant(mopso_ssmodel->populacja[i]->x[2]).toString(),QColor(Qt::black));
+
+         }
+     }
+
+     //getchar();
+
+
+
+
+ //mopso_ssmodel.WyznaczWartFunkcjiKryterialnych();
 
 }
 
@@ -2085,7 +2122,7 @@ void Forma::AddRowToNSGA_IIPlotTable()
             this, SLOT(currentNSGA_IIIndexChanged(QObject *)));
 
 }
-void Forma::AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<float,float>> &dataXY,QString name,QColor color)
+void Forma::AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<double,double>> &dataXY,QString name,QColor color)
 {
     qPlotWidget->addGraph();
     qPlotWidget->graph(qPlotWidget->graphCount()-1)->setPen(color);
@@ -2106,14 +2143,14 @@ void Forma::AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<float,float>> &dataXY
 
     // PokazWszystkieFronty();
     qPlotWidget->rescaleAxes();
-  //  qPlotWidget->replot();
+    qPlotWidget->replot();
 
 
 }
 
-void Forma::PlotStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,float Kd, float time, float dt)
+void Forma::PlotStepResponse(ContinuousDynamicalSystem *sys,double Kp,double Ki,double Kd, double time, double dt)
 {
-      QVector<QPair<float,float>> dataXY;
+      QVector<QPair<double,double>> dataXY;
       GetStepResponse(sys,Kp,Ki,Kd,time,dt,dataXY);
       //widget.qPlotWidget->clearGraphs();
       widget.qPlotWidget->addGraph();
@@ -2137,9 +2174,9 @@ void Forma::PlotStepResponse(ContinuousDynamicalSystem *sys,float Kp,float Ki,fl
       widget.qPlotWidget->rescaleAxes();
       widget.qPlotWidget->replot();
 }
-void Forma::PlotImpulseResponse(ContinuousDynamicalSystem *sys, float Kp, float Ki, float Kd, float time, float dt)
+void Forma::PlotImpulseResponse(ContinuousDynamicalSystem *sys, double Kp, double Ki, double Kd, double time, double dt)
 {
-      QVector<QPair<float,float>> dataXY;
+      QVector<QPair<double,double>> dataXY;
       GetImpulseResponse(sys,Kp,Ki,Kd,time,dt,dataXY);
       widget.qPlotWidget->clearGraphs();
       widget.qPlotWidget->addGraph();
@@ -3240,7 +3277,7 @@ void Forma::on_bDodajWykres_clicked()
 //                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 1))->currentText()<<" "<<
 //                  ((QComboBox*) widget.plotTableGGA->cellWidget(i, 5))->currentIndex();
 //    }
-    qDebug()<<"ok";
+    qDebug()<<"okooo";
     AddRowToGGAPlotTable();
 
     //dddd
@@ -4796,4 +4833,60 @@ void Forma::on_bIterujMOPSO_clicked()
     //                           SIGNAL(finished()),
     //                           SLOT(quit()));
     mopso->start();
+}
+
+void Forma::on_pushButton_clicked()
+{
+
+    float time=30.0;
+    float dt=0.01;
+    QVector<QPair<double,double>> dataXY;
+
+    mopso_ssmodel->Iteruj();
+    widget.qPlotWidget->clearGraphs();
+
+     for (int i = 0; i < mopso_ssmodel->repozytorium.size(); ++i) {
+         if(CheckStabilityOfMySystem(mopso_ssmodel->repozytorium[i]->x[0],mopso_ssmodel->repozytorium[i]->x[1],mopso_ssmodel->repozytorium[i]->x[2])==0)//plotujemy stabilne rozwiazania
+         {
+             GetStepResponse(&sys,mopso_ssmodel->repozytorium[i]->x[0],mopso_ssmodel->repozytorium[i]->x[1],mopso_ssmodel->repozytorium[i]->x[2],30,0.01,dataXY);
+             AddPlot(widget.qPlotWidget,dataXY,""+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::black));
+
+             TRACE;
+         }
+     }
+     dataXY.clear();
+     for (float  i= 0;  i< time; i+=dt) {
+         dataXY.push_back({i,1.0});
+     }
+     AddPlot(widget.qPlotWidget,dataXY,"skok",QColor(Qt::gray));
+
+     dataXY.clear();
+     for (float  i= 0;  i< time; i+=dt) {
+         dataXY.push_back({i,1.02});
+     }
+     AddPlot(widget.qPlotWidget,dataXY,"1.02",QColor(Qt::gray));
+
+     dataXY.clear();
+     for (float  i= 0;  i< time; i+=dt) {
+         dataXY.push_back({i,0.98});
+     }
+     AddPlot(widget.qPlotWidget,dataXY,"0.98",QColor(Qt::gray));
+
+     TRACE;
+    // ,riseTime,settlingTime
+     for (int i = 0; i < mopso_ssmodel->repozytorium.size(); ++i) {
+         if(CheckStabilityOfMySystem(mopso_ssmodel->repozytorium[i]->x[0],mopso_ssmodel->repozytorium[i]->x[1],mopso_ssmodel->repozytorium[i]->x[2])==0)//plotujemy stabilne rozwiazania
+         {
+             GetStepResponse(&sys,mopso_ssmodel->repozytorium[i]->x[0],mopso_ssmodel->repozytorium[i]->x[1],mopso_ssmodel->repozytorium[i]->x[2],30,0.01,dataXY);
+
+             qDebug()<<"osobnik z repozytorium numer "<<i;
+             qDebug()<<"Kp "+QVariant(mopso_ssmodel->repozytorium[i]->x[0]).toString()+" ,Ki "+QVariant(mopso_ssmodel->repozytorium[i]->x[1]).toString()+" ,Kd "+QVariant(mopso_ssmodel->repozytorium[i]->x[2]).toString();
+             qDebug()<<"maxOvershoot "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[0]).toString()+" ,riseTime "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[1]).toString()+" ,settlingTime "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[2]).toString();
+
+
+         }
+     }
+
+
+
 }
