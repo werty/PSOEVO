@@ -1,5 +1,5 @@
-#ifndef MOPSO_FOR_SSMODEL_H
-#define MOPSO_FOR_SSMODEL_H
+#ifndef NSGA_II_FOR_SSMODEL_H
+#define NSGA_II_FOR_SSMODEL_H
 
 #include <QTime>
 #include <QThread>
@@ -13,19 +13,17 @@
 #include "muParserInt.h"
 #include "Problem.h"
 #include "uzyteczne_funkcje.h"
-#include "MOPSO.h"
+#include "NSGA_II.h"
 #include "ssmodels.h"
 
-
-class MOPSO_for_ssmodel :  public MOPSO {
+class NSGA_II_for_ssmodel : public NSGA_II{
     Q_OBJECT
 public:
-    MOPSO_for_ssmodel();
-    MOPSO_for_ssmodel(int wiel_pop, int wielk_rep, int il_hiperk, bool mutacja, Problem * problem):MOPSO( wiel_pop,  wielk_rep, il_hiperk,  mutacja,  problem){};
-
+    NSGA_II_for_ssmodel();
+    NSGA_II_for_ssmodel(int wielk_pop, int il_bitow, double prawd_mutacji, double prawd_krzyz, Problem * problem) :NSGA_II( wielk_pop,  il_bitow,  prawd_mutacji,  prawd_krzyz,  problem){};
     SysClosedLoopYsWithPID sys;
     void  virtual WyznaczWartFunkcjiKryterialnych();
     virtual void Inicjalizuj();
 };
 
-#endif // MOPSO_FOR_SSMODEL_H
+#endif // NSGA_II_FOR_SSMODEL_H

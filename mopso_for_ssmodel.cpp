@@ -7,7 +7,7 @@ MOPSO_for_ssmodel::MOPSO_for_ssmodel()
 void MOPSO_for_ssmodel::WyznaczWartFunkcjiKryterialnych()
 {
     qDebug()<<"ok"<<endl;
-    QVector<QPair<double,double>> dataXY;
+    QVector<QPair<double,double> > dataXY;
 
     for (int i = 0; i < populacja.size(); ++i) {
 
@@ -17,6 +17,14 @@ void MOPSO_for_ssmodel::WyznaczWartFunkcjiKryterialnych()
 
        // GetStepResponseCharacteristics( dataXY,maxOvershoot,riseTime,settlingTime);
         GetStepResponseCharacteristics( dataXY,populacja[i]->wartFunkcjiKryterialnych[0],populacja[i]->wartFunkcjiKryterialnych[1],populacja[i]->wartFunkcjiKryterialnych[2]);
+
+        if(populacja[i]->wartFunkcjiKryterialnych[2]>20)
+        {
+            populacja[i]->wartFunkcjiKryterialnych[2]+=100.0;
+            populacja[i]->wartFunkcjiKryterialnych[1]+=100.0;
+            populacja[i]->wartFunkcjiKryterialnych[0]+=100.0;
+        }
+
         }
         else
         {
@@ -32,7 +40,7 @@ void MOPSO_for_ssmodel::WyznaczWartFunkcjiKryterialnych()
 void MOPSO_for_ssmodel::Inicjalizuj()
 {
     qDebug() << "inicjuje...\n";
-    QVector<QPair<double,double>> dataXY;
+    QVector<QPair<double,double> > dataXY;
 
 
     for (int i = 0; i < populacja.size(); i++) {

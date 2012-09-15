@@ -27,7 +27,9 @@
 #include "MOPSO.h"
 #include "mopso_for_ssmodel.h"
 #include "NSGA_II.h"
+#include "nsga_ii_for_ssmodel.h"
 #include "GGA.h"
+#include "gga_for_ssmodel.h"
 #include "Wskazniki.h"
 #include <qtmmlwidget.h>
 
@@ -48,11 +50,16 @@
 #include "qcustomplot.h"
 #include "ssmodels.h"
 
-
+#include <QColor>
+#include <QVector>
 #include <QStandardItemModel>
 
 
 using namespace Qwt3D;
+
+
+
+
 
 
 class QtMmlWidget;
@@ -130,6 +137,7 @@ struct GraphSetting{
     QString color;
     QString name;
     QString patternName;
+    unsigned int algorithm;//0- MOPSO, 1-NSGA-II, 2-GGA
     unsigned int patternIndex;
 };
 
@@ -138,7 +146,6 @@ public:
     QString windowCaption,xAxisCaption,yAxisCaption;
     int tabIndex;//index zakladki na ktorej znajduje sie wykres
     QCustomPlot* qPlot;
-    QVector<unsigned int> algorithms;//0- MOPSO, 1-NSGA-II, 2-GGA
     QVector<GraphSetting> graphSettings;
     Plot2DSetting()
     {
@@ -188,6 +195,7 @@ public:
     QVector<Plot2DSetting> plotSettingsMOPSO;
     QVector<Plot2DSetting> plotSettingsNSGA_II;
     QVector<Plot2DSetting> plot2DSettings;
+   // QVector<Plot3DSetting> plot3DSettings;
 
     Plot2DSetting plotSettingsGOL;
     Plot2DSetting plotSettingsSpacing;
@@ -255,12 +263,14 @@ public:
     void PlotImpulseResponse(ContinuousDynamicalSystem *sys,double Kp,double Ki,double Kd, double time, double dt);
     void PlotStepResponse(ContinuousDynamicalSystem*sys,double Kp,double Ki,double Kd, double time, double dt);
 
-    void AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<double,double>> &dataXY,QString name,QColor color);
+    void AddPlot(QCustomPlot *qPlotWidget,QVector<QPair<double,double> > &dataXY,QString name,QColor color);
 
     void PokazWszystkieFronty();
 
     void AddGGADataToGraph(QCPGraph* graph,QVector<AxisSetting>* as,Solution* s,float& a,float& b);
     void UpdateAllPlots();
+    void Update2DPlots();
+    void Update3DPlots();
 
 
     unsigned int numOfIterations;
@@ -278,6 +288,8 @@ public:
     SysClosedLoopYsWithPID sys;
 
     MOPSO_for_ssmodel* mopso_ssmodel;
+    GGA_for_ssmodel * gga_ssmodel;
+    NSGA_II_for_ssmodel *nsga_ii_ssmodel;
 
     void AktualizujWykresFunKrytGGA();
     void AktualizujWykresParamGGA();
@@ -286,7 +298,8 @@ public:
     void AddMOPSODataToGraph(QCPGraph *graph, QVector<AxisSetting> *as, Particle *s, float &a, float &b);
 
 
-    void AddNSGA_IIDataToGraph(QCPGraph *graph, QVector<AxisSetting> *as, Solution *s, float &a, float &b);
+    template<typename T>
+    void AddDataTo2DGraph(QCPGraph *graph, QVector<AxisSetting> *as, T *s, float &a, float &b);
 public slots:
      void changeGGAIndexSlot(int index,int row,int column);
      void currentGGAIndexChanged(QObject *ac);
@@ -401,9 +414,46 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_3_clicked();
+
+    void on_bDodajWykres3D_clicked();
+
+    void on_bStworzOkno3D_clicked();
+
 private:
     QSignalMapper *signalMapper;
     Ui::Forma widget;
 };
+
+
+template <typename T>
+void Forma::AddDataTo2DGraph(QCPGraph* graph, QVector<AxisSetting>* as, T *s, float& a, float& b)
+{
+    TRACE;
+
+    if((*as)[0].isParam)
+    {
+        a=s->x[(*as)[0].index];
+    }
+    else
+    {
+        a=s->wartFunkcjiKryterialnych[(*as)[0].index];
+    }
+    if((*as)[1].isParam)
+    {
+        b=s->x[(*as)[1].index];
+    }
+    else
+    {
+        b=s->wartFunkcjiKryterialnych[(*as)[1].index];
+    }
+    qDebug()<<"a "<<a<<" b "<<b;
+    graph->addData(a,b);
+    TRACE;
+}
+
+
 
 #endif	/* _FORMA_H */

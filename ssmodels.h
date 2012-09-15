@@ -72,9 +72,9 @@ END_DECLARATION
 int CheckStabilityRouthHurwitz(std::vector<double> poly);
 int CheckStabilityOfMySystem(double Kp,double Ki,double Kd);
 
-int GetStepResponse(ContinuousDynamicalSystem*sys,double Kp,double Ki,double Kd,double time,double dt,QVector<QPair<double,double>>& data);
-int GetImpulseResponse(ContinuousDynamicalSystem*sys,double Kp,double Ki,double Kd,double time,double dt,QVector<QPair<double,double>>& data);
+int GetStepResponse(ContinuousDynamicalSystem*sys,double Kp,double Ki,double Kd,double time,double dt,QVector<QPair<double,double> >& data);
+int GetImpulseResponse(ContinuousDynamicalSystem*sys,double Kp,double Ki,double Kd,double time,double dt,QVector<QPair<double,double> >& data);
 
-void GetStepResponseCharacteristics(QVector<QPair<double,double>>& data,double &MaxOvershoot,double &RiseTime,double &SettlingTime);
+void GetStepResponseCharacteristics(QVector<QPair<double,double> >& data,double &MaxOvershoot,double &RiseTime,double &SettlingTime);
 
 #endif // EXAMPLE_H

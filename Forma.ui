@@ -210,6 +210,9 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Wczytanie funkcji kryterialnych&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Załaduj</string>
       </property>
@@ -291,6 +294,9 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Wczytanie zakresów zmiennych.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Załaduj</string>
       </property>
@@ -316,6 +322,9 @@
         <width>61</width>
         <height>27</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Wczytanie ograniczeń nałożonych na funkcje kryterialne&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
        <string>Załaduj</string>
@@ -878,7 +887,7 @@
          </rect>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_13">
          <attribute name="title">
@@ -1253,7 +1262,7 @@
          </rect>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_16">
          <attribute name="title">
@@ -1870,7 +1879,7 @@
         <property name="geometry">
          <rect>
           <x>110</x>
-          <y>80</y>
+          <y>0</y>
           <width>451</width>
           <height>27</height>
          </rect>
@@ -1879,8 +1888,8 @@
        <widget class="QPushButton" name="bStworzOkno3D">
         <property name="geometry">
          <rect>
-          <x>160</x>
-          <y>330</y>
+          <x>130</x>
+          <y>350</y>
           <width>131</width>
           <height>27</height>
          </rect>
@@ -1893,7 +1902,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>80</y>
+          <y>10</y>
           <width>91</width>
           <height>20</height>
          </rect>
@@ -1906,7 +1915,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>110</y>
+          <y>130</y>
           <width>601</width>
           <height>211</height>
          </rect>
@@ -1974,13 +1983,82 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>330</y>
+          <y>350</y>
           <width>98</width>
           <height>27</height>
          </rect>
         </property>
         <property name="text">
          <string>Dodaj wykres</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="podpisOsiY3D">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>60</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_14">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Podpis osi y</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="podpisOsiX3D">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>30</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_18">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Podpis osi x</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="podpisOsiZ3D">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>90</y>
+          <width>451</width>
+          <height>27</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_22">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>90</y>
+          <width>91</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Podpis osi z</string>
         </property>
        </widget>
       </widget>
@@ -2216,6 +2294,50 @@
       </property>
       <property name="tristate">
        <bool>false</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_20">
+     <attribute name="title">
+      <string>PID</string>
+     </attribute>
+     <widget class="QPushButton" name="pushButton">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>140</y>
+        <width>251</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Symulacja sterowania PID-MOPSO</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_2">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>180</y>
+        <width>211</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Symulacja sterowania PID-GGA</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_3">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>300</y>
+        <width>241</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Symulacja sterowania PID-NSGA_II</string>
       </property>
      </widget>
     </widget>
@@ -2540,19 +2662,6 @@
       </property>
       <property name="text">
        <string>Rysuj</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton">
-      <property name="geometry">
-       <rect>
-        <x>330</x>
-        <y>150</y>
-        <width>201</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Symulacja sterowania PID</string>
       </property>
      </widget>
     </widget>

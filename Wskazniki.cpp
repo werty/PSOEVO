@@ -48,7 +48,7 @@ double Wskazniki::Distance(const QVector<double> &vecA, const QVector<double> &v
 
     return qSqrt(dist);
 }
-bool Wskazniki::Cmp1ElOfVectors(QVector<double> vec1, QVector<double> vec2)
+bool Wskazniki::Cmp1ElOfVectors(QVector<double> &vec1, QVector<double>& vec2)
 {
     if(vec1[0]<vec2[0])
     {
@@ -68,7 +68,6 @@ double Wskazniki::Spacing(QList<QVector<double> > &population)
         distanceTmp=0;
         distance=std::numeric_limits<double>::max();;
          for (auto it2 = population.begin(); it2 != population.end(); ++it2) {
-
              if(it1!=it2)
              {
 

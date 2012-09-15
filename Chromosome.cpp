@@ -1,5 +1,5 @@
 #include "Chromosome.h"
-
+#include "QDebug"
 
 
 
@@ -85,6 +85,20 @@ return valueTmp;
 
 double Chromosome::GetNormalisedValue()
 {
-    static unsigned int maks=qPow(2.0,bits.size());
-    return (double)GetValue()/(double)maks;
+    static unsigned int maks=qPow(2.0,(double)bits.size());
+
+
+    qDebug()<<"maks "<<maks<<endl;
+
+    //if(maks<=0)
+   // {
+        qDebug()<<"maks "<<maks<<endl;
+
+    double    maksi=qPow((float)2.0,(float)bits.size());
+        qDebug()<<"obliczony qPow z  "<<"2.0 i "<<bits.size()<<" ="<<maksi<<endl;
+   // }
+    qDebug()<<"bits "<<bits<<endl;
+    qDebug()<<"GetValue() "<<GetValue()<<endl;
+    qDebug()<<"maks "<<maksi<<endl;
+    return (double)GetValue()/(double)maksi;
 }

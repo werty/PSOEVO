@@ -29,12 +29,12 @@ NSGA_II::NSGA_II(int wielk_pop, int il_bitow, double prawd_mutacji, double prawd
 
     zainicjalizowany=false;
     for (int i = 0; i < wiel_pop; i++) {
-        rodzice.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
-        rodzenstwo.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
+        rodzice.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->funkcje.size()));
+        rodzenstwo.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->funkcje.size()));
     }
 
     for (int i = 0; i < 2 * wiel_pop; i++) {
-        pokolenie.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
+        pokolenie.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->funkcje.size()));
 
 
     }
@@ -111,8 +111,8 @@ void NSGA_II::WyznaczWartFunkcjiKryterialnych() {
             problem -> zmienne[x_ind] -> zmienna =pokolenie[i] ->x[x_ind];
         }
 
-        for (unsigned int f_ind = 0; f_ind < problem->funkcje.size(); f_ind++) {
-           pokolenie[i] -> wartFunkcjiKryterialnych[f_ind] = problem -> parseryFunkcji[f_ind] -> Eval();
+        for (unsigned int f_ind = 0; f_ind < problem->parseryFunkcji.size(); f_ind++) {
+           pokolenie[i] -> wartFunkcjiKryterialnych[f_ind] = problem->parseryFunkcji[f_ind] -> Eval();
         }
     }
 }
@@ -166,7 +166,7 @@ void NSGA_II::WyznaczPrzystosowanie() {
 
 void NSGA_II::PrzeskalujPrzystosowanie() {
     double min, max, srednia, a, b;
-    for (unsigned int i_fun = 0; i_fun < problem->parseryFunkcji.size(); i_fun++) {
+    for (unsigned int i_fun = 0; i_fun < problem->funkcje.size(); i_fun++) {
         srednia = 0;
         min =pokolenie[0]->przystosowanie[i_fun];
         max = min;

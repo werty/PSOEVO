@@ -41,8 +41,8 @@ GGA::GGA(unsigned int wielk_pop, unsigned int il_bitow, double prawd_mutacji, do
     this->wiel_pop=ilOsElitarnych+ilOsNieElit;
 
     for (int i = 0; i < wiel_pop; i++) {
-        rodzice.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
-        rodzenstwo.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->parseryFunkcji.size()));
+        rodzice.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->funkcje.size()));
+        rodzenstwo.push_back(new Solution(problem->zmienne.size(), il_bitow, problem->funkcje.size()));
     }
 
     //    for (int i = 0; i < 2 * wiel_pop; i++) {
@@ -243,6 +243,11 @@ TRACE;
 void GGA::Iteruj()
 {
      TRACE;
+     for (int i = 0; i < rozwPrzydzRodzajnikom.size(); ++i) {
+         qDebug()<<"il os "<<i<<" rodz: "<<rozwPrzydzRodzajnikom[i].size();
+     }
+
+
     StworzNowaPopulacje();
     DekodujGenotyp();
     TRACE;
@@ -318,8 +323,9 @@ void GGA::DekodujGenotyp()
             //                    wartosc += tab_poteg[i_bit];
             //                }
             //            }
-            // qDebug() << "min " << problem->zmienne[i_zmienna]->min << " max " << problem->zmienne[i_zmienna]->max << " zakres " << zakres << " wartosc " << wartosc << "\n";
             rodzice[i_pop]->x[i_zmienna] = problem->zmienne[i_zmienna]->min + (problem->zmienne[i_zmienna]->max - problem->zmienne[i_zmienna]->min) * rodzice[i_pop]->genotyp[i_zmienna].GetNormalisedValue();
+            qDebug() << "min " << problem->zmienne[i_zmienna]->min << " max " << problem->zmienne[i_zmienna]->max << " zakres " << zakres << " wartosc " << rodzice[i_pop]->genotyp[i_zmienna].GetNormalisedValue() << "\n";
+
         }
     }
 
@@ -663,6 +669,45 @@ void GGA::WyznaczRangi()
 
         // DINFO;
     }
+
+    unsigned int minLiczbaRozwDlaRodzajnika=rodzice.size()/(3*rozwPrzydzRodzajnikom.size())+1;
+    qDebug()<<"minLiczbaRozwDlaRodzajnika "<<minLiczbaRozwDlaRodzajnika<<endl;
+
+    QVector<QPair<float,unsigned int> > tmpSortowanie;
+    for (int i = 0; i < rozwPrzydzRodzajnikom.size(); ++i) {
+        if(rozwPrzydzRodzajnikom[i].size()<minLiczbaRozwDlaRodzajnika)//sprawdzamy czy kazdy rodzajnik ma przynajmniej N/(3s) rozwiazan gdzie s to liczba rodzjnikow a N liczba osobnikow
+        {
+          //  qDebug()<<"rodzajnik "<<i<<" ma"<< 0 <<"rozwiazan wiec dodajemy brakujace "<<minLiczbaRozwDlaRodzajnika-rozwPrzydzRodzajnikom[i].size()<<endl;
+
+            tmpSortowanie.clear();
+            for (int j = 0; j < znormRangiSuboptymalnosci.size(); ++j) {
+                tmpSortowanie.push_back({znormRangiSuboptymalnosci[j][i],j});
+            }
+
+
+
+            sort(tmpSortowanie.begin(),tmpSortowanie.end(),[](const QPair<float,unsigned int>&a,const QPair<float,unsigned int>&b)->int{
+                if(a.first>b.first)
+                 {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
+            //wbierzemy brakujace osoniki ktore meda mialy najwyzsza wartosc znorm rang subt dla danego rodzajnika
+
+           unsigned int pozostalo= minLiczbaRozwDlaRodzajnika-rozwPrzydzRodzajnikom[i].size();
+            for (int k = 0; k <pozostalo ; ++k) {
+                rozwPrzydzRodzajnikom[i].push_back(tmpSortowanie[k].second);
+
+            }
+
+        }
+    }
+
+
 
     using namespace std::placeholders;
     //sortujemy populacje subkryterialne pod wzgledem znormRangiSuboptymalnosci

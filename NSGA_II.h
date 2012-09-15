@@ -34,9 +34,9 @@ public:
     bool zainicjalizowany;
     QVector<unsigned int> indSortGOL;
 
-    void Inicjalizuj();
+    virtual  void Inicjalizuj();
     void DekodujGenotyp();
-    void WyznaczWartFunkcjiKryterialnych();
+    virtual void WyznaczWartFunkcjiKryterialnych();
     void WyznaczPrzystosowanie();
     void PrzeskalujPrzystosowanie();
     void WyswietlPrzystosowanie();
@@ -51,6 +51,8 @@ public:
     void Iteruj();
     NSGA_II(QObject *parent = 0);
     NSGA_II(int wielk_pop, int il_bitow, double prawd_mutacji, double prawd_krzyz, Problem * problem);
+    NSGA_II(const NSGA_II & orig);
+
     virtual ~NSGA_II();
 protected:
     void run();

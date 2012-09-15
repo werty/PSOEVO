@@ -135,6 +135,18 @@ HEADERS += \
 SOURCES += \
     mopso_for_ssmodel.cpp
 
+HEADERS += \
+    gga_for_ssmodel.h
+
+SOURCES += \
+    gga_for_ssmodel.cpp
+
+HEADERS += \
+    nsga_ii_for_ssmodel.h
+
+SOURCES += \
+    nsga_ii_for_ssmodel.cpp
+
 
 
 

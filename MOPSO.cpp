@@ -157,9 +157,6 @@ void MOPSO::Inicjalizuj() {
 }
 
 void MOPSO::Iteruj() {
-
-
-
     TRACE;
     if (z_mutacja) {
         DEBUG("%s\n","Mutuje");
