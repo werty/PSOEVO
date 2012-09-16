@@ -2301,43 +2301,182 @@
      <attribute name="title">
       <string>PID</string>
      </attribute>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QGroupBox" name="groupBox">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>140</y>
-        <width>251</width>
-        <height>27</height>
+        <x>10</x>
+        <y>320</y>
+        <width>111</width>
+        <height>96</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Symulacja sterowania PID-MOPSO</string>
+      <property name="title">
+       <string>MOPSO</string>
       </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QPushButton" name="bInicjalizujMOPSO_PID">
+         <property name="text">
+          <string>Inicjalizuj</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Iteruj</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>180</y>
-        <width>211</width>
-        <height>27</height>
+        <x>10</x>
+        <y>440</y>
+        <width>111</width>
+        <height>96</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Symulacja sterowania PID-GGA</string>
+      <property name="title">
+       <string>NSGA_II</string>
       </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="bInicjalizujNSGA_II_PID">
+         <property name="text">
+          <string>Inicjalizuj</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="text">
+          <string>Iteruj</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QGroupBox" name="groupBox_3">
       <property name="geometry">
        <rect>
-        <x>40</x>
+        <x>10</x>
+        <y>540</y>
+        <width>111</width>
+        <height>96</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>GGA</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QPushButton" name="bInicjalizujGGA_PID">
+         <property name="text">
+          <string>Inicjalizuj</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>Iteruj</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="label_35">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>581</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Poszukiwanie parametrów regulatora typu PID &lt;/p&gt;&lt;p&gt;sterującego obiektem 4 stopnia&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textBrowser">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>90</y>
+        <width>231</width>
+        <height>211</height>
+       </rect>
+      </property>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Transmitancje:&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#3e3d32;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt;                                     &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;Ki&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;PID(s)=&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;Kp&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;+&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;----&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;+&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;Kd*s&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;               &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;s&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Courier New,courier';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;         &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;(-0.5s+1)(s+4)&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;Gp(s)=&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;-----------------&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;        &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;s(s+2)(s^2+6s+10)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textBrowser_2">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>90</y>
+        <width>421</width>
+        <height>211</height>
+       </rect>
+      </property>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Legenda:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#808080;&quot;&gt;r(s)&lt;/span&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;sygnal&lt;/span&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;zadany&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;e(s)&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;uchyb&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;sterowania&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;u(s)&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;sygnal&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;sterujacy&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;y(s)&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;sygnal&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;wyjsciowy&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#000000;&quot;&gt;Układ zamknięty:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt;     &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;r(s)&lt;/span&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt;              &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;e(s)&lt;/span&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt;                             &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;u(s)&lt;/span&gt;&lt;span style=&quot; color:#3e3d32;&quot;&gt;                                  &lt;/span&gt;&lt;span style=&quot; color:#808080;&quot;&gt;y(s)&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;-----&amp;gt;(+)-----&amp;gt;[Gc(s)]-----&amp;gt;[Gp(s)]-------&amp;gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;     &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;-|&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;                                &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;|&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;      &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;|&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;                                &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;|&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#3e3d32;&quot;&gt;      &lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; color:#808080;&quot;&gt;\_________________1______________/&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textBrowser_3">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
         <y>300</y>
-        <width>241</width>
-        <height>27</height>
+        <width>401</width>
+        <height>192</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Symulacja sterowania PID-NSGA_II</string>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Minimalizujemy wartości charakterystyk odpowiedzi skokowej układu zamkniętego. &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;f1(t)= czas narastania [s]&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;f2(t)= przeregulowanie [%]&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;f3(t)= czas ustalania [s]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </widget>
@@ -2695,15 +2834,57 @@
     </widget>
     <widget class="QWidget" name="tab_10">
      <attribute name="title">
-      <string>Page</string>
+      <string>MOPSO_PID</string>
      </attribute>
-     <widget class="QCustomPlot" name="qPlotWidget" native="true">
+     <widget class="QCustomPlot" name="qPlotMOPSO_PID" native="true">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>10</y>
-        <width>550</width>
-        <height>771</height>
+        <x>-11</x>
+        <y>0</y>
+        <width>601</width>
+        <height>781</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_21">
+     <attribute name="title">
+      <string>NSGA_II_PID</string>
+     </attribute>
+     <widget class="QCustomPlot" name="qPlotNSGA_II_PID" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>601</width>
+        <height>781</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_22">
+     <attribute name="title">
+      <string>GGA_PID</string>
+     </attribute>
+     <widget class="QCustomPlot" name="qPlotGGA_PID" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>601</width>
+        <height>781</height>
        </rect>
       </property>
       <property name="sizePolicy">

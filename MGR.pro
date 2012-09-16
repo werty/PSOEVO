@@ -147,6 +147,23 @@ HEADERS += \
 SOURCES += \
     nsga_ii_for_ssmodel.cpp
 
+Release:DESTDIR = release
+Release:OBJECTS_DIR = release/.obj
+Release:MOC_DIR = release/.moc
+Release:RCC_DIR = release/.rcc
+Release:UI_DIR = release/.ui
+
+Debug:DESTDIR = debug
+Debug:OBJECTS_DIR = debug/.obj
+Debug:MOC_DIR = debug/.moc
+Debug:RCC_DIR = debug/.rcc
+Debug:UI_DIR = debug/.ui
 
 
+#CONFIG(debug, debug|release) {
+#    DESTDIR = "Debug"
+#}
+#CONFIG(release, debug|release) {
+#    DESTDIR = "Release"
+#}
 

@@ -422,6 +422,12 @@ private slots:
 
     void on_bStworzOkno3D_clicked();
 
+    void on_bInicjalizujGGA_PID_clicked();
+
+    void on_bInicjalizujNSGA_II_PID_clicked();
+
+    void on_bInicjalizujMOPSO_PID_clicked();
+
 private:
     QSignalMapper *signalMapper;
     Ui::Forma widget;
