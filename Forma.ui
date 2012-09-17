@@ -135,7 +135,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
@@ -541,58 +541,6 @@
             <string>1</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="populacja_6">
-           <property name="geometry">
-            <rect>
-             <x>170</x>
-             <y>50</y>
-             <width>71</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>2.8</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="populacja_7">
-           <property name="geometry">
-            <rect>
-             <x>170</x>
-             <y>70</y>
-             <width>71</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1.3</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="populacja_8">
-           <property name="geometry">
-            <rect>
-             <x>170</x>
-             <y>90</y>
-             <width>71</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="populacja_9">
-           <property name="geometry">
-            <rect>
-             <x>170</x>
-             <y>110</y>
-             <width>71</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1</string>
-           </property>
-          </widget>
           <widget class="QWidget" name="Wzor_c1" native="true">
            <property name="geometry">
             <rect>
@@ -702,35 +650,6 @@
            </property>
            <property name="text">
             <string>30</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="ilOsobElitMOPSO">
-           <property name="geometry">
-            <rect>
-             <x>170</x>
-             <y>180</y>
-             <width>71</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>6</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_34">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>180</y>
-             <width>91</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Il. osob. elit. :</string>
-           </property>
-           <property name="buddy">
-            <cstring>ilOsobElitMOPSO</cstring>
            </property>
           </widget>
          </widget>
@@ -1074,35 +993,6 @@
            </property>
            <property name="text">
             <string>20</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="ilOsobElitNSGA_II">
-           <property name="geometry">
-            <rect>
-             <x>120</x>
-             <y>150</y>
-             <width>71</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>6</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="label_21">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>150</y>
-             <width>91</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Il. osob. elit. :</string>
-           </property>
-           <property name="buddy">
-            <cstring>ilOsobElitNSGA_II</cstring>
            </property>
           </widget>
          </widget>

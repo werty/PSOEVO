@@ -19,7 +19,7 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.WorksLikeClockwork.com/                   **
-**             Date: 31.03.12                                             **
+**             Date: 09.06.12                                             **
 ****************************************************************************/
 
 /*! \mainpage %QCustomPlot Documentation
@@ -33,9 +33,11 @@
   This documentation is especially helpful when you're familiar with the basic concept of how to use
   %QCustomPlot and you wish to learn more about specific functionality.
  
-  \section quickguide Quick Guide
+  \section simpleoverview Simplified Class Overview
   
-  \image html ClassesOverview.png
+  \image latex ClassesOverviewSimplified.png "" width=1.2\textwidth
+  \image html ClassesOverviewSimplified.png
+  <center>Simplified diagram of most important classes, view the \ref classoverview "Class Overview" to see a full overview.</center>
   
   The central widget which displays the plottables and axes on its surface is QCustomPlot. Usually,
   you don't create the axes yourself, but you use the ones already inside every QCustomPlot
@@ -63,7 +65,7 @@
   Plottables (including graphs) can be retrieved via QCustomPlot::plottable. Since the return type
   of that function is the abstract base class of all plottables, QCPAbstractPlottable, you will
   probably want to qobject_cast (or dynamic_cast) the returned pointer to the respective plottable
-  subclass. (if the dynamic cast returns zero, the plottable wasn't of that specific subclass.)
+  subclass. (As usual, if the cast returns zero, the plottable wasn't of that specific subclass.)
   
   All further interfacing with plottables (e.g how to set data) is specific to the plottable type.
   See the documentations of the subclasses: QCPGraph, QCPCurve, QCPBars, QCPStatisticalBox.
@@ -117,48 +119,69 @@
   doubleClicked. See \ref QCustomPlot::plottableClick, \ref QCustomPlot::plottableDoubleClick
   and \ref QCustomPlot::axisClick for example.
   
+  \section items Items
+  
+  Apart from plottables there is another category of plot objects that are important: Items. The
+  base class of all items is QCPAbstractItem. An item sets itself apart from plottables in that
+  it's not necessarily bound to any axes. This means it may also be positioned in absolute pixel
+  coordinates or placed at a relative position on the axis rect. Further it usually doesn't
+  represent data directly but acts as decoration, emphasis, description etc.
+  
+  Multiple items can be arranged in a parent-child-hierarchy allowing for dynamical behaviour. For
+  example, you could place the head of an arrow at a certain plot coordinate, so it always points
+  to some important part of your data. The tail of the arrow can be fixed at a text label item
+  which always resides in the top center of the axis rect (independent of where the user drags the
+  axis ranges).
+  
+  For a more detailed introduction, see the QCPAbstractItem documentation, and from there the
+  documentations of the individual built-in items, to find out how to use them.
+  
   \section performancetweaks Performance Tweaks
   
-  Although QCustomPlot is quite fast, some features (transparent fills and antialiasing) cause a
-  significant slow down. Here are some thoughts on how to increase performance:
+  Although QCustomPlot is quite fast, some features like semi-transparent fills and antialiasing
+  can cause a significant slow down. Here are some thoughts on how to increase performance. By far
+  the most time is spent in the drawing functions, specifically the drawing of graphs. For maximum
+  performance, consider the following (most recommended/effective measures first):
   
-  Most performance gets lost in the drawing functions, specifically the drawing of graphs. For
-  maximum performance, consider the following (in no particular order):
-  
-  \li avoid any kind of alpha (transparency), especially in fills \li avoid any kind of
-  antialiasing, especially in graph lines (QCustomPlot::setAntialiasedElements)
-  \li avoid repeatedly setting the complete data set with setData. Use addData instead, if most
-  data points stay unchanged, e.g. in a running measurement.
-  \li set the \a copy parameter of the setData functions to false, so only pointers get
-  transferred.
-  \li on X11 (linux), avoid the (slow) native drawing system, use raster by supplying
-  "-graphicssystem raster" as command line argument or calling
-  QApplication::setGraphicsSystem("raster") before creating the QApplication object.
-  \li on all operating systems, use OpenGL hardware acceleration by supplying "-graphicssystem
+  \li use Qt 4.8.0 and up. Performance has doubled or tripled with respect to Qt 4.7.4. However they broke QPainter,
+  drawing pixel precise things, e.g. scatters, isn't possible with Qt 4.8.0/1. So it's a performance vs. plot
+  quality tradeoff when switching to Qt 4.8.
+  \li To increase responsiveness during dragging, consider setting \ref QCustomPlot::setNoAntialiasingOnDrag to true.
+  \li On X11 (linux), avoid the (slow) native drawing system, use raster by supplying
+  "-graphicssystem raster" as command line argument or calling QApplication::setGraphicsSystem("raster")
+  before creating the QApplication object.
+  \li On all operating systems, use OpenGL hardware acceleration by supplying "-graphicssystem
   opengl" as command line argument or calling QApplication::setGraphicsSystem("opengl"). If OpenGL
   is available, this will slightly decrease the quality of antialiasing, but extremely increase
-  performance especially with alpha (transparent) fills and a large QCustomPlot drawing surface.
-  Note however, that the maximum frame rate might be constrained by the vertical sync frequency of
-  your monitor (VSync can be disabled in the graphics card driver configuration). So for simple
-  plots (potential framerate far above 60 frames per second), OpenGL acceleration might achieve \a
-  lower frame rates than the other graphics systems, because they are not capped at the VSync
-  frequency.
+  performance especially with alpha (semi-transparent) fills, much antialiasing and a large
+  QCustomPlot drawing surface. Note however, that the maximum frame rate might be constrained by
+  the vertical sync frequency of your monitor (VSync can be disabled in the graphics card driver
+  configuration). So for simple plots (where the potential framerate is far above 60 frames per
+  second), OpenGL acceleration might achieve numerically lower frame rates than the other
+  graphics systems, because they are not capped at the VSync frequency.
+  \li Avoid any kind of alpha (transparency), especially in fills
+  \li Avoid any kind of antialiasing, especially in graph lines (see QCustomPlot::setNotAntialiasedElements)
+  \li Avoid repeatedly setting the complete data set with QCPGraph::setData. Use QCPGraph::addData instead, if most
+  data points stay unchanged, e.g. in a running measurement.
+  \li Set the \a copy parameter of the setData functions to false, so only pointers get
+  transferred. (Relevant only if preparing data maps with a large number of points, i.e. over 10000)
+*/
+
+/*! \page classoverview Class Overview
+  
+  \image latex ClassesOverview.png "Overview of all classes and their relations" width=1.2\textwidth
+  \image html ClassesOverview.png "Overview of all classes and their relations"
+  
 */
 
 #include "qcustomplot.h"
-#include <cmath>
-#include <limits>
-#include <QAction>
-#include <QMenu>
-#include <QFileDialog>
-#include <QDir>
 
 // ================================================================================
 // =================== QCPData
 // ================================================================================
 
 /*! \class QCPData
-  \brief A class holding the data of one single data point for QCPGraph.
+  \brief Holds the data of one single data point for QCPGraph.
   
   The stored data is:
   \li \a key: coordinate on the key axis of this data point
@@ -184,12 +207,25 @@ QCPData::QCPData() :
 {
 }
 
+/*!
+  Constructs a data point with the specified \a key and \a value. All errors are set to zero.
+*/
+QCPData::QCPData(double key, double value) :
+  key(key),
+  value(value),
+  keyErrorPlus(0),
+  keyErrorMinus(0),
+  valueErrorPlus(0),
+  valueErrorMinus(0)
+{
+}
+
 // ================================================================================
 // =================== QCPCurveData
 // ================================================================================
 
 /*! \class QCPCurveData
-  \brief A class holding the data of one single data point for QCPCurve.
+  \brief Holds the data of one single data point for QCPCurve.
   
   The stored data is:
   \li \a t: the free parameter of the curve at this curve point (cp. the mathematical vector <em>(x(t), y(t))</em>)
@@ -209,13 +245,23 @@ QCPCurveData::QCPCurveData() :
 {
 }
 
+/*!
+  Constructs a curve data point with the specified \a t, \a key and \a value.
+*/
+QCPCurveData::QCPCurveData(double t, double key, double value) :
+  t(t),
+  key(key),
+  value(value)
+{
+}
+
 
 // ================================================================================
 // =================== QCPBarData
 // ================================================================================
 
 /*! \class QCPBarData
-  \brief A class holding the data of one single data point (one bar) for QCPBars.
+  \brief Holds the data of one single data point (one bar) for QCPBars.
   
   The stored data is:
   \li \a key: coordinate on the key axis of this bar
@@ -230,6 +276,15 @@ QCPCurveData::QCPCurveData() :
 QCPBarData::QCPBarData() :
   key(0),
   value(0)
+{
+}
+
+/*!
+  Constructs a bar data point with the specified \a key and \a value.
+*/
+QCPBarData::QCPBarData(double key, double value) :
+  key(key),
+  value(value)
 {
 }
 
@@ -279,23 +334,19 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
 {
   mData = new QCPDataMap;
   
-  mPen.setColor(Qt::blue);
-  mPen.setStyle(Qt::SolidLine);
-  mErrorPen.setColor(Qt::black);
-  mBrush.setColor(Qt::blue);
-  mBrush.setStyle(Qt::NoBrush);
-  mSelectedPen = mPen;
-  mSelectedPen.setWidthF(2.5);
-  mSelectedPen.setColor(QColor(80, 80, 255)); // lighter than Qt::blue of mPen
-  mSelectedBrush = mBrush;
+  setPen(QPen(Qt::blue));
+  setErrorPen(QPen(Qt::black));
+  setBrush(Qt::NoBrush);
+  setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
+  setSelectedBrush(Qt::NoBrush);
   
-  mLineStyle = lsLine;
-  mScatterStyle = ssNone;
-  mScatterSize = 6;
-  mErrorType = etNone;
-  mErrorBarSize = 6;
-  mErrorBarSkipSymbol = true;
-  mChannelFillGraph = 0;
+  setLineStyle(lsLine);
+  setScatterStyle(QCP::ssNone);
+  setScatterSize(6);
+  setErrorType(etNone);
+  setErrorBarSize(6);
+  setErrorBarSkipSymbol(true);
+  setChannelFillGraph(0);
 }
 
 QCPGraph::~QCPGraph()
@@ -315,7 +366,7 @@ QCPGraph::~QCPGraph()
 /*!
   Replaces the current data with the provided \a data.
   
-  If \a copy is set to true, data points in \a data will only be copied. if false, the plottable
+  If \a copy is set to true, data points in \a data will only be copied. if false, the graph
   takes ownership of the passed data and replaces the internal data pointer with it. This is
   significantly faster than copying for large datasets.
 */
@@ -357,6 +408,8 @@ void QCPGraph::setData(const QVector<double> &key, const QVector<double> &value)
   For error bars to show appropriately, see \ref setErrorType.
   The provided vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
+  
+  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
 */
 void QCPGraph::setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueError)
 {
@@ -408,6 +461,8 @@ void QCPGraph::setDataValueError(const QVector<double> &key, const QVector<doubl
   For error bars to show appropriately, see \ref setErrorType.
   The provided vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
+  
+  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
 */
 void QCPGraph::setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError)
 {
@@ -459,6 +514,8 @@ void QCPGraph::setDataKeyError(const QVector<double> &key, const QVector<double>
   For error bars to show appropriately, see \ref setErrorType.
   The provided vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
+  
+  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
 */
 void QCPGraph::setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError, const QVector<double> &valueError)
 {
@@ -516,6 +573,7 @@ void QCPGraph::setDataBothError(const QVector<double> &key, const QVector<double
   Sets how the single data points are connected in the plot or how they are represented visually
   apart from the scatter symbol. For scatter-only plots, set \a ls to \ref lsNone and \ref
   setScatterStyle to the desired scatter style.
+  
   \see setScatterStyle
 */
 void QCPGraph::setLineStyle(LineStyle ls)
@@ -524,19 +582,21 @@ void QCPGraph::setLineStyle(LineStyle ls)
 }
 
 /*! 
-  Sets the visual appearance of single data points in the plot. If set to \ref ssNone, no scatter points
+  Sets the visual appearance of single data points in the plot. If set to \ref QCP::ssNone, no scatter points
   are drawn (e.g. for line-only-plots with appropriate line style).
+  
   \see ScatterStyle, setLineStyle
 */
-void QCPGraph::setScatterStyle(ScatterStyle ss)
+void QCPGraph::setScatterStyle(QCP::ScatterStyle ss)
 {
   mScatterStyle = ss;
 }
 
 /*! 
   This defines how big (in pixels) single scatters are drawn, if scatter style (\ref
-  setScatterStyle) isn't \ref ssNone, \ref ssDot or \ref ssPixmap. Floating point values are
+  setScatterStyle) isn't \ref QCP::ssNone, \ref QCP::ssDot or \ref QCP::ssPixmap. Floating point values are
   allowed for fine grained control over optical appearance with antialiased painting.
+  
   \see ScatterStyle
 */
 void QCPGraph::setScatterSize(double size)
@@ -547,6 +607,7 @@ void QCPGraph::setScatterSize(double size)
 /*! 
   If the scatter style (\ref setScatterStyle) is set to ssPixmap, this function defines the QPixmap
   that will be drawn centered on the data point coordinate.
+  
   \see ScatterStyle
 */
 void QCPGraph::setScatterPixmap(const QPixmap &pixmap)
@@ -554,7 +615,12 @@ void QCPGraph::setScatterPixmap(const QPixmap &pixmap)
   mScatterPixmap = pixmap;
 }
 
-/*! 
+/*!
+  Sets which kind of error bars (Key Error, Value Error or both) should be drawn on each data
+  point. If you set \a errorType to something other than \ref etNone, make sure to actually pass
+  error data via the specific setData functions along with the data points (e.g. \ref
+  setDataValueError, \ref setDataKeyError, \ref setDataBothError).
+
   \see ErrorType
 */
 void QCPGraph::setErrorType(ErrorType errorType)
@@ -584,7 +650,7 @@ void QCPGraph::setErrorBarSize(double size)
   leave some free space around the symbol.
   
   This feature uses the current scatter size (\ref setScatterSize) to determine the size of the
-  area to leave blank. So when drawing Pixmaps as scatter points (\ref ssPixmap), the scatter size
+  area to leave blank. So when drawing Pixmaps as scatter points (\ref QCP::ssPixmap), the scatter size
   must be set manually to a value corresponding to the size of the Pixmap, if the error bars should
   leave gaps to its boundaries.
 */
@@ -607,14 +673,14 @@ void QCPGraph::setChannelFillGraph(QCPGraph *targetGraph)
   // prevent setting channel target to this graph itself:
   if (targetGraph == this)
   {
-    qDebug() << FUNCNAME << "targetGraph is self";
+    qDebug() << Q_FUNC_INFO << "targetGraph is this graph itself";
     mChannelFillGraph = 0;
     return;
   }
   // prevent setting channel target to a graph not in the plot:
   if (targetGraph && targetGraph->mParentPlot != mParentPlot)
   {
-    qDebug() << FUNCNAME << "targetGraph not in same plot";
+    qDebug() << Q_FUNC_INFO << "targetGraph not in same plot";
     mChannelFillGraph = 0;
     return;
   }
@@ -730,12 +796,12 @@ void QCPGraph::clearData()
 }
 
 /* inherits documentation from base class */
-double QCPGraph::selectTest(double key, double value) const
+double QCPGraph::selectTest(const QPointF &pos) const
 {
   if (mData->isEmpty() || !mVisible)
     return -1;
   
-  return pointDistance(coordsToPixels(key, value));
+  return pointDistance(pos);
 }
 
 /*! \overload
@@ -812,18 +878,15 @@ void QCPGraph::rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const
 }
 
 /* inherits documentation from base class */
-void QCPGraph::draw(QPainter *painter) const
+void QCPGraph::draw(QCPPainter *painter)
 {
-  if (!mVisible) return;
-  if (mKeyAxis->range().size() <= 0) return;
-  if (mData->isEmpty()) return;
-  if (mLineStyle == lsNone && mScatterStyle == ssNone) return;
-  painter->setClipRect(mKeyAxis->axisRect() | mValueAxis->axisRect());
+  if (mKeyAxis->range().size() <= 0 || mData->isEmpty()) return;
+  if (mLineStyle == lsNone && mScatterStyle == QCP::ssNone) return;
   
   // allocate line and (if necessary) point vectors:
   QVector<QPointF> *lineData = new QVector<QPointF>;
   QVector<QCPData> *pointData = 0;
-  if (mScatterStyle != ssNone)
+  if (mScatterStyle != QCP::ssNone)
     pointData = new QVector<QCPData>;
   
   // fill vectors with data appropriate to plot style:
@@ -849,25 +912,25 @@ void QCPGraph::draw(QPainter *painter) const
 }
 
 /* inherits documentation from base class */
-void QCPGraph::drawLegendIcon(QPainter *painter, const QRect &rect) const
+void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRect &rect) const
 {
   // draw fill:
   if (mBrush.style() != Qt::NoBrush)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
-    painter->fillRect(rect.left(), rect.top()+rect.height()/2.0, rect.width(), rect.height()/3.0, mBrush);
+    applyFillAntialiasingHint(painter);
+    painter->fillRect(QRectF(rect.left(), rect.top()+rect.height()/2.0, rect.width(), rect.height()/3.0), mBrush);
   }
   // draw line vertically centered:
   if (mLineStyle != lsNone)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
+    applyDefaultAntialiasingHint(painter);
     painter->setPen(mPen);
-    painter->drawLine(rect.left(), rect.top()+rect.height()/2.0, rect.right()+5, rect.top()+rect.height()/2.0); // +5 on x2 else last segment is missing from dashed/dotted pens
+    painter->drawLine(QLineF(rect.left(), rect.top()+rect.height()/2.0, rect.right()+5, rect.top()+rect.height()/2.0)); // +5 on x2 else last segment is missing from dashed/dotted pens
   }
   // draw scatter symbol:
-  if (mScatterStyle != ssNone)
+  if (mScatterStyle != QCP::ssNone)
   {
-    if (mScatterStyle == ssPixmap && (mScatterPixmap.size().width() > rect.width() || mScatterPixmap.size().height() > rect.height()))
+    if (mScatterStyle == QCP::ssPixmap && (mScatterPixmap.size().width() > rect.width() || mScatterPixmap.size().height() > rect.height()))
     {
       // handle pixmap scatters that are larger than legend icon rect separately.
       // We resize them and draw them manually, instead of calling drawScatter:
@@ -880,11 +943,11 @@ void QCPGraph::drawLegendIcon(QPainter *painter, const QRect &rect) const
       painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
       painter->drawPixmap(targetRect, mScatterPixmap);
       painter->setRenderHint(QPainter::SmoothPixmapTransform, smoothBackup);
-    } else // mScatterStyle != ssPixmap
+    } else
     {
+      applyScattersAntialiasingHint(painter);
       painter->setPen(mPen);
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeScatters));
-      drawScatter(painter, rect.center().x()+1, rect.center().y()+1, mScatterStyle);
+      painter->drawScatter(QRectF(rect).center().x(), QRectF(rect).center().y(), mScatterSize, mScatterStyle);
     }
   }
 }
@@ -897,7 +960,7 @@ void QCPGraph::drawLegendIcon(QPainter *painter, const QRect &rect) const
   These aren't necessarily the original data points, since for step plots for example, additional points are needed for drawing lines that make up steps.
   If the line style of the graph is \ref lsNone, the \a lineData vector will be left untouched.
   \param pointData will be filled with the original data points so \ref drawScatterPlot can draw the scatter symbols accordingly. If no scatters need to be
-  drawn, i.e. scatter style is \ref ssNone, pass 0 as \a pointData, and this step will be skipped.
+  drawn, i.e. scatter style is \ref QCP::ssNone, pass 0 as \a pointData, and this step will be skipped.
   
   \see getScatterPlotData, getLinePlotData, getStepLeftPlotData, getStepRightPlotData, getStepCenterPlotData, getImpulsePlotData
 */
@@ -916,7 +979,7 @@ void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *pointDa
 
 /*! 
   \internal
-  If line style is \ref lsNone and scatter style is not \ref ssNone, this function serves at providing the
+  If line style is \ref lsNone and scatter style is not \ref QCP::ssNone, this function serves at providing the
   visible data points in \a pointData, so the \ref drawScatterPlot function can draw the scatter points
   accordingly.
   
@@ -965,7 +1028,7 @@ void QCPGraph::getScatterPlotData(QVector<QCPData> *pointData) const
 
   As for all plot data retrieval functions, \a pointData just contains all unaltered data (scatter)
   points that are visible, for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. scatter style \ref ssNone), pass 0 as \a pointData, and the function will skip
+  disabled (i.e. scatter style \ref QCP::ssNone), pass 0 as \a pointData, and the function will skip
   filling the vector.
   \see drawLinePlot
 */
@@ -1020,7 +1083,7 @@ void QCPGraph::getLinePlotData(QVector<QPointF> *lineData, QVector<QCPData> *poi
 
   As for all plot data retrieval functions, \a pointData just contains all unaltered data (scatter)
   points that are visible, for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. scatter style \ref ssNone), pass 0 as \a pointData, and the function will skip
+  disabled (i.e. scatter style \ref QCP::ssNone), pass 0 as \a pointData, and the function will skip
   filling the vector.
   \see drawLinePlot
 */
@@ -1097,7 +1160,7 @@ void QCPGraph::getStepLeftPlotData(QVector<QPointF> *lineData, QVector<QCPData> 
 
   As for all plot data retrieval functions, \a pointData just contains all unaltered data (scatter)
   points that are visible, for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. scatter style \ref ssNone), pass 0 as \a pointData, and the function will skip
+  disabled (i.e. scatter style \ref QCP::ssNone), pass 0 as \a pointData, and the function will skip
   filling the vector.
   \see drawLinePlot
 */
@@ -1174,7 +1237,7 @@ void QCPGraph::getStepRightPlotData(QVector<QPointF> *lineData, QVector<QCPData>
 
   As for all plot data retrieval functions, \a pointData just contains all unaltered data (scatter)
   points that are visible, for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. scatter style \ref ssNone), pass 0 as \a pointData, and the function will skip
+  disabled (i.e. scatter style \ref QCP::ssNone), pass 0 as \a pointData, and the function will skip
   filling the vector.
   \see drawLinePlot
 */
@@ -1277,7 +1340,7 @@ void QCPGraph::getStepCenterPlotData(QVector<QPointF> *lineData, QVector<QCPData
 
   As for all plot data retrieval functions, \a pointData just contains all unaltered data (scatter)
   points that are visible, for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. scatter style \ref ssNone), pass 0 as \a pointData, and the function will skip
+  disabled (i.e. scatter style \ref QCP::ssNone), pass 0 as \a pointData, and the function will skip
   filling the vector.
   \see drawImpulsePlot
 */
@@ -1355,12 +1418,12 @@ void QCPGraph::getImpulsePlotData(QVector<QPointF> *lineData, QVector<QCPData> *
   polygon is calculated with the \ref getChannelFillPolygon function.
   \see drawLinePlot
 */
-void QCPGraph::drawFill(QPainter *painter, QVector<QPointF> *lineData) const
+void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
 {
   if (mLineStyle == lsImpulse) return; // fill doesn't make sense for impulse plot
   if (mainBrush().style() == Qt::NoBrush || mainBrush().color().alpha() == 0) return;
   
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeFills));
+  applyFillAntialiasingHint(painter);
   if (!mChannelFillGraph)
   {
     // draw base fill under graph, fill goes all the way to the zero-value-line:
@@ -1378,19 +1441,19 @@ void QCPGraph::drawFill(QPainter *painter, QVector<QPointF> *lineData) const
   }
 }
 
-/*! 
-  \internal
+/*! \internal
+  
   Draws scatter symbols at every data point passed in \a pointData. scatter symbols are independent of
-  the line style and are always drawn if scatter style is not \ref ssNone. Hence, the \a pointData vector
+  the line style and are always drawn if scatter style is not \ref QCP::ssNone. Hence, the \a pointData vector
   is outputted by all "get(...)PlotData" functions, together with the (line style dependent) line data.
   \see drawLinePlot, drawImpulsePlot
 */
-void QCPGraph::drawScatterPlot(QPainter *painter, QVector<QCPData> *pointData) const
+void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPData> *pointData) const
 {
   // draw error bars:
   if (mErrorType != etNone)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeErrorBars));
+    applyErrorBarsAntialiasingHint(painter);
     painter->setPen(mErrorPen);
     if (mKeyAxis->orientation() == Qt::Vertical)
     {
@@ -1404,17 +1467,18 @@ void QCPGraph::drawScatterPlot(QPainter *painter, QVector<QCPData> *pointData) c
   }
   
   // draw scatter point symbols:
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeScatters));
+  applyScattersAntialiasingHint(painter);
   painter->setPen(mainPen());
   painter->setBrush(mainBrush());
+  painter->setScatterPixmap(mScatterPixmap);
   if (mKeyAxis->orientation() == Qt::Vertical)
   {
     for (int i=0; i<pointData->size(); ++i)
-      drawScatter(painter, mValueAxis->coordToPixel(pointData->at(i).value), mKeyAxis->coordToPixel(pointData->at(i).key), mScatterStyle);
+      painter->drawScatter(mValueAxis->coordToPixel(pointData->at(i).value), mKeyAxis->coordToPixel(pointData->at(i).key), mScatterSize, mScatterStyle);
   } else
   {
     for (int i=0; i<pointData->size(); ++i)
-      drawScatter(painter, mKeyAxis->coordToPixel(pointData->at(i).key), mValueAxis->coordToPixel(pointData->at(i).value), mScatterStyle);
+      painter->drawScatter(mKeyAxis->coordToPixel(pointData->at(i).key), mValueAxis->coordToPixel(pointData->at(i).value), mScatterSize, mScatterStyle);
   }
 }
 
@@ -1426,15 +1490,41 @@ void QCPGraph::drawScatterPlot(QPainter *painter, QVector<QCPData> *pointData) c
   getStepLeftPlotData, \ref getStepRightPlotData and \ref getStepCenterPlotData.
   \see drawScatterPlot, drawImpulsePlot
 */
-void QCPGraph::drawLinePlot(QPainter *painter, QVector<QPointF> *lineData) const
+void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const
 {
   // draw line of graph:
   if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
+    applyDefaultAntialiasingHint(painter);
     painter->setPen(mainPen());
     painter->setBrush(Qt::NoBrush);
-    painter->drawPolyline(QPolygonF(*lineData));
+    
+    /* Draws polyline in batches, currently not used:
+    int p = 0;
+    while (p < lineData->size())
+    {
+      int batch = qMin(25, lineData->size()-p);
+      if (p != 0)
+      {
+        ++batch;
+        --p; // to draw the connection lines between two batches
+      }
+      painter->drawPolyline(lineData->constData()+p, batch);
+      p += batch;
+    }
+    */
+    
+    // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
+    if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
+        painter->pen().style() == Qt::SolidLine &&
+        !painter->pdfExportMode())
+    {
+      for (int i=1; i<lineData->size(); ++i)
+        painter->drawLine(lineData->at(i-1), lineData->at(i));
+    } else
+    {  
+      painter->drawPolyline(QPolygonF(*lineData));
+    }
   }
 }
 
@@ -1444,144 +1534,17 @@ void QCPGraph::drawLinePlot(QPainter *painter, QVector<QPointF> *lineData) const
   created by \ref getImpulsePlotData.
   \see drawScatterPlot, drawLinePlot
 */
-void QCPGraph::drawImpulsePlot(QPainter *painter, QVector<QPointF> *lineData) const
+void QCPGraph::drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const
 {
   // draw impulses:
   if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
-    painter->setPen(mainPen());
+    applyDefaultAntialiasingHint(painter);
+    QPen pen = mainPen();
+    pen.setCapStyle(Qt::FlatCap); // so impulse line doesn't reach beyond zero-line
+    painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     painter->drawLines(*lineData);
-  }
-}
-
-/*! 
-  \internal
-  Called by the scatter plot drawing function (\ref drawScatterPlot) to draw single point representations at the
-  pixel positions \a x and \a y in the scatter style \a style.
-  
-  \warning this function changes the brush of the painter for scatter styles \ref ssCircle, \ref ssDisc and \ref ssSquare
-  in order to draw clear (ssSquare, ssCircle) and filled (ssDisc) shapes.
-*/
-void QCPGraph::drawScatter(QPainter *painter, double x, double y, ScatterStyle style) const
-{
-  // If you change this correction, make sure pdf exported scatters are properly centered in error bars!
-  // There seems to be some kind of discrepancy for different paint devices here.
-  if (style == ssCross || style == ssPlus)
-  {
-    x = x-0.7; // paint system correction, else, we don't get pixel exact matches (Qt problem)
-    y = y-0.4; // paint system correction, else, we don't get pixel exact matches (Qt problem)
-  }
-  
-  double w = mScatterSize/2.0;
-  switch (style)
-  {
-    case ssDot:
-    {
-      painter->drawPoint(QPointF(x, y));
-      break;
-    }
-    case ssCross:
-    {
-      painter->drawLine(QLineF(x-w, y-w, x+w, y+w));
-      painter->drawLine(QLineF(x-w, y+w, x+w, y-w));
-      break;
-    }
-    case ssPlus:
-    {
-      painter->drawLine(QLineF(x-w, y, x+w, y));
-      painter->drawLine(QLineF(x, y+w, x, y-w));
-      break;
-    }
-    case ssCircle:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawEllipse(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssDisc:
-    {
-      painter->setBrush(QBrush(painter->pen().color()));
-      painter->drawEllipse(QPointF(x,y), w, w);
-      break;
-    }
-    case ssSquare:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawRect(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssStar:
-    {
-      painter->drawLine(QLineF(x-w, y, x+w, y));
-      painter->drawLine(QLineF(x, y+w, x, y-w));
-      painter->drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.707, y+w*0.707));
-      painter->drawLine(QLineF(x-w*0.707, y+w*0.707, x+w*0.707, y-w*0.707));
-      break;
-    }
-    case ssTriangle:
-    {
-      painter->drawLine(QLineF(x-w, y+0.755*w, x+w, y+0.755*w));
-      painter->drawLine(QLineF(x+w, y+0.755*w, x, y-0.977*w));
-      painter->drawLine(QLineF(x, y-0.977*w, x-w, y+0.755*w));
-      break;
-    }
-    case ssTriangleInverted:
-    {
-      painter->drawLine(QLineF(x-w, y-0.755*w, x+w, y-0.755*w));
-      painter->drawLine(QLineF(x+w, y-0.755*w, x, y+0.977*w));
-      painter->drawLine(QLineF(x, y+0.977*w, x-w, y-0.755*w));
-      break;
-    }
-    case ssCrossSquare:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawLine(QLineF(x-w, y-w, x+w*0.95, y+w*0.95));
-      painter->drawLine(QLineF(x-w, y+w*0.95, x+w*0.95, y-w));
-      painter->drawRect(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssPlusSquare:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawLine(QLineF(x-w, y, x+w*0.95, y));
-      painter->drawLine(QLineF(x, y+w, x, y-w));
-      painter->drawRect(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssCrossCircle:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.67, y+w*0.67));
-      painter->drawLine(QLineF(x-w*0.707, y+w*0.67, x+w*0.67, y-w*0.707));
-      painter->drawEllipse(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssPlusCircle:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawLine(QLineF(x-w, y, x+w, y));
-      painter->drawLine(QLineF(x, y+w, x, y-w));
-      painter->drawEllipse(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssPeace:
-    {
-      painter->setBrush(Qt::NoBrush);
-      painter->drawLine(QLineF(x, y-w, x, y+w));
-      painter->drawLine(QLineF(x, y, x-w*0.707, y+w*0.707));
-      painter->drawLine(QLineF(x, y, x+w*0.707, y+w*0.707));
-      painter->drawEllipse(x-w,y-w,mScatterSize,mScatterSize);
-      break;
-    }
-    case ssPixmap:
-    {
-      painter->drawPixmap(x-mScatterPixmap.width()*0.5, y-mScatterPixmap.height()*0.5, mScatterPixmap);
-      // if something in here is changed, adapt ssPixmap scatter style case in drawLegendIcon(), too
-      break;
-    }
-    default: break;
   }
 }
 
@@ -1592,18 +1555,12 @@ void QCPGraph::drawScatter(QPainter *painter, double x, double y, ScatterStyle s
   pixel coordinates in the drawing function, so we save some extra coordToPixel transforms here. \a
   data is therefore only used for the errors, not key and value.
 */
-void QCPGraph::drawError(QPainter *painter, double x, double y, const QCPData &data) const
+void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData &data) const
 {
   double a, b; // positions of error bar bounds in pixels
   double barWidthHalf = mErrorBarSize*0.5;
   double skipSymbolMargin = mScatterSize*1.25; // pixels left blank per side, when mErrorBarSkipSymbol is true
-  
-  if (!mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeErrorBars))
-  {
-    x = x-0.9; // paint system correction, else, we don't get pixel exact matches (Qt problem)
-    y = y-0.9; // paint system correction, else, we don't get pixel exact matches (Qt problem)
-  }
-  
+
   if (mKeyAxis->orientation() == Qt::Vertical)
   {
     // draw key error vertically and value error horizontally
@@ -1645,7 +1602,7 @@ void QCPGraph::drawError(QPainter *painter, double x, double y, const QCPData &d
       painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
       painter->drawLine(QLineF(b, y-barWidthHalf, b, y+barWidthHalf));
     }
-  } else
+  } else // mKeyAxis->orientation() is Qt::Horizontal
   {
     // draw value error vertically and key error horizontally
     if (mErrorType == etKey || mErrorType == etBoth)
@@ -2092,7 +2049,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
 {
   if (mData->isEmpty())
   {
-    qDebug() << FUNCNAME << "requested point distance on graph" << mName << "without data";
+    qDebug() << Q_FUNC_INFO << "requested point distance on graph" << mName << "without data";
     return 500;
   }
   if (mData->size() == 1)
@@ -2101,7 +2058,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
     return QVector2D(dataPoint-pixelPoint).length();
   }
   
-  if (mLineStyle == lsNone && mScatterStyle == ssNone)
+  if (mLineStyle == lsNone && mScatterStyle == QCP::ssNone)
     return 500;
   
   // calculate minimum distances to graph representation:
@@ -2154,30 +2111,10 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
 }
 
 /*! \internal
-
-  finds the shortest squared distance of \a point to the line segment defined by \a ptA and \a ptB.
-  This is a helper function for \ref pointDistance.
-*/
-double QCPGraph::distSqrToLine(QPointF ptA, QPointF ptB, QPointF point) const
-{
-  QVector2D a(ptA);
-  QVector2D b(ptB);
-  QVector2D p(point);
-  QVector2D v(b-a);
-  double mu = (QVector2D::dotProduct(p, v)-QVector2D::dotProduct(a, v))/v.lengthSquared();
-  if (mu <= 0)
-    return (a-p).lengthSquared();
-  else if (mu >= 1)
-    return (b-p).lengthSquared();
-  else
-    return ((a + mu*v)-p).lengthSquared();
-}
-
-/*! \internal
   
   Finds the greatest index of \a data, whose points y value is just below \a y.
   Assumes y values in \a data points are ordered descending, as is the case
-  when plotting with vertical key axis.
+  when plotting with vertical key axis (since keys are ordered ascending).
   Used to calculate the channel fill polygon, see \ref getChannelFillPolygon.
 */
 int QCPGraph::findIndexBelowY(const QVector<QPointF> *data, double y) const
@@ -2464,10 +2401,10 @@ QCPRange::QCPRange() :
 /*! \overload
   Constructs a range with the specified \a lower and \a upper values.
 */
-QCPRange::QCPRange(double lower, double upper)
+QCPRange::QCPRange(double lower, double upper) :
+  lower(lower),
+  upper(upper)
 {
-  this->lower = lower;
-  this->upper = upper;
   normalize();
 }
 
@@ -2586,14 +2523,14 @@ bool QCPRange::validRange(double lower, double upper)
   /*
   return (lower > -maxRange &&
           upper < maxRange &&
-          fabs(lower-upper) > minRange &&
+          qAbs(lower-upper) > minRange &&
           (lower < -minRange || lower > minRange) &&
           (upper < -minRange || upper > minRange));
           */
   return (lower > -maxRange &&
           upper < maxRange &&
-          fabs(lower-upper) > minRange &&
-          fabs(lower-upper) < maxRange);
+          qAbs(lower-upper) > minRange &&
+          qAbs(lower-upper) < maxRange);
 }
 
 /*! 
@@ -2610,15 +2547,15 @@ bool QCPRange::validRange(const QCPRange &range)
   /*
   return (range.lower > -maxRange &&
           range.upper < maxRange &&
-          fabs(range.lower-range.upper) > minRange &&
-          fabs(range.lower-range.upper) < maxRange &&
+          qAbs(range.lower-range.upper) > minRange &&
+          qAbs(range.lower-range.upper) < maxRange &&
           (range.lower < -minRange || range.lower > minRange) &&
           (range.upper < -minRange || range.upper > minRange));
           */
   return (range.lower > -maxRange &&
           range.upper < maxRange &&
-          fabs(range.lower-range.upper) > minRange &&
-          fabs(range.lower-range.upper) < maxRange);
+          qAbs(range.lower-range.upper) > minRange &&
+          qAbs(range.lower-range.upper) < maxRange);
 }
 
 
@@ -2649,40 +2586,34 @@ bool QCPRange::validRange(const QCPRange &range)
   Access QCustomPlot::legend to modify the legend (set to invisible by default, see \ref
   setVisible).
 */
-QCPLegend::QCPLegend(QCustomPlot *parentPlot) : 
-  QObject(parentPlot),
-  mParentPlot(parentPlot)
+QCPLegend::QCPLegend(QCustomPlot *parentPlot) :
+  QCPLayerable(parentPlot)
 {
-  setVisible(true);
-  setBorderPen(QPen(Qt::black));
-  setIconBorderPen(Qt::NoPen);
-  setBrush(QBrush(Qt::white));
-  setFont(parentPlot->font());
-  setTextColor(Qt::black);
+  setAntialiased(false);
   setPositionStyle(psTopRight);
   setSize(100, 28);
   setMinimumSize(100, 0);
+  setIconSize(32, 18);
   setAutoSize(true);
   
   setMargin(12, 12, 12, 12);
   setPadding(8, 8, 3, 3);
-  setIconSize(32, 18);
   setItemSpacing(3);
   setIconTextPadding(7);
   
-  setSelectedFont(parentPlot->font());
-  setSelectedTextColor(Qt::blue);
-  QPen selBorder;
-  selBorder.setColor(Qt::blue);
-  selBorder.setWidth(2);
-  setSelectedBorderPen(selBorder);
-  QPen selIcon;
-  selIcon.setColor(Qt::blue);
-  selIcon.setWidth(2);
-  setSelectedIconBorderPen(selIcon);
-  setSelectedBrush(brush());
   setSelectable(spLegendBox | spItems);
   setSelected(spNone);
+  
+  setBorderPen(QPen(Qt::black));
+  setSelectedBorderPen(QPen(Qt::blue, 2));
+  setIconBorderPen(Qt::NoPen);
+  setSelectedIconBorderPen(QPen(Qt::blue, 2));
+  setBrush(Qt::white);
+  setSelectedBrush(Qt::white);
+  setFont(parentPlot->font());
+  setSelectedFont(parentPlot->font());
+  setTextColor(Qt::black);
+  setSelectedTextColor(Qt::blue);
 }
 
 QCPLegend::~QCPLegend()
@@ -2818,14 +2749,6 @@ void QCPLegend::setMinimumSize(int width, int height)
 }
 
 /*!
-  Sets the visibility of the legend.
-*/
-void QCPLegend::setVisible(bool on)
-{
-  mVisible = on;
-}
-
-/*!
   Sets the left padding of the legend. Padding is the space by what the legend box is made larger
   than minimally needed for the content to fit. I.e. it's the space left blank on each side inside
   the legend.
@@ -2937,9 +2860,8 @@ void QCPLegend::setItemSpacing(int spacing)
 }
 
 /*!
-  Sets the default size of legend icons. Legend items that draw an icon (e.g. a visual
-  representation of the graph) will use this size by default. However, different values can be
-  specified on a per-item-basis by accessing the specific legend item.
+  Sets the size of legend icons. Legend items that draw an icon (e.g. a visual
+  representation of the graph) will use this size by default.
 */
 void QCPLegend::setIconSize(const QSize &size)
 {
@@ -2955,10 +2877,9 @@ void QCPLegend::setIconSize(int width, int height)
 }
 
 /*!
-  Sets the default horizontal space in pixels between the legend icon and the text next to it.
+  Sets the horizontal space in pixels between the legend icon and the text next to it.
   Legend items that draw an icon (e.g. a visual representation of the graph) and text (e.g. the
-  name of the graph) will use this space by default. However, different values can be specified on a
-  per-item-basis by accessing the specific legend item.
+  name of the graph) will use this space by default.
   
   \see setItemSpacing
 */
@@ -2968,9 +2889,8 @@ void QCPLegend::setIconTextPadding(int padding)
 }
 
 /*!
-  Sets the default pen used to draw a border around each legend icon. Legend items that draw an
-  icon (e.g. a visual representation of the graph) will use this pen by default. However, different
-  values can be specified on a per-item-basis by accessing the specific legend item.
+  Sets the pen used to draw a border around each legend icon. Legend items that draw an
+  icon (e.g. a visual representation of the graph) will use this pen by default.
   
   If no border is wanted, set this to \a Qt::NoPen.
 */
@@ -3249,9 +3169,9 @@ void  QCPLegend::reArrange()
   
   \see selectTestItem
 */
-bool QCPLegend::selectTestLegend(const QPoint pos) const
+bool QCPLegend::selectTestLegend(const QPointF &pos) const
 {
-  return QRect(mPosition, mSize).contains(pos);
+  return QRect(mPosition, mSize).contains(pos.toPoint());
 }
 
 /*!
@@ -3407,6 +3327,23 @@ bool QCPLegend::handleLegendSelection(QMouseEvent *event, bool additiveSelection
 }
 
 /*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing main legend elements.
+
+  This is the antialiasing state the painter passed to the \ref draw method is in by default.
+  
+  This function takes into account the local setting of the antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased
+*/
+void QCPLegend::applyDefaultAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiased, QCP::aeLegend);
+}
+
+/*! \internal
   
   Returns the pen used to paint the border of the legend, taking into account the selection state
   of the legend box.
@@ -3430,10 +3367,8 @@ QBrush QCPLegend::getBrush() const
   
   Draws the legend with the provided \a painter.
 */
-void QCPLegend::draw(QPainter *painter)
+void QCPLegend::draw(QCPPainter *painter)
 {
-  if (!mVisible) return;
-  painter->save();
   painter->setBrush(getBrush());
   painter->setPen(getBorderPen());
   // draw background rect:
@@ -3448,12 +3383,12 @@ void QCPLegend::draw(QPainter *painter)
     QSize itemSize = mItems.at(i)->size(QSize(mSize.width(), 0));
     QRect itemRect = QRect(QPoint(mPosition.x()+mPaddingLeft, currentTop), itemSize);
     mItemBoundingBoxes.insert(mItems.at(i), itemRect);
-    painter->save(); // item might be user subclass, so we save painter outside its draw function - just in case
+    painter->save();
+    mItems.at(i)->applyAntialiasingHint(painter);
     mItems.at(i)->draw(painter, itemRect);
     painter->restore();
     currentTop += itemSize.height()+mItemSpacing;
   }
-  painter->restore();
 }
 
 /*! \internal 
@@ -3487,7 +3422,7 @@ void QCPLegend::calculateAutoSize()
     repeatCount++;
   }
   if (repeat)
-    qDebug() << FUNCNAME << "hit repeat limit for iterative width calculation";
+    qDebug() << Q_FUNC_INFO << "hit repeat limit for iterative width calculation";
   currentTop += mPaddingBottom;
   width += mPaddingLeft+mPaddingRight;
   
@@ -3504,30 +3439,25 @@ void QCPLegend::calculateAutoSize()
 */
 void QCPLegend::calculateAutoPosition()
 {
-  if (mPositionStyle == psTopLeft)
+  switch (mPositionStyle)
   {
-    mPosition = mParentPlot->mAxisRect.topLeft() + QPoint(mMarginLeft, mMarginTop);
-  } else if (mPositionStyle == psTop)
-  {
-    mPosition = mParentPlot->mAxisRect.topLeft() + QPoint(mParentPlot->mAxisRect.width()/2.0-mSize.width()/2.0, mMarginTop);
-  } else if (mPositionStyle == psTopRight)
-  {
-    mPosition = mParentPlot->mAxisRect.topRight() + QPoint(-mMarginRight-mSize.width(), mMarginTop);
-  } else if (mPositionStyle == psRight)
-  {
-    mPosition = mParentPlot->mAxisRect.topRight() + QPoint(-mMarginRight-mSize.width(), mParentPlot->mAxisRect.height()/2.0-mSize.height()/2.0);
-  } else if (mPositionStyle == psBottomRight)
-  {
-    mPosition = mParentPlot->mAxisRect.bottomRight() + QPoint(-mMarginRight-mSize.width(), -mMarginBottom-mSize.height());
-  } else if (mPositionStyle == psBottom)
-  {
-    mPosition = mParentPlot->mAxisRect.bottomLeft() + QPoint(mParentPlot->mAxisRect.width()/2.0-mSize.width()/2.0, -mMarginBottom-mSize.height());
-  } else if (mPositionStyle == psBottomLeft)
-  {
-    mPosition = mParentPlot->mAxisRect.bottomLeft() + QPoint(mMarginLeft, -mMarginBottom-mSize.height());
-  } else if (mPositionStyle == psLeft)
-  {
-    mPosition = mParentPlot->mAxisRect.topLeft() + QPoint(mMarginLeft, mParentPlot->mAxisRect.height()/2.0-mSize.height()/2.0);
+    case psTopLeft:
+      mPosition = mParentPlot->mAxisRect.topLeft() + QPoint(mMarginLeft, mMarginTop); break;
+    case psTop:
+      mPosition = mParentPlot->mAxisRect.topLeft() + QPoint(mParentPlot->mAxisRect.width()/2.0-mSize.width()/2.0, mMarginTop); break;
+    case psTopRight:
+      mPosition = mParentPlot->mAxisRect.topRight() + QPoint(-mMarginRight-mSize.width(), mMarginTop); break;
+    case psRight:
+      mPosition = mParentPlot->mAxisRect.topRight() + QPoint(-mMarginRight-mSize.width(), mParentPlot->mAxisRect.height()/2.0-mSize.height()/2.0); break;
+    case psBottomRight:
+      mPosition = mParentPlot->mAxisRect.bottomRight() + QPoint(-mMarginRight-mSize.width(), -mMarginBottom-mSize.height()); break;
+    case psBottom:
+      mPosition = mParentPlot->mAxisRect.bottomLeft() + QPoint(mParentPlot->mAxisRect.width()/2.0-mSize.width()/2.0, -mMarginBottom-mSize.height()); break;
+    case psBottomLeft:
+      mPosition = mParentPlot->mAxisRect.bottomLeft() + QPoint(mMarginLeft, -mMarginBottom-mSize.height()); break;
+    case psLeft:
+      mPosition = mParentPlot->mAxisRect.topLeft() + QPoint(mMarginLeft, mParentPlot->mAxisRect.height()/2.0-mSize.height()/2.0); break;
+    case psManual: break;
   }
 }
 
@@ -3544,6 +3474,15 @@ void QCPLegend::calculateAutoPosition()
   QCustomPlot::yAxis2 (right).
 */
 
+/* start of documentation of inline functions */
+
+/*! \fn Qt::Orientation QCPAxis::orientation() const
+  
+  Returns the orientation of the axis. The axis orientation (horizontal or vertical) is deduced
+  from the axis type (left, top, right or bottom).
+*/
+
+/* end of documentation of inline functions */
 /* start of documentation of signals */
 
 /*! \fn void QCPAxis::ticksRequest()
@@ -3580,18 +3519,17 @@ void QCPLegend::calculateAutoPosition()
   Constructs an Axis instance of Type \a type inside \a parentPlot.
 */
 QCPAxis::QCPAxis(QCustomPlot *parentPlot, AxisType type) :
-  QObject(parentPlot)
+  QCPLayerable(parentPlot)
 {
-  mParentPlot = parentPlot;
-  mTickVector = new QVector<double>;
-  mSubTickVector = new QVector<double>;
-  mTickVectorLabels = new QVector<QString>;
+  mLowestVisibleTick = 0;
+  mHighestVisibleTick = -1;
+  mGrid = new QCPGrid(this);
   setAxisType(type);
   setAxisRect(parentPlot->axisRect()); 
   setScaleType(stLinear);
   setScaleLogBase(10);
   
-  setVisible(true);
+  setAntialiased(false);
   setRange(0, 5);
   setRangeReversed(false);
   
@@ -3604,7 +3542,7 @@ QCPAxis::QCPAxis(QCustomPlot *parentPlot, AxisType type) :
   setTickLabelFont(parentPlot->font());
   setTickLabelColor(Qt::black);
   setTickLength(5);
-  setTickPen(QPen(Qt::black));
+  setTickPen(QPen(Qt::black, 0, Qt::SolidLine, Qt::SquareCap));
   setTickLabels(true);
   setTickLabelType(ltNumber);
   setTickLabelRotation(0);
@@ -3618,22 +3556,8 @@ QCPAxis::QCPAxis(QCustomPlot *parentPlot, AxisType type) :
   setAutoSubTicks(true);
   setSubTickCount(4);
   setSubTickLength(2);
-  setSubTickPen(QPen(Qt::black));
-  
-  QPen gPen;
-  gPen.setColor(QColor(200,200,200));
-  gPen.setStyle(Qt::DotLine);
-  setGridPen(gPen);
-  setGrid(true);
-  QPen subgPen;
-  subgPen.setColor(QColor(220,220,220));
-  subgPen.setStyle(Qt::DotLine);
-  setSubGridPen(subgPen);
-  setSubGrid(false);
-  QPen zlinePen;
-  zlinePen.setColor(QColor(200,200,200));
-  setZeroLinePen(zlinePen);
-  setBasePen(QPen(Qt::black));
+  setSubTickPen(QPen(Qt::black, 0, Qt::SolidLine, Qt::SquareCap));
+  setBasePen(QPen(Qt::black, 0, Qt::SolidLine, Qt::SquareCap));
   
   setSelected(spNone);
   setSelectable(spAxis | spTickLabels | spAxisLabel);
@@ -3645,9 +3569,7 @@ QCPAxis::QCPAxis(QCustomPlot *parentPlot, AxisType type) :
   setSelectedLabelFont(selLabelFont);
   setSelectedTickLabelColor(Qt::blue);
   setSelectedLabelColor(Qt::blue);
-  QPen blueThickPen;
-  blueThickPen.setColor(Qt::blue);
-  blueThickPen.setWidth(2);
+  QPen blueThickPen(Qt::blue, 2);
   setSelectedBasePen(blueThickPen);
   setSelectedTickPen(blueThickPen);
   setSelectedSubTickPen(blueThickPen);
@@ -3674,15 +3596,10 @@ QCPAxis::QCPAxis(QCustomPlot *parentPlot, AxisType type) :
 
 QCPAxis::~QCPAxis()
 {
-  delete mTickVector;
-  delete mTickVectorLabels;
-  delete mSubTickVector;
+  delete mGrid;
 }
 
-/*!
-  Returns the number Format.
-  \see setNumberFormat
-*/
+/* No documentation as it is a property getter */
 QString QCPAxis::numberFormat() const
 {
   QString result;
@@ -3696,11 +3613,11 @@ QString QCPAxis::numberFormat() const
   return result;
 }
 
-/*!
-  \internal
-  Sets the axis type. Together with the current axis rect (see \ref setAxisRect), this determines
-  the orientation and position of the axis. Depending on \a type, ticks, tick labels, and label are
-  drawn on corresponding sides of the axis base line.
+/*! \internal
+  
+  Sets the axis type. This determines the \ref orientation and together with the current axis rect
+  (see \ref setAxisRect), the position of the axis. Depending on \a type, ticks, tick labels, and
+  label are drawn on corresponding sides of the axis base line.
 */
 void QCPAxis::setAxisType(AxisType type)
 {
@@ -3708,8 +3625,8 @@ void QCPAxis::setAxisType(AxisType type)
   mOrientation = (type == atBottom || type == atTop) ? Qt::Horizontal : Qt::Vertical;
 }
 
-/*!
-  \internal
+/*! \internal
+  
   Sets the axis rect. The axis uses this rect to position itself within the plot,
   together with the information of its type (\ref setAxisType). Theoretically it's possible to give
   a plot's axes different axis rects (e.g. for gaps between them), however, they are currently all
@@ -3752,9 +3669,9 @@ void QCPAxis::setScaleLogBase(double base)
   if (base > 1)
   {
     mScaleLogBase = base;
-    mScaleLogBaseLogInv = 1.0/log(mScaleLogBase); // buffer for faster baseLog() calculation
+    mScaleLogBaseLogInv = 1.0/qLn(mScaleLogBase); // buffer for faster baseLog() calculation
   } else
-    qDebug() << FUNCNAME << "Invalid logarithmic scale base (must be greater 1):" << base;
+    qDebug() << Q_FUNC_INFO << "Invalid logarithmic scale base (must be greater 1):" << base;
 }
 
 /*!
@@ -3923,13 +3840,36 @@ void QCPAxis::setRangeReversed(bool reversed)
 }
 
 /*!
-  Sets whether the axis (including all its decoration, i.e. labels and grid lines) is visible.
-  An invisible axis doesn't mean a non functional axis. Graphs attached to an invisible axis can still
-  be plotted/moved/zoomed normally as if the axis was visible.
+  Sets whether the grid of this axis is drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
 */
-void QCPAxis::setVisible(bool on)
+void QCPAxis::setAntialiasedGrid(bool enabled)
 {
-  mVisible = on;
+  mGrid->setAntialiased(enabled);
+}
+
+/*!
+  Sets whether the sub grid of this axis is drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPAxis::setAntialiasedSubGrid(bool enabled)
+{
+  mGrid->setAntialiasedSubGrid(enabled);
+}
+
+/*!
+  Sets whether the zero line of this axis is drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPAxis::setAntialiasedZeroLine(bool enabled)
+{
+  mGrid->setAntialiasedZeroLine(enabled);
 }
 
 /*!
@@ -3938,7 +3878,7 @@ void QCPAxis::setVisible(bool on)
 */
 void QCPAxis::setGrid(bool show)
 {
-  mGrid = show;
+  mGrid->setVisible(show);
 }
 
 /*!
@@ -3947,7 +3887,7 @@ void QCPAxis::setGrid(bool show)
 */
 void QCPAxis::setSubGrid(bool show)
 {
-  mSubGrid = show;
+  mGrid->setSubGridVisible(show);
 }
 
 /*!
@@ -4147,7 +4087,7 @@ void QCPAxis::setNumberFormat(const QString &formatCode)
     mNumberFormatChar = formatCode.at(0).toAscii();
   } else
   {
-    qDebug() << FUNCNAME << "Invalid number format code (first char not in 'eEfgG'):" << formatCode;
+    qDebug() << Q_FUNC_INFO << "Invalid number format code (first char not in 'eEfgG'):" << formatCode;
     return;
   }
   if (formatCode.length() < 2)
@@ -4163,7 +4103,7 @@ void QCPAxis::setNumberFormat(const QString &formatCode)
     mNumberBeautifulPowers = true;
   } else
   {
-    qDebug() << FUNCNAME << "Invalid number format code (second char not 'b' or first char neither 'e' nor 'g'):" << formatCode;
+    qDebug() << Q_FUNC_INFO << "Invalid number format code (second char not 'b' or first char neither 'e' nor 'g'):" << formatCode;
     return;
   }
   if (formatCode.length() < 3)
@@ -4181,7 +4121,7 @@ void QCPAxis::setNumberFormat(const QString &formatCode)
     mNumberMultiplyCross = false;
   } else
   {
-    qDebug() << FUNCNAME << "Invalid number format code (third char neither 'c' nor 'd'):" << formatCode;
+    qDebug() << Q_FUNC_INFO << "Invalid number format code (third char neither 'c' nor 'd'):" << formatCode;
     return;
   }
 }
@@ -4217,52 +4157,31 @@ void QCPAxis::setTickStep(double step)
   used to set the coordinates at which ticks will appear.\ref setAutoTicks must be disabled, else
   the provided tick vector will be overwritten with automatically generated tick coordinates. The
   labels of the ticks can either be generated automatically when \ref setAutoTickLabels is left
-  enabled, or be set manually with \ref setTickVectorLabels, when \ref setAutoTickLabels is disabled.
+  enabled, or be set manually with \ref setTickVectorLabels, when \ref setAutoTickLabels is
+  disabled.
   
-  \param vec a pointer to the vector containing the positions of the ticks
-  \param copy if this is set to true, the provided \a vec is copied to the internal tick vector. In
-  this case, QCPAxis does not take ownership of \a vec. If it's set to false, the internal
-  tick vector is deleted and replaced by \a vec, QCPAxis takes ownership of the vector
-  memory \a vec points to. The latter might give slight performance benefits.
+  \a vec is a vector containing the positions of the ticks.
+
   \see setTickVectorLabels
 */
-void QCPAxis::setTickVector(QVector<double> *vec, bool copy)
+void QCPAxis::setTickVector(const QVector<double> &vec)
 {
-  if (copy)
-  {
-    *mTickVector = *vec;
-  } else
-  {
-    delete mTickVector;
-    mTickVector = vec;
-  }
+  mTickVector = vec;
 }
 
 /*!
-  If you want full control over what ticks and labels the axes show, this function
-  is used to set a number of QStrings that will be displayed at the tick positions
-  which you need to provide with \ref setTickVector. These two vectors should have
-  the same size.
-  (Note that you need to disable \ref setAutoTicks and \ref setAutoTickLabels first.)
+  If you want full control over what ticks and labels the axes show, this function is used to set a
+  number of QStrings that will be displayed at the tick positions which you need to provide with
+  \ref setTickVector. These two vectors should have the same size. (Note that you need to disable
+  \ref setAutoTicks and \ref setAutoTickLabels first.)
   
-  \param vec a pointer to the vector containing the labels of the ticks
-  \param copy if this is set to true, the provided \a vec is copied to the internal label vector.
-  In this case QCPAxis does not take ownership of \a vec. If it's set to false, the
-  internal label vector is deleted and replaced by \a vec, QCPAxis takes ownership of the
-  vector memory \a vec points to. The latter might give slight performance benefits.
-  \see
-  setTickVector
+  \a vec is a vector containing the labels of the ticks.
+  
+  \see setTickVector
 */
-void QCPAxis::setTickVectorLabels(QVector<QString> *vec, bool copy)
+void QCPAxis::setTickVectorLabels(const QVector<QString> &vec)
 {
-  if (copy)
-  {
-    *mTickVectorLabels = *vec;
-  } else
-  {
-    delete mTickVectorLabels;
-    mTickVectorLabels = vec;
-  }
+  mTickVectorLabels = vec;
 }
 
 /*!
@@ -4321,7 +4240,7 @@ void QCPAxis::setBasePen(const QPen &pen)
 */
 void QCPAxis::setGridPen(const QPen &pen)
 {
-  mGridPen = pen;
+  mGrid->setPen(pen);
 }
 
 /*!
@@ -4331,7 +4250,7 @@ void QCPAxis::setGridPen(const QPen &pen)
 */
 void QCPAxis::setSubGridPen(const QPen &pen)
 {
-  mSubGridPen = pen;
+  mGrid->setSubGridPen(pen);
 }
 
 /*!
@@ -4343,7 +4262,7 @@ void QCPAxis::setSubGridPen(const QPen &pen)
 */
 void QCPAxis::setZeroLinePen(const QPen &pen)
 {
-  mZeroLinePen = pen;
+  mGrid->setZeroLinePen(pen);
 }
 
 /*!
@@ -4536,7 +4455,7 @@ void QCPAxis::scaleRange(double factor, double center)
       if (QCPRange::validRange(newRange))
         mRange = newRange.sanitizedForLogScale();
     } else
-      qDebug() << FUNCNAME << "center of scaling operation doesn't lie in same logarithmic sign domain as range:" << center;
+      qDebug() << Q_FUNC_INFO << "center of scaling operation doesn't lie in same logarithmic sign domain as range:" << center;
   }
   emit rangeChanged(mRange);
 }
@@ -4576,31 +4495,31 @@ double QCPAxis::pixelToCoord(double value) const
   {
     if (mScaleType == stLinear)
     {
-      if (mRangeReversed)
-        return -(value-mAxisRect.left())/(double)mAxisRect.width()*mRange.size()+mRange.upper;
-      else
+      if (!mRangeReversed)
         return (value-mAxisRect.left())/(double)mAxisRect.width()*mRange.size()+mRange.lower;
+      else
+        return -(value-mAxisRect.left())/(double)mAxisRect.width()*mRange.size()+mRange.upper;
     } else // mScaleType == stLogarithmic
     {
-      if (mRangeReversed)
-        return pow(mRange.upper/mRange.lower, (mAxisRect.left()-value)/(double)mAxisRect.width())*mRange.upper;
-      else
+      if (!mRangeReversed)
         return pow(mRange.upper/mRange.lower, (value-mAxisRect.left())/(double)mAxisRect.width())*mRange.lower;
+      else
+        return pow(mRange.upper/mRange.lower, (mAxisRect.left()-value)/(double)mAxisRect.width())*mRange.upper;
     }
   } else // orientation() == Qt::Vertical
   {
     if (mScaleType == stLinear)
     {
-      if (mRangeReversed)
-        return -(mAxisRect.bottom()-value)/(double)mAxisRect.height()*mRange.size()+mRange.upper;
-      else
+      if (!mRangeReversed)
         return (mAxisRect.bottom()-value)/(double)mAxisRect.height()*mRange.size()+mRange.lower;
+      else
+        return -(mAxisRect.bottom()-value)/(double)mAxisRect.height()*mRange.size()+mRange.upper;
     } else // mScaleType == stLogarithmic
     {
-      if (mRangeReversed)
-        return pow(mRange.upper/mRange.lower, (value-mAxisRect.bottom())/(double)mAxisRect.height())*mRange.upper;
-      else
+      if (!mRangeReversed)
         return pow(mRange.upper/mRange.lower, (mAxisRect.bottom()-value)/(double)mAxisRect.height())*mRange.lower;
+      else
+        return pow(mRange.upper/mRange.lower, (value-mAxisRect.bottom())/(double)mAxisRect.height())*mRange.upper;
     }
   }
 }
@@ -4614,44 +4533,44 @@ double QCPAxis::coordToPixel(double value) const
   {
     if (mScaleType == stLinear)
     {
-      if (mRangeReversed)
-        return (mRange.upper-value)/mRange.size()*mAxisRect.width()+mAxisRect.left();
-      else
+      if (!mRangeReversed)
         return (value-mRange.lower)/mRange.size()*mAxisRect.width()+mAxisRect.left();
+      else
+        return (mRange.upper-value)/mRange.size()*mAxisRect.width()+mAxisRect.left();
     } else // mScaleType == stLogarithmic
     {
       if (value >= 0 && mRange.upper < 0) // invalid value for logarithmic scale, just draw it outside visible range
-        return mRangeReversed ? mAxisRect.left()-200 : mAxisRect.right()+200;
+        return !mRangeReversed ? mAxisRect.right()+200 : mAxisRect.left()-200;
       else if (value <= 0 && mRange.upper > 0) // invalid value for logarithmic scale, just draw it outside visible range
-        return mRangeReversed ? mAxisRect.right()+200 : mAxisRect.left()-200;
+        return !mRangeReversed ? mAxisRect.left()-200 : mAxisRect.right()+200;
       else
       {
-        if (mRangeReversed)
-          return baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect.width()+mAxisRect.left();
-        else
+        if (!mRangeReversed)
           return baseLog(value/mRange.lower)/baseLog(mRange.upper/mRange.lower)*mAxisRect.width()+mAxisRect.left();
+        else
+          return baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect.width()+mAxisRect.left();
       }
     }
   } else // orientation() == Qt::Vertical
   {
     if (mScaleType == stLinear)
     {
-      if (mRangeReversed)
-        return mAxisRect.bottom()-(mRange.upper-value)/mRange.size()*mAxisRect.height();
-      else
+      if (!mRangeReversed)
         return mAxisRect.bottom()-(value-mRange.lower)/mRange.size()*mAxisRect.height();
+      else
+        return mAxisRect.bottom()-(mRange.upper-value)/mRange.size()*mAxisRect.height();
     } else // mScaleType == stLogarithmic
     {     
       if (value >= 0 && mRange.upper < 0) // invalid value for logarithmic scale, just draw it outside visible range
-        return mRangeReversed ? mAxisRect.bottom()+200 : mAxisRect.top()-200;
+        return !mRangeReversed ? mAxisRect.top()-200 : mAxisRect.bottom()+200;
       else if (value <= 0 && mRange.upper > 0) // invalid value for logarithmic scale, just draw it outside visible range
-        return mRangeReversed ? mAxisRect.top()-200 : mAxisRect.bottom()+200;
+        return !mRangeReversed ? mAxisRect.bottom()+200 : mAxisRect.top()-200;
       else
       {
-        if (mRangeReversed)
-          return mAxisRect.bottom()-baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect.height();
-        else
+        if (!mRangeReversed)
           return mAxisRect.bottom()-baseLog(value/mRange.lower)/baseLog(mRange.upper/mRange.lower)*mAxisRect.height();
+        else
+          return mAxisRect.bottom()-baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect.height();
       }
     }
   }
@@ -4666,16 +4585,16 @@ double QCPAxis::coordToPixel(double value) const
   
   \see setSelected, setSelectable, QCustomPlot::setInteractions
 */
-QCPAxis::SelectablePart QCPAxis::selectTest(QPoint pos) const
+QCPAxis::SelectablePart QCPAxis::selectTest(const QPointF &pos) const
 {
   if (!mVisible)
     return spNone;
   
-  if (mAxisSelectionBox.contains(pos))
+  if (mAxisSelectionBox.contains(pos.toPoint()))
     return spAxis;
-  else if (mTickLabelsSelectionBox.contains(pos))
+  else if (mTickLabelsSelectionBox.contains(pos.toPoint()))
     return spTickLabels;
-  else if (mLabelSelectionBox.contains(pos))
+  else if (mLabelSelectionBox.contains(pos.toPoint()))
     return spAxisLabel;
   else
     return spNone;
@@ -4689,9 +4608,9 @@ QCPAxis::SelectablePart QCPAxis::selectTest(QPoint pos) const
   ticksRequest is emitted, which can be used to provide external tick positions. Then the sub tick
   vectors and tick label vectors are created.
 */
-void QCPAxis::generateTickVectors()
+void QCPAxis::setupTickVectors()
 {
-  if ((!mTicks && !mTickLabels && !mGrid) || mRange.size() <= 0) return;
+  if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
   
   // fill tick vectors, either by auto generating or by notifying user to fill the vectors himself
   if (mAutoTicks)
@@ -4702,26 +4621,27 @@ void QCPAxis::generateTickVectors()
     emit ticksRequest();
   }
   
-  if (mTickVector->isEmpty())
+  visibleTickBounds(mLowestVisibleTick, mHighestVisibleTick);
+  if (mTickVector.isEmpty())
   {
-    mSubTickVector->clear();
+    mSubTickVector.clear();
     return;
   }
   
   // generate subticks between ticks:
-  mSubTickVector->resize((mTickVector->size()-1)*mSubTickCount);
+  mSubTickVector.resize((mTickVector.size()-1)*mSubTickCount);
   if (mSubTickCount > 0)
   {
     double subTickStep = 0;
     double subTickPosition = 0;
     int subTickIndex = 0;
     bool done = false;
-    for (int i=1; i<mTickVector->size(); ++i)
+    for (int i=1; i<mTickVector.size(); ++i)
     {
-      subTickStep = (mTickVector->at(i)-mTickVector->at(i-1))/(double)(mSubTickCount+1);
+      subTickStep = (mTickVector.at(i)-mTickVector.at(i-1))/(double)(mSubTickCount+1);
       for (int k=1; k<=mSubTickCount; ++k)
       {
-        subTickPosition = mTickVector->at(i-1) + k*subTickStep;
+        subTickPosition = mTickVector.at(i-1) + k*subTickStep;
         if (subTickPosition < mRange.lower)
           continue;
         if (subTickPosition > mRange.upper)
@@ -4729,12 +4649,12 @@ void QCPAxis::generateTickVectors()
           done = true;
           break;
         }
-        (*mSubTickVector)[subTickIndex] = subTickPosition;
+        mSubTickVector[subTickIndex] = subTickPosition;
         subTickIndex++;
       }
       if (done) break;
     }
-    mSubTickVector->resize(subTickIndex);
+    mSubTickVector.resize(subTickIndex);
   }
 
   // generate tick labels according to tick positions:
@@ -4742,20 +4662,20 @@ void QCPAxis::generateTickVectors()
   mPositiveSignChar = mParentPlot->locale().positiveSign(); // will be needed when drawing the numbers generated here, in drawTickLabel()
   if (mAutoTickLabels)
   {
-    int vecsize = mTickVector->size();
-    mTickVectorLabels->resize(vecsize);
+    int vecsize = mTickVector.size();
+    mTickVectorLabels.resize(vecsize);
     if (mTickLabelType == ltNumber)
     {
       for (int i=0; i<vecsize; ++i)
-        (*mTickVectorLabels)[i] = mParentPlot->locale().toString(mTickVector->at(i), mNumberFormatChar, mNumberPrecision);
+        mTickVectorLabels[i] = mParentPlot->locale().toString(mTickVector.at(i), mNumberFormatChar, mNumberPrecision);
     } else if (mTickLabelType == ltDateTime)
     {
       for (int i=0; i<vecsize; ++i)
       {
 #if QT_VERSION < QT_VERSION_CHECK(4, 7, 0) // use fromMSecsSinceEpoch function if available, to gain sub-second accuracy on tick labels (e.g. for format "hh:mm:ss:zzz")
-        (*mTickVectorLabels)[i] = mParentPlot->locale().toString(QDateTime::fromTime_t(mTickVector->at(i)), mDateTimeFormat);
+        mTickVectorLabels[i] = mParentPlot->locale().toString(QDateTime::fromTime_t(mTickVector.at(i)), mDateTimeFormat);
 #else
-        (*mTickVectorLabels)[i] = mParentPlot->locale().toString(QDateTime::fromMSecsSinceEpoch(mTickVector->at(i)*1000), mDateTimeFormat);
+        mTickVectorLabels[i] = mParentPlot->locale().toString(QDateTime::fromMSecsSinceEpoch(mTickVector.at(i)*1000), mDateTimeFormat);
 #endif
       }
     }
@@ -4766,14 +4686,14 @@ void QCPAxis::generateTickVectors()
       emit ticksRequest();
     }
     // make sure provided tick label vector has correct (minimal) length:
-    if (mTickVectorLabels->size() < mTickVector->size())
-      mTickVectorLabels->resize(mTickVector->size());
+    if (mTickVectorLabels.size() < mTickVector.size())
+      mTickVectorLabels.resize(mTickVector.size());
   }
 }
 
 /*! \internal
   
-  If \ref setAutoTicks is set to true, this function is called by \ref generateTickVectors to
+  If \ref setAutoTicks is set to true, this function is called by \ref setupTickVectors to
   generate reasonable tick positions (and subtick count). The algorithm tries to create
   approximately <tt>mAutoTickCount</tt> ticks (set via \ref setAutoTickCount), taking into account,
   that tick mantissas that are divisable by two or end in .5 are nice to look at and practical in
@@ -4787,8 +4707,8 @@ void QCPAxis::generateAutoTicks()
     if (mAutoTickStep)
     {
       // Generate tick positions according to linear scaling:
-      mTickStep = mRange.size()/(double)mAutoTickCount; // mAutoTickCount ticks on average
-      double magnitudeFactor = pow((double)10, (int)floor(log10(mTickStep))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
+      mTickStep = mRange.size()/(double)(mAutoTickCount+1e-10); // mAutoTickCount ticks on average, the small addition is to prevent jitter on exact integers
+      double magnitudeFactor = qPow(10.0, qFloor(qLn(mTickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
       double tickStepMantissa = mTickStep/magnitudeFactor;
       if (tickStepMantissa < 5)
       {
@@ -4807,10 +4727,10 @@ void QCPAxis::generateAutoTicks()
     int lastStep = ceil(mRange.upper/mTickStep);
     int tickcount = lastStep-firstStep+1;
     if (tickcount < 0) tickcount = 0;
-    mTickVector->resize(tickcount);
+    mTickVector.resize(tickcount);
     for (int i=0; i<tickcount; ++i)
     {
-      (*mTickVector)[i] = (firstStep+i)*mTickStep;
+      mTickVector[i] = (firstStep+i)*mTickStep;
     }
   } else // mScaleType == stLogarithmic
   {
@@ -4819,28 +4739,28 @@ void QCPAxis::generateAutoTicks()
     {
       double lowerMag = basePow((int)floor(baseLog(mRange.lower)));
       double currentMag = lowerMag;
-      mTickVector->clear();
-      mTickVector->append(currentMag);
+      mTickVector.clear();
+      mTickVector.append(currentMag);
       while (currentMag < mRange.upper && currentMag > 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
       {
         currentMag *= mScaleLogBase;
-        mTickVector->append(currentMag);
+        mTickVector.append(currentMag);
       }
     } else if (mRange.lower < 0 && mRange.upper < 0) // negative range
     {
       double lowerMag = -basePow((int)ceil(baseLog(-mRange.lower)));
       double currentMag = lowerMag;
-      mTickVector->clear();
-      mTickVector->append(currentMag);
+      mTickVector.clear();
+      mTickVector.append(currentMag);
       while (currentMag < mRange.upper && currentMag < 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
       {
         currentMag /= mScaleLogBase;
-        mTickVector->append(currentMag);
+        mTickVector.append(currentMag);
       }
     } else // invalid range for logarithmic scale, because lower and upper have different sign
     {
-      mTickVector->clear();
-      qDebug() << FUNCNAME << "Invalid range for logarithmic plot: " << mRange.lower << "-" << mRange.upper;
+      mTickVector.clear();
+      qDebug() << Q_FUNC_INFO << "Invalid range for logarithmic plot: " << mRange.lower << "-" << mRange.upper;
     }
   }
 }
@@ -4863,7 +4783,7 @@ int QCPAxis::calculateAutoSubTickCount(double tickStep) const
   int result = mSubTickCount; // default to current setting, if no proper value can be found
   
   // get mantissa of tickstep:
-  double magnitudeFactor = pow((double)10, (int)floor(log10(tickStep))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
+  double magnitudeFactor = qPow(10.0, qFloor(qLn(tickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
   double tickStepMantissa = tickStep/magnitudeFactor;
   
   // separate integer and fractional part of mantissa:
@@ -4916,128 +4836,14 @@ int QCPAxis::calculateAutoSubTickCount(double tickStep) const
 
 /*! \internal
   
-  Draws grid lines belonging to ticks of this axis, spanning over the complete axis rect. Also
-  draws the zeroline, if \ref setZeroLinePen wasnt passed a QPen(Qt::NoPen). Called by
-  QCustomPlot::draw for each axis.
-*/
-void QCPAxis::drawGrid(QPainter *painter)
-{
-  if (!mVisible || (!mGrid && mZeroLinePen.style() == Qt::NoPen)) return;
-  painter->save();
-  int lowTick, highTick;
-  visibleTickBounds(lowTick, highTick);
-  int t; // helper variable, result of coordinate-to-pixel transforms
-  if (orientation() == Qt::Horizontal)
-  {
-    // draw zeroline:
-    int zeroLineIndex = -1;
-    if (mZeroLinePen.style() != Qt::NoPen && mRange.lower < 0 && mRange.upper > 0)
-    {
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeZeroLine));
-      painter->setPen(mZeroLinePen);
-      double epsilon = mRange.size()*1E-6; // for comparing double to zero
-      for (int i=lowTick; i <= highTick; ++i)
-      {
-        if (fabs(mTickVector->at(i)) < epsilon)
-        {
-          zeroLineIndex = i;
-          t = coordToPixel(mTickVector->at(i)); // x
-          painter->drawLine(t, mAxisRect.bottom(), t, mAxisRect.top());
-          break;
-        }
-      }
-    }
-    // draw grid lines:
-    if (mGrid)
-    {
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGrid));
-      painter->setPen(mGridPen);
-      for (int i=lowTick; i <= highTick; ++i)
-      {
-        if (i == zeroLineIndex) continue; // don't draw a gridline on top of the zeroline
-        t = coordToPixel(mTickVector->at(i)); // x
-        painter->drawLine(t, mAxisRect.bottom(), t, mAxisRect.top());
-      }
-    }
-  } else
-  {
-    // draw zeroline:
-    int zeroLineIndex = -1;
-    if (mZeroLinePen.style() != Qt::NoPen && mRange.lower < 0 && mRange.upper > 0)
-    {
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeZeroLine));
-      painter->setPen(mZeroLinePen);
-      double epsilon = mRange.size()*1E-6; // for comparing double to zero
-      for (int i=lowTick; i <= highTick; ++i)
-      {
-        if (fabs(mTickVector->at(i)) < epsilon)
-        {
-          zeroLineIndex = i;
-          t = coordToPixel(mTickVector->at(i)); // y
-          painter->drawLine(mAxisRect.left(), t, mAxisRect.right(), t);
-          break;
-        }
-      }
-    }
-    // draw grid lines:
-    if (mGrid)
-    {
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGrid));
-      painter->setPen(mGridPen);
-      for (int i=lowTick; i <= highTick; ++i)
-      {
-        if (i == zeroLineIndex) continue; // don't draw a gridline on top of the zeroline
-        t = coordToPixel(mTickVector->at(i)); // y
-        painter->drawLine(mAxisRect.left(), t, mAxisRect.right(), t);
-      }
-    }
-  }
-  painter->restore();
-}
-
-/*! \internal
-  
-  The function to draw subgrid lines belonging to subticks of this axis, spanning over the complete
-  axis rect. Called by QCustomPlot::draw for each axis.
-*/
-void QCPAxis::drawSubGrid(QPainter *painter)
-{
-  if (!mVisible || !mSubGrid || !mGrid) return;
-  painter->save();
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeSubGrid));
-  
-  int t; // helper variable, result of coordinate-to-pixel transforms
-  painter->setPen(mSubGridPen);
-  if (orientation() == Qt::Horizontal)
-  {
-    for (int i=0; i<mSubTickVector->size(); ++i)
-    {
-      t = coordToPixel(mSubTickVector->at(i)); // x
-      painter->drawLine(t, mAxisRect.bottom(), t, mAxisRect.top());
-    }
-  } else
-  {
-    for (int i=0; i<mSubTickVector->size(); ++i)
-    {
-      t = coordToPixel(mSubTickVector->at(i)); // y
-      painter->drawLine(mAxisRect.left(), t, mAxisRect.right(), t);
-    }
-  }
-  painter->restore();
-}
-
-/*! \internal
-  
   The main draw function of an axis, called by QCustomPlot::draw for each axis. Draws axis
   baseline, major ticks, subticks, tick labels and axis label.
-  The selection boxes (mAxisSelectionBox, mTickLabelsSelectionBox, mLabelSelectionBox) are
-  set here, too.
+  
+  The selection boxes (mAxisSelectionBox, mTickLabelsSelectionBox, mLabelSelectionBox) are set
+  here, too.
 */
-void QCPAxis::drawAxis(QPainter *painter)
+void QCPAxis::draw(QCPPainter *painter)
 {
-  if (!mVisible) return;
-  painter->save();
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeAxes));
   QPoint origin;
   if (mAxisType == atLeft)
     origin = mAxisRect.bottomLeft();
@@ -5048,23 +4854,25 @@ void QCPAxis::drawAxis(QPainter *painter)
   else if (mAxisType == atBottom)
     origin = mAxisRect.bottomLeft();
   
-  int xCor = 0, yCor = 0; // paint system correction, for pixel exact matches (affects baselines and ticks of top/right axes)
-  if (mAxisType == atTop)
-    yCor = -1;
-  else if (mAxisType == atRight)
-    xCor = 1;
+  double xCor = 0, yCor = 0; // paint system correction, for pixel exact matches (affects baselines and ticks of top/right axes)
+  switch (mAxisType)
+  {
+    case atTop: yCor = -1; break;
+    case atRight: xCor = 1; break;
+    default: break;
+  }
   
   int margin = 0;
-  int lowTick, highTick;
-  visibleTickBounds(lowTick, highTick);
-  int t; // helper variable, result of coordinate-to-pixel transforms
+  int lowTick = mLowestVisibleTick;
+  int highTick = mHighestVisibleTick;
+  double t; // helper variable, result of coordinate-to-pixel transforms
 
   // draw baseline:
   painter->setPen(getBasePen());
   if (orientation() == Qt::Horizontal)
-    painter->drawLine(origin+QPoint(xCor, yCor), origin+QPoint(mAxisRect.width()+xCor, yCor));
+    painter->drawLine(QLineF(origin+QPointF(xCor, yCor), origin+QPointF(mAxisRect.width()+xCor, yCor)));
   else
-    painter->drawLine(origin+QPoint(xCor, yCor), origin+QPoint(xCor, -mAxisRect.height()+yCor));
+    painter->drawLine(QLineF(origin+QPointF(xCor, yCor), origin+QPointF(xCor, -mAxisRect.height()+yCor)));
   
   // draw ticks:
   if (mTicks)
@@ -5076,15 +4884,15 @@ void QCPAxis::drawAxis(QPainter *painter)
     {
       for (int i=lowTick; i <= highTick; ++i)
       {
-        t = coordToPixel(mTickVector->at(i)); // x
-        painter->drawLine(t+xCor, origin.y()-mTickLengthOut*tickDir+yCor, t+xCor, origin.y()+mTickLengthIn*tickDir+yCor);
+        t = coordToPixel(mTickVector.at(i)); // x
+        painter->drawLine(QLineF(t+xCor, origin.y()-mTickLengthOut*tickDir+yCor, t+xCor, origin.y()+mTickLengthIn*tickDir+yCor));
       }
     } else
     {
       for (int i=lowTick; i <= highTick; ++i)
       {
-        t = coordToPixel(mTickVector->at(i)); // y
-        painter->drawLine(origin.x()-mTickLengthOut*tickDir+xCor, t+yCor, origin.x()+mTickLengthIn*tickDir+xCor, t+yCor);
+        t = coordToPixel(mTickVector.at(i)); // y
+        painter->drawLine(QLineF(origin.x()-mTickLengthOut*tickDir+xCor, t+yCor, origin.x()+mTickLengthIn*tickDir+xCor, t+yCor));
       }
     }
   }
@@ -5097,17 +4905,17 @@ void QCPAxis::drawAxis(QPainter *painter)
     int tickDir = (mAxisType == atBottom || mAxisType == atRight) ? -1 : 1;
     if (orientation() == Qt::Horizontal)
     {
-      for (int i=0; i<mSubTickVector->size(); ++i) // no need to check bounds because subticks are always only created inside current mRange
+      for (int i=0; i<mSubTickVector.size(); ++i) // no need to check bounds because subticks are always only created inside current mRange
       {
-        t = coordToPixel(mSubTickVector->at(i));
-        painter->drawLine(t+xCor, origin.y()-mSubTickLengthOut*tickDir+yCor, t+xCor, origin.y()+mSubTickLengthIn*tickDir+yCor);
+        t = coordToPixel(mSubTickVector.at(i));
+        painter->drawLine(QLineF(t+xCor, origin.y()-mSubTickLengthOut*tickDir+yCor, t+xCor, origin.y()+mSubTickLengthIn*tickDir+yCor));
       }
     } else
     {
-      for (int i=0; i<mSubTickVector->size(); ++i)
+      for (int i=0; i<mSubTickVector.size(); ++i)
       {
-        t = coordToPixel(mSubTickVector->at(i));
-        painter->drawLine(origin.x()-mSubTickLengthOut*tickDir+xCor, t+yCor, origin.x()+mSubTickLengthIn*tickDir+xCor, t+yCor);
+        t = coordToPixel(mSubTickVector.at(i));
+        painter->drawLine(QLineF(origin.x()-mSubTickLengthOut*tickDir+xCor, t+yCor, origin.x()+mSubTickLengthIn*tickDir+xCor, t+yCor));
       }
     }
   }
@@ -5122,8 +4930,8 @@ void QCPAxis::drawAxis(QPainter *painter)
     painter->setPen(QPen(getTickLabelColor()));
     for (int i=lowTick; i <= highTick; ++i)
     {
-      t = coordToPixel(mTickVector->at(i));
-      drawTickLabel(painter, t, margin, mTickVectorLabels->at(i), &tickLabelsSize);
+      t = coordToPixel(mTickVector.at(i));
+      drawTickLabel(painter, t, margin, mTickVectorLabels.at(i), &tickLabelsSize);
     }
   }
   if (orientation() == Qt::Horizontal)
@@ -5189,9 +4997,8 @@ void QCPAxis::drawAxis(QPainter *painter)
     mTickLabelsSelectionBox.setCoords(mAxisRect.left(), mAxisRect.bottom()+selTickLabelOffset+selTickLabelSize, mAxisRect.right(), mAxisRect.bottom()+selTickLabelOffset);
     mLabelSelectionBox.setCoords(mAxisRect.left(), mAxisRect.bottom()+selLabelOffset+selLabelSize, mAxisRect.right(), mAxisRect.bottom()+selLabelOffset);
   }
+  // draw hitboxes for debug purposes:
   //painter->drawRects(QVector<QRect>() << mAxisSelectionBox << mTickLabelsSelectionBox << mLabelSelectionBox);
-
-  painter->restore();
 }
 
 /*! \internal
@@ -5215,7 +5022,7 @@ void QCPAxis::drawAxis(QPainter *painter)
   The label is drawn with the font and pen that are currently set on the \a painter. To draw
   superscripted powers, the font is temporarily made smaller by a fixed factor.
 */
-void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAxis, const QString &text, QSize *tickLabelsSize)
+void QCPAxis::drawTickLabel(QCPPainter *painter, double position, int distanceToAxis, const QString &text, QSize *tickLabelsSize)
 {
   // warning: if you change anything here, also adapt getMaxTickLabelSize() accordingly!
   
@@ -5267,7 +5074,7 @@ void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAx
   
   // if using rotated tick labels, transform bounding rect, too:
   QRect rotatedBounds = bounds;
-  if (!qFuzzyCompare(mTickLabelRotation+1.0, 1.0))
+  if (!qFuzzyIsNull(mTickLabelRotation))
   {
     QTransform transform;
     transform.rotate(mTickLabelRotation);
@@ -5283,13 +5090,13 @@ void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAx
     calculate coordinates (non-trivial, for best visual appearance): short explanation for bottom
     axis: The anchor, i.e. the point in the label that is placed horizontally under the
     corresponding tick is always on the label side that is closer to the axis (e.g. the left side
-    of the text when we're rotating clockwise). On that side, the height-edge is halved and the
-    resulting median point is defined the anchor. This way, a 90 degree rotated text will be
-    centered under the tick (i.e. displaced horizontally by half its height). At the same time, a
-    45 degree rotated text will "point toward" its tick, as is typical for rotated tick labels.
+    of the text when we're rotating clockwise). On that side, the height is halved and the
+    resulting point is defined the anchor. This way, a 90 degree rotated text will be centered
+    under the tick (i.e. displaced horizontally by half its height). At the same time, a 45 degree
+    rotated text will "point toward" its tick, as is typical for rotated tick labels.
   */
-  bool doRotation = qAbs(mTickLabelRotation) > 0.0001;
-  double angle = mTickLabelRotation/180.0*M_PI;
+  bool doRotation = !qFuzzyIsNull(mTickLabelRotation);
+  double radians = mTickLabelRotation/180.0*M_PI;
   int x=0,y=0;
   if (mAxisType == atLeft)
   {
@@ -5297,12 +5104,12 @@ void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAx
     {
       if (mTickLabelRotation > 0)
       {
-        x = mAxisRect.left()-cos(angle)*bounds.width()-distanceToAxis;
-        y = position-sin(angle)*bounds.width()-cos(angle)*bounds.height()/2.0;
+        x = mAxisRect.left()-qCos(radians)*bounds.width()-distanceToAxis;
+        y = position-qSin(radians)*bounds.width()-qCos(radians)*bounds.height()/2.0;
       } else
       {
-        x = mAxisRect.left()-cos(-angle)*bounds.width()-sin(-angle)*bounds.height()-distanceToAxis;
-        y = position+sin(-angle)*bounds.width()-cos(-angle)*bounds.height()/2.0;
+        x = mAxisRect.left()-qCos(-radians)*bounds.width()-qSin(-radians)*bounds.height()-distanceToAxis;
+        y = position+qSin(-radians)*bounds.width()-qCos(-radians)*bounds.height()/2.0;
       }
     } else
     {
@@ -5315,12 +5122,12 @@ void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAx
     {
       if (mTickLabelRotation > 0)
       {
-        x = mAxisRect.right()+sin(angle)*bounds.height()+distanceToAxis;
-        y = position-cos(angle)*bounds.height()/2.0;
+        x = mAxisRect.right()+qSin(radians)*bounds.height()+distanceToAxis;
+        y = position-qCos(radians)*bounds.height()/2.0;
       } else
       {
         x = mAxisRect.right()+distanceToAxis;
-        y = position-cos(-angle)*bounds.height()/2.0;
+        y = position-qCos(-radians)*bounds.height()/2.0;
       }
     } else
     {
@@ -5333,12 +5140,12 @@ void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAx
     {
       if (mTickLabelRotation > 0)
       {
-        x = position-cos(angle)*bounds.width()+sin(angle)*bounds.height()/2.0;
-        y = mAxisRect.top()-sin(angle)*bounds.width()-cos(angle)*bounds.height()-distanceToAxis;
+        x = position-qCos(radians)*bounds.width()+qSin(radians)*bounds.height()/2.0;
+        y = mAxisRect.top()-qSin(radians)*bounds.width()-qCos(radians)*bounds.height()-distanceToAxis;
       } else
       {
-        x = position-sin(-angle)*bounds.height()/2.0;
-        y = mAxisRect.top()-cos(-angle)*bounds.height()-distanceToAxis;
+        x = position-qSin(-radians)*bounds.height()/2.0;
+        y = mAxisRect.top()-qCos(-radians)*bounds.height()-distanceToAxis;
       }
     } else
     {
@@ -5351,12 +5158,12 @@ void QCPAxis::drawTickLabel(QPainter *painter, double position, int distanceToAx
     {
       if (mTickLabelRotation > 0)
       {
-        x = position+sin(angle)*bounds.height()/2.0;
+        x = position+qSin(radians)*bounds.height()/2.0;
         y = mAxisRect.bottom()+distanceToAxis;
       } else
       {
-        x = position-cos(-angle)*bounds.width()-sin(-angle)*bounds.height()/2.0;
-        y = mAxisRect.bottom()+sin(-angle)*bounds.width()+distanceToAxis;
+        x = position-qCos(-radians)*bounds.width()-qSin(-radians)*bounds.height()/2.0;
+        y = mAxisRect.bottom()+qSin(-radians)*bounds.width()+distanceToAxis;
       }
     } else
     {
@@ -5462,7 +5269,7 @@ void QCPAxis::getMaxTickLabelSize(const QFont &font, const QString &text,  QSize
   
   // if rotated tick labels, transform bounding rect, too:
   QRect rotatedBounds = bounds;
-  if (!qFuzzyCompare(mTickLabelRotation+1.0, 1.0))
+  if (!qFuzzyIsNull(mTickLabelRotation))
   {
     QTransform transform;
     transform.rotate(mTickLabelRotation);
@@ -5536,6 +5343,23 @@ bool QCPAxis::handleAxisSelection(QMouseEvent *event, bool additiveSelection, bo
 }
 
 /*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing axis lines.
+
+  This is the antialiasing state the painter passed to the \ref draw method is in by default.
+  
+  This function takes into account the local setting of the antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased
+*/
+void QCPAxis::applyDefaultAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiased, QCP::aeAxes);
+}
+
+/*! \internal
   
   Returns via \a lowIndex and \a highIndex, which ticks in the current tick vector are visible in
   the current range. The return values are indices of the tick vector, not the positions of the
@@ -5550,15 +5374,15 @@ void QCPAxis::visibleTickBounds(int &lowIndex, int &highIndex) const
   lowIndex = 0;
   highIndex = -1;
   // make sure only ticks that are in visible range are returned
-  for (int i=0; i < mTickVector->size(); ++i)
+  for (int i=0; i < mTickVector.size(); ++i)
   {
     lowIndex = i;
-    if (mTickVector->at(i) >= mRange.lower) break;
+    if (mTickVector.at(i) >= mRange.lower) break;
   }
-  for (int i=mTickVector->size()-1; i >= 0; --i)
+  for (int i=mTickVector.size()-1; i >= 0; --i)
   {
     highIndex = i;
-    if (mTickVector->at(i) <= mRange.upper) break;
+    if (mTickVector.at(i) <= mRange.upper) break;
   }
 }
 
@@ -5566,13 +5390,13 @@ void QCPAxis::visibleTickBounds(int &lowIndex, int &highIndex) const
   
   A log function with the base mScaleLogBase, used mostly for coordinate transforms in logarithmic
   scales with arbitrary log base. Uses the buffered mScaleLogBaseLogInv for faster calculation.
-  This is set to <tt>1.0/log(mScaleLogBase)</tt> in \ref setScaleLogBase.
+  This is set to <tt>1.0/qLn(mScaleLogBase)</tt> in \ref setScaleLogBase.
   
   \see basePow, setScaleLogBase, setScaleType
 */
 double QCPAxis::baseLog(double value) const
 {
-  return log(value)*mScaleLogBaseLogInv;
+  return qLn(value)*mScaleLogBaseLogInv;
 }
 
 /*! \internal
@@ -5584,7 +5408,7 @@ double QCPAxis::baseLog(double value) const
 */
 double QCPAxis::basePow(double value) const
 {
-  return pow(mScaleLogBase, value);
+  return qPow(mScaleLogBase, value);
 }
 
 /*! \internal
@@ -5657,22 +5481,24 @@ QColor QCPAxis::getLabelColor() const
   return mSelected.testFlag(spAxisLabel) ? mSelectedLabelColor : mLabelColor;
 }
 
-/*!
-  \internal
-  Simulates the steps of \ref drawAxis by calculating all appearing text bounding boxes. From this
+/*! \internal
+  
+  Simulates the steps of \ref draw by calculating all appearing text bounding boxes. From this
   information, the appropriate margin for this axis is determined, so nothing is drawn beyond the
-  widget border in the actual \ref drawAxis function (if \ref QCustomPlot::setAutoMargin is set to
+  widget border in the actual \ref draw function (if \ref QCustomPlot::setAutoMargin is set to
   true).
-  The margin consists of: tick label padding, tick label size, label padding, label size.
-  The return value is the calculated margin for this axis. Thus, an axis with axis type
-  \ref atLeft will return an appropriate left margin, \ref atBottom will return an appropriate
-  bottom margin and so forth.
-  \warning if anything is changed in this function, make sure it's synchronized with
-  the actual drawing function \ref drawAxis.
+  
+  The margin consists of: tick label padding, tick label size, label padding, label size. The
+  return value is the calculated margin for this axis. Thus, an axis with axis type \ref atLeft
+  will return an appropriate left margin, \ref atBottom will return an appropriate bottom margin
+  and so forth.
+  
+  \warning if anything is changed in this function, make sure it's synchronized with the actual
+  drawing function \ref draw.
 */
 int QCPAxis::calculateMargin() const
 {
-  // run through similar steps as QCPAxis::drawAxis, and caluclate margin needed to fit axis and its labels
+  // run through similar steps as QCPAxis::draw, and caluclate margin needed to fit axis and its labels
   int margin = 0;
   
   if (mVisible)
@@ -5687,7 +5513,7 @@ int QCPAxis::calculateMargin() const
     {
       for (int i=lowTick; i <= highTick; ++i)
       {
-        getMaxTickLabelSize(mTickLabelFont, mTickVectorLabels->at(i), &tickLabelsSize); // don't use getTickLabelFont() because we don't want margin to possibly change on selection
+        getMaxTickLabelSize(mTickLabelFont, mTickVectorLabels.at(i), &tickLabelsSize); // don't use getTickLabelFont() because we don't want margin to possibly change on selection
       }
       if (orientation() == Qt::Horizontal)
         margin += tickLabelsSize.height() + mTickLabelPadding;
@@ -5716,12 +5542,30 @@ int QCPAxis::calculateMargin() const
 // ================================================================================
 
 /*! \class QCustomPlot
-  \brief The central class which is also the QWidget which displays the plot and interacts with the user.
+  \brief The central class of the library, the QWidget which displays the plot and interacts with the user.
   
   For tutorials on how to use QCustomPlot, see the website\n
   http://www.WorksLikeClockWork.com/index.php/components/qt-plotting-widget
 */
 
+/* start of documentation of inline functions */
+
+/*! \fn QRect QCustomPlot::viewport() const
+  
+  Returns the viewport rect of this QCustomPlot instance. The viewport is the area the plot is
+  drawn in, all mechanisms, e.g. margin caluclation take the viewport to be the outer border of the
+  plot. The viewport normally is the rect() of the QCustomPlot widget, i.e. a rect with top left
+  (0, 0) and size of the QCustomPlot widget.
+  
+  Don't confuse the viewport with the axisRect. An axisRect is the rect defined by two axes, where
+  the graphs/plottables are drawn in. The viewport is larger and contains also the axes themselves, their
+  tick numbers, their labels, the plot title etc.
+  
+  Only when saving to a file (see \ref savePng, savePdf etc.) the viewport is temporarily modified
+  to allow saving plots with sizes independent of the current widget size.
+*/
+
+/* end of documentation of inline functions */
 /* start of documentation of signals */
 
 /*! \fn void QCustomPlot::mouseDoubleClick(QMouseEvent *event)
@@ -5787,6 +5631,26 @@ int QCPAxis::calculateMargin() const
   the click.
   
   \see plottableClick
+*/
+
+/*! \fn void QCustomPlot::itemClick(QCPAbstractItem *item, QMouseEvent *event)
+  
+  This signal is emitted when an item is clicked.
+
+  \a event is the mouse event that caused the click and \a item is the item that received the
+  click.
+  
+  \see itemDoubleClick
+*/
+
+/*! \fn void QCustomPlot::itemDoubleClick(QCPAbstractItem *item, QMouseEvent *event)
+  
+  This signal is emitted when an item is double clicked.
+  
+  \a event is the mouse event that caused the click and \a item is the item that received the
+  click.
+  
+  \see itemClick
 */
 
 /*! \fn void QCustomPlot::axisClick(QCPAxis *axis, QCPAxis::SelectablePart part, QMouseEvent *event)
@@ -5892,17 +5756,31 @@ int QCPAxis::calculateMargin() const
   The legend is also set to be invisible initially.
 */
 QCustomPlot::QCustomPlot(QWidget *parent) :
-  QWidget(parent)
-{  
+  QWidget(parent),
+  mDragging(false),
+  mReplotting(false),
+  mPlottingHints(QCP::phNone)
+{
+  setAttribute(Qt::WA_NoMousePropagation);
+  setAttribute(Qt::WA_OpaquePaintEvent);
   setMouseTracking(true);
   QLocale currentLocale = locale();
   currentLocale.setNumberOptions(QLocale::OmitGroupSeparator);
   setLocale(currentLocale);
+  
+  // create very first layers:
+  QCPLayer *gridLayer = new QCPLayer(this, "grid");
+  QCPLayer *mainLayer = new QCPLayer(this, "main");
+  QCPLayer *axesLayer = new QCPLayer(this, "axes");
+  mLayers.append(gridLayer);
+  mLayers.append(mainLayer);
+  mLayers.append(axesLayer);
+  setCurrentLayer(mainLayer);
 
-  mReplotting = false;
-  buffer = QPixmap(size());
+  mPaintBuffer = QPixmap(size());
   legend = new QCPLegend(this);
   legend->setVisible(false);
+  legend->setLayer(axesLayer);
   xAxis = new QCPAxis(this, QCPAxis::atBottom);
   yAxis = new QCPAxis(this, QCPAxis::atLeft);
   xAxis2 = new QCPAxis(this, QCPAxis::atTop);
@@ -5913,26 +5791,35 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   yAxis2->setZeroLinePen(Qt::NoPen);
   xAxis2->setVisible(false);
   yAxis2->setVisible(false);
+  xAxis->setLayer(axesLayer);
+  yAxis->setLayer(axesLayer);
+  xAxis2->setLayer(axesLayer);
+  yAxis2->setLayer(axesLayer);
+  xAxis->mGrid->setLayer(gridLayer);
+  yAxis->mGrid->setLayer(gridLayer);
+  xAxis2->mGrid->setLayer(gridLayer);
+  yAxis2->mGrid->setLayer(gridLayer);
   mViewport = rect();
-  mDragging = false;
   
+  setNoAntialiasingOnDrag(false);
   setAutoAddPlottableToLegend(true);
-  setAntialiasedElements(aePlottables | aeScatters | aeFills);
-  setAxisBackground(QPixmap());
   setAxisBackgroundScaled(true);
   setAxisBackgroundScaledMode(Qt::KeepAspectRatioByExpanding);
-  QFont tFont;
-  tFont.setPointSize(14);
-  tFont.setBold(true);
-  setTitleFont(tFont);
+  setTitleFont(QFont(font().family(), 14, QFont::Bold));
   setTitleColor(Qt::black);
-  tFont.setPointSizeF(14.25);
-  setSelectedTitleFont(tFont);
+  setSelectedTitleFont(QFont(font().family(), 14, QFont::Bold));
   setSelectedTitleColor(Qt::blue);
+  setTitleSelected(false);
   setTitle("");
   setColor(Qt::white);
   
-  setInteractions(iRangeDrag | iRangeZoom);
+#ifdef Q_WS_WIN
+  setPlottingHint(QCP::phForceRepaint);
+#endif
+  setAntialiasedElements(QCP::aeNone);
+  setNotAntialiasedElements(QCP::aeNone);
+  setInteractions(iRangeDrag|iRangeZoom);
+  setMultiSelectModifier(Qt::ControlModifier);
   setRangeDragAxes(xAxis, yAxis);
   setRangeZoomAxes(xAxis, yAxis);
   setRangeDrag(0);
@@ -5940,7 +5827,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   setRangeZoomFactor(0.85);
   setSelectionTolerance(8);
   
-  setMargin(0, 0, 0, 0);
+  setMargin(0, 0, 0, 0); // also initializes the mAxisRect
   setAutoMargin(true);
   replot();
 }
@@ -5948,11 +5835,14 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
 QCustomPlot::~QCustomPlot()
 {
   clearPlottables();
+  clearItems();
   delete legend;
   delete xAxis;
   delete yAxis;
   delete xAxis2;
   delete yAxis2;
+  qDeleteAll(mLayers);
+  mLayers.clear();
 }
 
 /*!
@@ -6016,11 +5906,12 @@ void QCustomPlot::setTitleColor(const QColor &color)
 /*!
   An alternative way to set the margins, by directly setting the wanted axis rect. The rect
   will be translated into appropriate margin values.
-  \warning setting the axis rect with this function does not guarantee that the axis rect
-  will stay like this indefinitely. In QCustomPlot, margins are the fixed values (if \ref
-  setAutoMargin is false). Consequently, the axis rect is automatically changed when the
-  widget size changes, but the margins (distances between axis rect edges and widget/viewport
-  rect edges) stay the same.
+  
+  \warning Setting the axis rect with this function does not guarantee that the axis rect will stay
+  like this indefinitely. In QCustomPlot, margins are the fixed values (if \ref setAutoMargin is
+  false). Hence the axis rect is automatically changed when the widget size changes, but the
+  margins (distances between axis rect sides and widget/viewport rect sides) stay the same.
+
   \see setMargin
 */
 void QCustomPlot::setAxisRect(const QRect &arect)
@@ -6121,7 +6012,7 @@ void QCustomPlot::setColor(const QColor &color)
   In addition to setting \a orientations to a non-zero value, make sure \ref setInteractions
   contains \ref iRangeDrag to enable the range dragging interaction.
   
-  \see setRangeZoom, setRangeDragAxes
+  \see setRangeZoom, setRangeDragAxes, setNoAntialiasingOnDrag
 */
 void QCustomPlot::setRangeDrag(Qt::Orientations orientations)
 {
@@ -6204,22 +6095,108 @@ void QCustomPlot::setRangeZoomFactor(double factor)
 }
 
 /*!
-  Sets which elements are drawn antialiased as an or combination of \ref AntialiasedElement.
+  Sets which elements are forcibly drawn antialiased as an or combination of QCP::AntialiasedElement.
+  
+  This overrides the antialiasing settings for whole element groups, normally controlled with the
+  \a setAntialiasing function on the individual elements. If an element is neither specified in
+  \ref setAntialiasedElements nor in \ref setNotAntialiasedElements, the antialiasing setting on
+  each individual element instance is used.
+  
+  For example, if \a antialiasedElements contains \ref QCP::aePlottables, all plottables will be
+  drawn antialiased, no matter what the specific QCPAbstractPlottable::setAntialiased value was set
+  to.
+  
+  \see setNotAntialiasedElements
 */
-void QCustomPlot::setAntialiasedElements(const AntialiasedElements &antialiasedElements)
+void QCustomPlot::setAntialiasedElements(const QCP::AntialiasedElements &antialiasedElements)
 {
   mAntialiasedElements = antialiasedElements;
+  
+  // make sure elements aren't in mNotAntialiasedElements and mAntialiasedElements simultaneously:
+  if ((mNotAntialiasedElements & mAntialiasedElements) != 0)
+    mNotAntialiasedElements |= ~mAntialiasedElements;
 }
 
 /*!
-  Sets whether the specified \a antialiasedElement is drawn antialiased.
+  Sets whether the specified \a antialiasedElement is forcibly drawn antialiased.
+  
+  This overrides the antialiasing settings for whole element groups, normally controlled with the
+  \a setAntialiasing function on the individual elements. If an element is neither specified in
+  \ref setAntialiasedElements nor in \ref setNotAntialiasedElements, the antialiasing setting on
+  each individual element instance is used.
+  
+  For example, if \a enabled is true and \a antialiasedElement is \ref QCP::aePlottables, all
+  plottables will be drawn antialiased, no matter what the specific
+  QCPAbstractPlottable::setAntialiased value was set to.
+  
+  \see setNotAntialiasedElement
 */
-void QCustomPlot::setAntialiasedElement(AntialiasedElement antialiasedElement, bool enabled)
+void QCustomPlot::setAntialiasedElement(QCP::AntialiasedElement antialiasedElement, bool enabled)
 {
   if (!enabled && mAntialiasedElements.testFlag(antialiasedElement))
     mAntialiasedElements &= ~antialiasedElement;
   else if (enabled && !mAntialiasedElements.testFlag(antialiasedElement))
     mAntialiasedElements |= antialiasedElement;
+  
+  // make sure elements aren't in mNotAntialiasedElements and mAntialiasedElements simultaneously:
+  if ((mNotAntialiasedElements & mAntialiasedElements) != 0)
+    mNotAntialiasedElements |= ~mAntialiasedElements;
+}
+
+/*!
+  Sets which elements are forcibly drawn not antialiased as an or combination of
+  QCP::AntialiasedElement.
+  
+  This overrides the antialiasing settings for whole element groups, normally controlled with the
+  \a setAntialiasing function on the individual elements. If an element is neither specified in
+  \ref setAntialiasedElements nor in \ref setNotAntialiasedElements, the antialiasing setting on
+  each individual element instance is used.
+  
+  For example, if \a notAntialiasedElements contains \ref QCP::aePlottables, no plottables will be
+  drawn antialiased, no matter what the specific QCPAbstractPlottable::setAntialiased value was set
+  to.
+  
+  if an element in \a notAntialiasedElements is already set in \ref setAntialiasedElements, it is
+  removed from there.
+  
+  \see setAntialiasedElements
+*/
+void QCustomPlot::setNotAntialiasedElements(const QCP::AntialiasedElements &notAntialiasedElements)
+{
+  mNotAntialiasedElements = notAntialiasedElements;
+  
+  // make sure elements aren't in mNotAntialiasedElements and mAntialiasedElements simultaneously:
+  if ((mNotAntialiasedElements & mAntialiasedElements) != 0)
+    mAntialiasedElements |= ~mNotAntialiasedElements;
+}
+
+/*!
+  Sets whether the specified \a notAntialiasedElement is forcibly drawn not antialiased.
+  
+  This overrides the antialiasing settings for whole element groups, normally controlled with the
+  \a setAntialiasing function on the individual elements. If an element is neither specified in
+  \ref setAntialiasedElements nor in \ref setNotAntialiasedElements, the antialiasing setting on
+  each individual element instance is used.
+  
+  For example, if \a enabled is true and \a notAntialiasedElement is \ref QCP::aePlottables, no
+  plottables will be drawn antialiased, no matter what the specific
+  QCPAbstractPlottable::setAntialiased value was set to.
+  
+  if \a enabled is true and \a notAntialiasedElement is already set with \ref
+  setAntialiasedElement, it is removed from there.
+  
+  \see setAntialiasedElement
+*/
+void QCustomPlot::setNotAntialiasedElement(QCP::AntialiasedElement notAntialiasedElement, bool enabled)
+{
+  if (!enabled && mNotAntialiasedElements.testFlag(notAntialiasedElement))
+    mNotAntialiasedElements &= ~notAntialiasedElement;
+  else if (enabled && !mNotAntialiasedElements.testFlag(notAntialiasedElement))
+    mNotAntialiasedElements |= notAntialiasedElement;
+  
+  // make sure elements aren't in mNotAntialiasedElements and mAntialiasedElements simultaneously:
+  if ((mNotAntialiasedElements & mAntialiasedElements) != 0)
+    mAntialiasedElements |= ~mNotAntialiasedElements;
 }
 
 /*!
@@ -6295,7 +6272,7 @@ void QCustomPlot::setAxisBackgroundScaledMode(Qt::AspectRatioMode mode)
   For details how to control which axes the user may drag/zoom and in what orientations, see \ref
   setRangeDrag, \ref setRangeZoom, \ref setRangeDragAxes, \ref setRangeZoomAxes.
   
-  <b>Plottables selection</b> is controlled by \ref iSelectPlottables. If \ref iSelectPlottables is
+  <b>Plottable selection</b> is controlled by \ref iSelectPlottables. If \ref iSelectPlottables is
   set, the user may select plottables (e.g. graphs, curves, bars,...) by clicking on them or in
   their vicinity, see \ref setSelectionTolerance. Whether the user can actually select a plottable
   can further be restricted with the \ref QCPAbstractPlottable::setSelectable function on the
@@ -6303,6 +6280,11 @@ void QCustomPlot::setAxisBackgroundScaledMode(Qt::AspectRatioMode mode)
   QCPAbstractPlottable::selected(). To retrieve a list of all currently selected plottables, call
   \ref selectedPlottables. If you're only interested in QCPGraphs, you may use the convenience
   function \ref selectedGraphs.
+  
+  <b>Item selection</b> is controlled by \ref iSelectItems. If \ref iSelectItems is set, the user
+  may select items (e.g. QCPItemLine, QCPItemText,...) by clicking on them or in their vicinity. To
+  find out whether a specific item is selected, call QCPAbstractItem::selected(). To retrieve a
+  list of all currently selected items, call \ref selectedItems.
   
   <b>Axis selection</b> is controlled with \ref iSelectAxes. If \ref iSelectAxes is set, the user
   may select parts of the axes by clicking on them. What parts exactly (e.g. Axis base line, tick
@@ -6324,7 +6306,8 @@ void QCustomPlot::setAxisBackgroundScaledMode(Qt::AspectRatioMode mode)
   emitted. Each selectable object additionally emits an individual selectionChanged signal whenever
   their selection state has changed, i.e. not only by user interaction.
   
-  To allow multiple objects to be selected by holding the Control (Ctrl) key, set the flag \ref iMultiSelect.
+  To allow multiple objects to be selected by holding the modifier set with \ref
+  setMultiSelectModifier, set the flag \ref iMultiSelect.
   
   \note In addition to the selection mechanism presented here, QCustomPlot always emits
   corresponding signals, when an object is clicked or double clicked. see \ref plottableClick and
@@ -6401,6 +6384,60 @@ void QCustomPlot::setTitleSelected(bool selected)
 }
 
 /*!
+  Sets whether antialiasing is disabled for all elements while the user is dragging axes ranges. If
+  many objects, especially plottables, are normally drawn antialiased, this greatly improves
+  performance during dragging. Thus it creates a more responsive user experience. As soon as the
+  user stops dragging, the last replot is done with normal antialiasing, to restore high image
+  quality.
+  
+  \see setAntialiasedElements, setNotAntialiasedElements
+*/
+void QCustomPlot::setNoAntialiasingOnDrag(bool enabled)
+{
+  mNoAntialiasingOnDrag = enabled;
+}
+
+/*!
+  Sets the plotting hints for this QCustomPlot instance.
+  \see setPlottingHint
+*/
+void QCustomPlot::setPlottingHints(const QCP::PlottingHints &hints)
+{
+  mPlottingHints = hints;
+}
+
+/*!
+  Sets the specified plotting \a hint to \a enabled.
+  \see setPlottingHints
+*/
+void QCustomPlot::setPlottingHint(QCP::PlottingHint hint, bool enabled)
+{
+  QCP::PlottingHints newHints = mPlottingHints;
+  if (!enabled)
+    newHints &= ~hint;
+  else
+    newHints |= hint;
+  
+  if (newHints != mPlottingHints)
+    setPlottingHints(newHints);
+}
+
+/*!
+  Sets the keyboard modifier that will be recognized as multi-select-modifier.
+  
+  If \ref iMultiSelect is specified in \ref setInteractions, the user may select multiple objects
+  by clicking on them one after the other while holding down \a modifier.
+  
+  By default the multi-select-modifier is set to Qt::ControlModifier.
+  
+  \see setInteractions
+*/
+void QCustomPlot::setMultiSelectModifier(Qt::KeyboardModifier modifier)
+{
+  mMultiSelectModifier = modifier;
+}
+
+/*!
   Returns the plottable with \a index. If the index is invalid, returns 0.
   
   There is an overloaded version of this function with no parameter which returns the last added
@@ -6415,7 +6452,7 @@ QCPAbstractPlottable *QCustomPlot::plottable(int index)
     return mPlottables.at(index);
   } else
   {
-    qDebug() << FUNCNAME << "index out of bounds:" << index;
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
     return 0;
   }
 }
@@ -6448,21 +6485,27 @@ QCPAbstractPlottable *QCustomPlot::plottable()
 */
 bool QCustomPlot::addPlottable(QCPAbstractPlottable *plottable)
 {
-  if (!mPlottables.contains(plottable) && plottable->parentPlot() == this)
+  if (mPlottables.contains(plottable))
   {
-    mPlottables.append(plottable);
-    // possibly add plottable to legend:
-    if (mAutoAddPlottableToLegend)
-      plottable->addToLegend();
-    // special handling for QCPGraphs to maintain the simple graph interface:
-    if (QCPGraph *graph = qobject_cast<QCPGraph*>(plottable))
-      mGraphs.append(graph);
-    return true;
-  } else
-  {
-    //qDebug() << FUNCNAME << "plottable either already in list or not created with this QCustomPlot as parent:" << (int)plottable;
+    qDebug() << Q_FUNC_INFO << "plottable already added to this QCustomPlot:" << reinterpret_cast<quintptr>(plottable);
     return false;
   }
+  if (plottable->parentPlot() != this)
+  {
+    qDebug() << Q_FUNC_INFO << "plottable not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(plottable);
+    return false;
+  }
+  
+  mPlottables.append(plottable);
+  // possibly add plottable to legend:
+  if (mAutoAddPlottableToLegend)
+    plottable->addToLegend();
+  // special handling for QCPGraphs to maintain the simple graph interface:
+  if (QCPGraph *graph = qobject_cast<QCPGraph*>(plottable))
+    mGraphs.append(graph);
+  if (!plottable->layer()) // usually the layer is already set in the constructor of the plottable (via QCPLayerable constructor)
+    plottable->setLayer(currentLayer());
+  return true;
 }
 
 /*!
@@ -6474,22 +6517,21 @@ bool QCustomPlot::addPlottable(QCPAbstractPlottable *plottable)
 */
 bool QCustomPlot::removePlottable(QCPAbstractPlottable *plottable)
 {
-  if (mPlottables.contains(plottable))
+  if (!mPlottables.contains(plottable))
   {
-    // remove plottable from legend:
-    plottable->removeFromLegend();
-    // special handling for QCPGraphs to maintain the simple graph interface:
-    if (QCPGraph *graph = qobject_cast<QCPGraph*>(plottable))
-      mGraphs.removeOne(graph);
-    // remove plottable:
-    delete plottable;
-    mPlottables.removeOne(plottable);
-    return true;
-  } else
-  {
-    //qDebug() << FUNCNAME << "plottable not in list:" << (int)plottable;
+    qDebug() << Q_FUNC_INFO << "plottable not in list:" << reinterpret_cast<quintptr>(plottable);
     return false;
   }
+  
+  // remove plottable from legend:
+  plottable->removeFromLegend();
+  // special handling for QCPGraphs to maintain the simple graph interface:
+  if (QCPGraph *graph = qobject_cast<QCPGraph*>(plottable))
+    mGraphs.removeOne(graph);
+  // remove plottable:
+  delete plottable;
+  mPlottables.removeOne(plottable);
+  return true;
 }
 
 /*! \overload
@@ -6502,7 +6544,7 @@ bool QCustomPlot::removePlottable(int index)
     return removePlottable(mPlottables[index]);
   else
   {
-    qDebug() << FUNCNAME << "index out of bounds:" << index;
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
     return false;
   }
 }
@@ -6560,7 +6602,7 @@ QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
   
   If there is no plottable at \a pos, the return value is 0.
 */
-QCPAbstractPlottable *QCustomPlot::plottableAt(const QPoint &pos, bool onlySelectable) const
+QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable) const
 {
   QCPAbstractPlottable *resultPlottable = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
@@ -6570,12 +6612,10 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPoint &pos, bool onlySelec
     QCPAbstractPlottable *currentPlottable = mPlottables[i];
     if (onlySelectable && !currentPlottable->selectable())
       continue;
-    if ((currentPlottable->keyAxis()->axisRect() | currentPlottable->valueAxis()->axisRect()).contains(pos)) // only consider clicks inside the rect that is spanned by the plottable's key/value axes
+    if ((currentPlottable->keyAxis()->axisRect() | currentPlottable->valueAxis()->axisRect()).contains(pos.toPoint())) // only consider clicks inside the rect that is spanned by the plottable's key/value axes
     {
-      double key, value;
-      currentPlottable->pixelsToCoords(pos, key, value);
-      double currentDistance = currentPlottable->selectTest(key, value);
-      if (currentDistance > 0 && currentDistance < resultDistance)
+      double currentDistance = currentPlottable->selectTest(pos);
+      if (currentDistance >= 0 && currentDistance < resultDistance)
       {
         resultPlottable = currentPlottable;
         resultDistance = currentDistance;
@@ -6584,6 +6624,16 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPoint &pos, bool onlySelec
   }
   
   return resultPlottable;
+}
+
+/*!
+  Returns whether this QCustomPlot instance contains the \a plottable.
+  
+  \see addPlottable
+*/
+bool QCustomPlot::hasPlottable(QCPAbstractPlottable *plottable) const
+{
+  return mPlottables.contains(plottable);
 }
 
 /*!
@@ -6601,7 +6651,7 @@ QCPGraph *QCustomPlot::graph(int index) const
     return mGraphs.at(index);
   } else
   {
-    qDebug() << FUNCNAME << "index out of bounds:" << index;
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
     return 0;
   }
 }
@@ -6623,12 +6673,12 @@ QCPGraph *QCustomPlot::graph() const
 }
 
 /*!
-  Creates a new graph inside the plot. If \a keyAxis and \a valueAxis are left unspecified, the
-  bottom (xAxis) is used as key and the left (yAxis) is used as value. \a keyAxis and \a valueAxis
-  must reside in the same QCustomPlot.
+  Creates a new graph inside the plot. If \a keyAxis and \a valueAxis are left unspecified (0), the
+  bottom (xAxis) is used as key and the left (yAxis) is used as value. If specified, \a keyAxis and
+  \a valueAxis must reside in this QCustomPlot.
   
-  \param keyAxis the axis that will be used as key axis for the graph (typically "x")
-  \param valueAxis the axis that will be used as value axis for the graph (typically "y")
+  \a keyAxis will be used as key axis (typically "x") and \a valueAxis as value axis (typically
+  "y") for the graph.
   
   Returns a pointer to the newly created graph.
   
@@ -6638,6 +6688,12 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
 {
   if (!keyAxis) keyAxis = xAxis;
   if (!valueAxis) valueAxis = yAxis;
+  if (keyAxis->parentPlot() != this || valueAxis->parentPlot() != this)
+  {
+    qDebug() << Q_FUNC_INFO << "passed keyAxis or valueAxis doesn't have this QCustomPlot as parent";
+    return 0;
+  }
+  
   QCPGraph *newGraph = new QCPGraph(keyAxis, valueAxis);
   if (addPlottable(newGraph))
   {
@@ -6720,6 +6776,376 @@ QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 }
 
 /*!
+  Returns the item with \a index. If the index is invalid, returns 0.
+  
+  There is an overloaded version of this function with no parameter which returns the last added
+  item, see QCustomPlot::item()
+  
+  \see itemCount, addItem
+*/
+QCPAbstractItem *QCustomPlot::item(int index) const
+{
+  if (index >= 0 && index < mItems.size())
+  {
+    return mItems.at(index);
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
+    return 0;
+  }
+}
+
+/*! \overload
+  
+  Returns the last item, that was added with \ref addItem. If there are no items in the plot,
+  returns 0.
+  
+  \see itemCount, addItem
+*/
+QCPAbstractItem *QCustomPlot::item() const
+{
+  if (!mItems.isEmpty())
+  {
+    return mItems.last();
+  } else
+    return 0;
+}
+
+/*!
+  Adds the specified item to the plot. QCustomPlot takes ownership of the item.
+  
+  Returns true on success, i.e. when \a item wasn't already added to the plot and the parent plot
+  of \a item is this QCustomPlot.
+  
+  \see item, itemCount, removeItem, clearItems
+*/
+bool QCustomPlot::addItem(QCPAbstractItem *item)
+{
+  if (!mItems.contains(item) && item->parentPlot() == this)
+  {
+    mItems.append(item);
+    return true;
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "item either already in list or not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(item);
+    return false;
+  }
+}
+
+/*!
+  Removes the specified item from the plot.
+  
+  Returns true on success.
+  
+  \see addItem, clearItems
+*/
+bool QCustomPlot::removeItem(QCPAbstractItem *item)
+{
+  if (mItems.contains(item))
+  {
+    delete item;
+    mItems.removeOne(item);
+    return true;
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "item not in list:" << reinterpret_cast<quintptr>(item);
+    return false;
+  }
+}
+
+/*! \overload
+  
+  Removes the item by its \a index.
+*/
+bool QCustomPlot::removeItem(int index)
+{
+  if (index >= 0 && index < mItems.size())
+    return removeItem(mItems[index]);
+  else
+  {
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
+    return false;
+  }
+}
+
+/*!
+  Removes all items from the plot.
+  
+  Returns the number of items removed.
+  
+  \see removeItem
+*/
+int QCustomPlot::clearItems()
+{
+  int c = mItems.size();
+  for (int i=c-1; i >= 0; --i)
+    removeItem(mItems[i]);
+  return c;
+}
+
+/*!
+  Returns the number of currently existing items in the plot
+  
+  \see item, addItem
+*/
+int QCustomPlot::itemCount() const
+{
+  return mItems.size();
+}
+
+/*!
+  Returns a list of the selected items. If no items are currently selected, the list is empty.
+  
+  \see setInteractions, QCPAbstractItem::setSelectable, QCPAbstractItem::setSelected
+*/
+QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
+{
+  QList<QCPAbstractItem*> result;
+  for (int i=0; i<mItems.size(); ++i)
+  {
+    if (mItems.at(i)->selected())
+      result.append(mItems.at(i));
+  }
+  return result;
+}
+
+/*!
+  Returns the item at the pixel position \a pos. Items that only consist of single lines (e.g. \ref
+  QCPItemLine or \ref QCPItemCurve) have a tolerance band around them, see \ref
+  setSelectionTolerance. If multiple items come into consideration, the one closest to \a pos is
+  returned.
+  
+  If \a onlySelectable is true, only items that are selectable (QCPAbstractItem::setSelectable) are
+  considered.
+  
+  If there is no item at \a pos, the return value is 0.
+*/
+QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) const
+{
+  QCPAbstractItem *resultItem = 0;
+  double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
+  
+  for (int i=0; i<mItems.size(); ++i)
+  {
+    QCPAbstractItem *currentItem = mItems[i];
+    if (onlySelectable && !currentItem->selectable())
+      continue;
+    if (!currentItem->clipToAxisRect() || currentItem->clipRect().contains(pos.toPoint())) // only consider clicks inside axis cliprect of the item if actually clipped to it
+    {
+      double currentDistance = currentItem->selectTest(pos);
+      if (currentDistance >= 0 && currentDistance < resultDistance)
+      {
+        resultItem = currentItem;
+        resultDistance = currentDistance;
+      }
+    }
+  }
+  
+  return resultItem;
+}
+
+/*!
+  Returns the layer with the specified \a name.
+  
+  \see addLayer, moveLayer, removeLayer
+*/
+QCPLayer *QCustomPlot::layer(const QString &name) const
+{
+  for (int i=0; i<mLayers.size(); ++i)
+  {
+    if (mLayers.at(i)->name() == name)
+      return mLayers.at(i);
+  }
+  return 0;
+}
+
+/*! \overload
+  
+  Returns the layer by index.
+  
+  \see addLayer, moveLayer, removeLayer
+*/
+QCPLayer *QCustomPlot::layer(int index) const
+{
+  if (index >= 0 && index < mLayers.size())
+  {
+    return mLayers.at(index);
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
+    return 0;
+  }
+}
+
+/*!
+  Returns the layer that is set as current layer (see \ref setCurrentLayer).
+*/
+QCPLayer *QCustomPlot::currentLayer() const
+{
+  return mCurrentLayer; 
+}
+
+/*!
+  Sets the layer with the specified \a name to be the current layer. All newly created/added
+  layerables (\ref QCPLayerable), e.g. plottables and items, are initially placed on the current
+  layer.
+  
+  Returns true on success, i.e. if there is a layer with the specified \a name in the QCustomPlot.
+  
+  \see addLayer, moveLayer, removeLayer
+*/
+bool QCustomPlot::setCurrentLayer(const QString &name)
+{
+  if (QCPLayer *newCurrentLayer = layer(name))
+  {
+    return setCurrentLayer(newCurrentLayer);
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "layer with name doesn't exist:" << name;
+    return false;
+  }
+}
+
+/*! \overload
+  
+  Sets the provided \a layer to be the current layer.
+  
+  Returns true on success, i.e. when \a layer is a valid layer in the QCustomPlot.
+  
+  \see addLayer, moveLayer, removeLayer
+*/
+bool QCustomPlot::setCurrentLayer(QCPLayer *layer)
+{
+  if (!mLayers.contains(layer))
+  {
+    qDebug() << Q_FUNC_INFO << "layer not a layer of this QCustomPlot:" << reinterpret_cast<quintptr>(layer);
+    return false;
+  }
+  
+  mCurrentLayer = layer;
+  return true;
+}
+
+/*!
+  Returns the number of currently existing layers in the plot
+  
+  \see layer, addLayer
+*/
+int QCustomPlot::layerCount() const
+{
+  return mLayers.size();
+}
+
+/*!
+  Adds a new layer to this QCustomPlot instance. The new layer will have the name \a name, which must
+  be unique. It is positioned either below or above \a otherLayer, which can be controlled with \a insertMode.
+  
+  Returns true on success, i.e. if there is no other layer named \a name and \a otherLayer is a
+  valid layer inside this QCustomPlot.
+  
+  If \a otherLayer is 0, the highest layer in the QCustomPlot will be used.
+  
+  For an explanation of what layers are in QCustomPlot, see the documentation of \ref QCPLayer.
+  
+  \see layer, moveLayer, removeLayer
+*/
+bool QCustomPlot::addLayer(const QString &name, QCPLayer *otherLayer, QCustomPlot::LayerInsertMode insertMode)
+{
+  if (!otherLayer)
+    otherLayer = mLayers.last();
+  if (!mLayers.contains(otherLayer))
+  {
+    qDebug() << Q_FUNC_INFO << "otherLayer not a layer of this QCustomPlot:" << reinterpret_cast<quintptr>(otherLayer);
+    return false;
+  }
+  if (layer(name))
+  {
+    qDebug() << Q_FUNC_INFO << "A layer exists already with the name" << name;
+    return false;
+  }
+    
+  QCPLayer *newLayer = new QCPLayer(this, name);
+  mLayers.insert(otherLayer->index() + (insertMode==limAbove ? 1:0), newLayer);
+  return true;
+}
+
+/*!
+  Removes the specified \a layer and returns true on success.
+  
+  All layerables (e.g. plottables and items) on the removed layer will be moved to the layer below
+  \a layer. If \a layer is the bottom layer, the layerables are moved to the layer above. In both
+  cases, the total rendering order of all layerables in the QCustomPlot is preserved.
+  
+  If \a layer is the current layer (\ref setCurrentLayer), the layer below (or above, if bottom
+  layer) becomes the new current layer.
+  
+  Note that it is not possible to remove the last layer.
+  
+  \see layer, addLayer, moveLayer
+*/
+bool QCustomPlot::removeLayer(QCPLayer *layer)
+{
+  if (!mLayers.contains(layer))
+  {
+    qDebug() << Q_FUNC_INFO << "layer not a layer of this QCustomPlot:" << reinterpret_cast<quintptr>(layer);
+    return false;
+  }
+  if (!mLayers.size() > 1)
+  {
+    qDebug() << Q_FUNC_INFO << "can't remove last layer";
+    return false;
+  }
+  
+  // append all children of this layer to layer below (if this is lowest layer, prepend to layer above)
+  int removedIndex = layer->index();
+  bool isFirstLayer = removedIndex==0;
+  QCPLayer *targetLayer = isFirstLayer ? mLayers.at(removedIndex+1) : mLayers.at(removedIndex-1);
+  QList<QCPLayerable*> children = layer->children();
+  if (isFirstLayer) // prepend in reverse order (so order relative to each other stays the same)
+  {
+    for (int i=children.size()-1; i>=0; --i)
+      children.at(i)->moveToLayer(targetLayer, true);
+  } else  // append normally
+  {
+    for (int i=0; i<children.size(); ++i)
+      children.at(i)->moveToLayer(targetLayer, false);
+  }
+  // if removed layer is current layer, change current layer to layer below/above:
+  if (layer == mCurrentLayer)
+    setCurrentLayer(targetLayer);
+  // remove layer:
+  delete layer;
+  mLayers.removeOne(layer);
+  return true;
+}
+
+/*!
+  Moves the specified \a layer to the position relative to \a otherLayer. Whether \a layer is
+  placed above or below \a otherLayer can be controlled with \a insertMode.
+  
+  Returns true on success, i.e. when both \a layer and \a otherLayer are valid layers in the
+  QCustomPlot.
+  
+  \see layer, addLayer, moveLayer
+*/
+bool QCustomPlot::moveLayer(QCPLayer *layer, QCPLayer *otherLayer, QCustomPlot::LayerInsertMode insertMode)
+{
+  if (!mLayers.contains(layer))
+  {
+    qDebug() << Q_FUNC_INFO << "layer not a layer of this QCustomPlot:" << reinterpret_cast<quintptr>(layer);
+    return false;
+  }
+  if (!mLayers.contains(otherLayer))
+  {
+    qDebug() << Q_FUNC_INFO << "otherLayer not a layer of this QCustomPlot:" << reinterpret_cast<quintptr>(otherLayer);
+    return false;
+  }
+  
+  mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 1:0));
+  return true;
+}
+
+/*!
   Returns the axes that currently have selected parts, i.e. whose selection is not \ref QCPAxis::spNone.
   
   \see selectedPlottables, selectedLegends, setInteractions, QCPAxis::setSelected, QCPAxis::setSelectable
@@ -6751,13 +7177,13 @@ QList<QCPLegend*> QCustomPlot::selectedLegends() const
 }
 
 /*!
-  Deselects everything in the QCustomPlot (plottables, axes, legend and title).
+  Deselects everything in the QCustomPlot (plottables, items, axes, legend and title).
   
   Since calling this function is not a user interaction, this does not emit the \ref
-  selectionChangedByUser signal. The individual selectionChanged signals of the axes and plottables
-  are emitted though, if they were previously selected.
+  selectionChangedByUser signal. The individual selectionChanged signals are emitted though, if the
+  objects were previously selected.
   
-  \see setInteractions, selectedPlottables, selectedAxes, selectedLegends
+  \see setInteractions, selectedPlottables, selectedItems, selectedAxes, selectedLegends
 */
 void QCustomPlot::deselectAll()
 {
@@ -6766,12 +7192,17 @@ void QCustomPlot::deselectAll()
   for (int i=0; i<selPlottables.size(); ++i)
     selPlottables.at(i)->setSelected(false);
   
+  // deselect items:
+  QList<QCPAbstractItem*> selItems = selectedItems();
+  for (int i=0; i<selItems.size(); ++i)
+    selItems.at(i)->setSelected(false);
+  
   // deselect axes:
   QList<QCPAxis*> selAxes = selectedAxes();
   for (int i=0; i<selAxes.size(); ++i)
     selAxes.at(i)->setSelected(QCPAxis::spNone);
   
-  // deselect legend:
+  // deselect legend (and legend items):
   legend->setSelected(QCPLegend::spNone);
   
   // deselect title:
@@ -6779,8 +7210,8 @@ void QCustomPlot::deselectAll()
 }
 
 /*!
-  Causes a complete replot (axes, labels, graphs, etc.) into the internal buffer QPixmap. Finally,
-  update() is called, to redraw the buffer on the QCustomPlot widget surface.
+  Causes a complete replot (axes, labels, graphs, etc.) into the internal buffer. Finally, update()
+  is called, to redraw the buffer on the QCustomPlot widget surface.
   
   Before the replot happens, the signal \ref beforeReplot is emitted. After the replot, \ref afterReplot is
   emitted. It is safe to mutually connect the replot slot with any of those two signals on two QCustomPlots
@@ -6792,15 +7223,20 @@ void QCustomPlot::replot()
     return;
   mReplotting = true;
   emit beforeReplot();
-  QPainter painter(&buffer);
-  if (!painter.isActive()) // might happen if QCustomPlot has width or height zero
+  mPaintBuffer.fill(mColor);
+  QCPPainter painter;
+  painter.begin(&mPaintBuffer);
+  if (painter.isActive()) 
   {
-    qDebug() << FUNCNAME << "Couldn't activate painter on buffer";
-    return;
-  }
-  painter.fillRect(rect(), mColor);
-  draw(&painter);
-  update();
+    painter.setRenderHint(QPainter::HighQualityAntialiasing);
+    draw(&painter);
+    if (mPlottingHints.testFlag(QCP::phForceRepaint))
+      repaint();
+    else
+      update();
+    painter.end();
+  } else // might happen if QCustomPlot has width or height zero
+    qDebug() << Q_FUNC_INFO << "Couldn't activate painter on buffer";
   emit afterReplot();
   mReplotting = false;
 }
@@ -6876,10 +7312,8 @@ void QCustomPlot::rescaleAxes()
   
   mPlottables.at(0)->rescaleAxes(false); // onlyEnlarge disabled on first plottable
   for (int i=1; i<mPlottables.size(); ++i)
-      mPlottables.at(i)->rescaleAxes(true);  // onlyEnlarge enabled on all other plottables
+    mPlottables.at(i)->rescaleAxes(true);  // onlyEnlarge enabled on all other plottables
 }
-
-
 
 /*!
   Saves a PDF with the vectorized plot to the file \a fileName. The axis ratio as well as the scale
@@ -6897,6 +7331,8 @@ void QCustomPlot::rescaleAxes()
   selected axes to be painted in their selected look, deselect everything with \ref deselectAll
   before calling this function.
 
+  Returns true on success.
+  
   \warning
   \li If you plan on editing the exported PDF file with a vector graphics editor like
   Inkscape, it is advised to set \a noCosmeticPen to true to avoid losing those cosmetic lines
@@ -6908,10 +7344,11 @@ void QCustomPlot::rescaleAxes()
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
   
-  \see savePng
+  \see savePng, saveBmp, saveJpg, saveRastered
 */
-void QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width, int height)
+bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width, int height)
 {
+  bool success = false;
   int newWidth, newHeight;
   if (width == 0 || height == 0)
   {
@@ -6930,39 +7367,34 @@ void QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width
   mViewport = QRect(0, 0, newWidth, newHeight);
   updateAxisRect();
   printer.setPaperSize(mViewport.size(), QPrinter::DevicePixel);
-  QPainter printpainter(&printer);
-  printpainter.setWindow(mViewport);
-  printpainter.setRenderHint(QPainter::NonCosmeticDefaultPen, noCosmeticPen);
-  draw(&printpainter);
+  QCPPainter printpainter;
+  if (printpainter.begin(&printer))
+  {
+    printpainter.setPdfExportMode(true);
+    printpainter.setWindow(mViewport);
+    printpainter.setRenderHint(QPainter::NonCosmeticDefaultPen, noCosmeticPen);
+    if (mColor != Qt::white && mColor != Qt::transparent && mColor.alpha() > 0) // draw pdf background color if not white/transparent
+      printpainter.fillRect(mViewport, mColor);
+    draw(&printpainter);
+    printpainter.end();
+    success = true;
+  }
   mViewport = oldViewport;
   updateAxisRect();
+  return success;
 }
-
-/*
-  Function for providing svg export. Requires the QtSvg module
-  This is Not tested and will require some modifications!
-*/
-/*
-void QCustomPlot::saveSvg(const QString &fileName)
-{  
-  QSvgGenerator generator;
-  generator.setFileName(fileName);
-  generator.setSize(QSize(200, 200));
-  generator.setViewBox(QRect(0, 0, 200, 200));
-  generator.setTitle("");
-  generator.setDescription("");
-  QPainter painter(&generator);
-  draw(&painter);
-}
-*/
 
 /*!
   Saves a PNG image file to \a fileName on disc. The output plot will have the dimensions \a width
   and \a height in pixels. If either \a width or \a height is zero, the exported image will have
   the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, consider the scaled
-  version of this function.
-  
+  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+
+  For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
+  image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
+  texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
+  200*200 pixel resolution.
+
   \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
   explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
@@ -6970,115 +7402,129 @@ void QCustomPlot::saveSvg(const QString &fileName)
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
   
-  The objects of the plot will appear in the current selection state. So when you don't want e.g.
-  selected axes to be painted in their selected look, deselect everything with \ref deselectAll
-  before calling this function.
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
+
+  If you want the plot to be painted in a PNG with transparent background, call \ref setColor with a
+  transparent color, e.g. Qt::transparent, before saving.
+
+  PNG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
+  -1 to use the default setting.
   
-  \see savePngScaled
+  Returns true on success. If this function fails, most likely the PNG format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
+  \see savePdf, saveBmp, saveJpg, saveRastered
 */
-void QCustomPlot::savePng(const QString &fileName, int width, int height)
+bool QCustomPlot::savePng(const QString &fileName, int width, int height, double scale, int quality)
 {  
-  int newWidth, newHeight;
-  if (width == 0 || height == 0)
-  {
-    newWidth = this->width();
-    newHeight = this->height();
-  } else
-  {
-    newWidth = width;
-    newHeight = height;
-  }
-  
-  QPixmap pngBuffer(newWidth, newHeight);
-  QPainter painter(&pngBuffer);
-  painter.fillRect(pngBuffer.rect(), mColor);
-  QRect oldViewport = mViewport;
-  mViewport = QRect(0, 0, newWidth, newHeight);
-  updateAxisRect();
-  draw(&painter);
-  mViewport = oldViewport;
-  updateAxisRect();
-  pngBuffer.save(fileName);
+  return saveRastered(fileName, width, height, scale, "PNG", quality);
 }
 
 /*!
-  Saves a PNG image file to \a fileName on disc. The output plot will have a base \a width and \a
-  height which is then scaled by factor \a scale. If you for example set both \a width and \a height to
-  100 and \a scale to 2, you will end up with a PNG file of size 200*200 in which all graphical
-  elements are scaled up by factor 2 (line widths, texts, etc.). This scaling is done not by
-  stretching a 100*100 image but by actually scaling the painter, so the result will have full
-  200*200 pixel resolution.
-  
-  The objects of the plot will appear in the current selection state. So when you don't want e.g.
-  selected axes to be painted in their selected look, deselect everything with \ref deselectAll
-  before calling this function.
+  Saves a JPG image file to \a fileName on disc. The output plot will have the dimensions \a width
+  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
+  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
+  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
 
-  \warning
-  \li If calling this function inside the constructor of the parent of the QCustomPlot widget
+  For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
+  image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
+  texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
+  200*200 pixel resolution.
+
+  \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
   explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
   function uses the current width and height of the QCustomPlot widget. However, in Qt, these
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
-  \li When using the raster graphicssystem: There currently is a bug in the Qt painting system that
-  prevents proper scaling of pen widths when using the raster graphicssystem. So if you use this
-  function and need properly scaled pens widths, consider using a different graphicssystem than
-  raster (or apply a non-zero pen width to all pens, since the bug only occurs for cosmetic pens).
+
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
+
+  JPG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
+  -1 to use the default setting.
   
-  \see savePng
+  Returns true on success. If this function fails, most likely the JPG format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
+  \see savePdf, savePng, saveBmp, saveRastered
 */
-void QCustomPlot::savePngScaled(const QString &fileName, double scale, int width, int height)
-{  
-  int newWidth, newHeight;
-  if (width == 0 || height == 0)
-  {
-    newWidth = this->width();
-    newHeight = this->height();
-  } else
-  {
-    newWidth = width;
-    newHeight = height;
-  }
+bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double scale, int quality)
+{
+  return saveRastered(fileName, width, height, scale, "JPG", quality);
+}
+
+/*!
+  Saves a BMP image file to \a fileName on disc. The output plot will have the dimensions \a width
+  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
+  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
+  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+
+  For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
+  image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
+  texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
+  200*200 pixel resolution.
+
+  \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
+  (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
+  explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
+  function uses the current width and height of the QCustomPlot widget. However, in Qt, these
+  aren't defined yet inside the constructor, so you would get an image that has strange
+  widths/heights.
+
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
   
-  int scaledWidth = scale*newWidth;
-  int scaledHeight = scale*newHeight;
+  Returns true on success. If this function fails, most likely the BMP format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
+  \see savePdf, savePng, saveJpg, saveRastered
+*/
+bool QCustomPlot::saveBmp(const QString &fileName, int width, int height, double scale)
+{
+  return saveRastered(fileName, width, height, scale, "BMP");
+}
+
+/*! \internal
   
-  QPixmap pngBuffer(scaledWidth, scaledHeight);
-  QPainter painter(&pngBuffer);
-  painter.setRenderHint(QPainter::NonCosmeticDefaultPen);
-  painter.fillRect(pngBuffer.rect(), mColor);
-  QRect oldViewport = mViewport;
-  mViewport = QRect(0, 0, newWidth, newHeight);
-  updateAxisRect();
-  painter.scale(scale, scale);
-  draw(&painter);
-  mViewport = oldViewport;
-  updateAxisRect();
-  pngBuffer.save(fileName);
+  Returns a minimum size hint of QSize(50, 50). This prevents QCustomPlot from being collapsed to
+  size/width zero when placed in a layout where other components try to take in as much space as
+  possible (e.g. QMdiArea).
+
+  (To overwrite this minimum size hint of QCustomPlot, simply call QWidget::setMinimumSize in the
+  QCustomPlot widget.)
+*/
+QSize QCustomPlot::minimumSizeHint() const
+{
+  return QSize(50, 50);
 }
 
 /*! \internal
   
   Event handler for when the QCustomPlot widget needs repainting. This does not cause a replot, but
-  draws the internal \a buffer QPixmap on the widget surface.
+  draws the internal buffer on the widget surface.
 */
 void QCustomPlot::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED(event);
   QPainter painter(this);
-  painter.drawPixmap(0, 0, buffer);
+  painter.drawPixmap(0, 0, mPaintBuffer);
 }
 
 /*! \internal
   
-  Event handler for a resize of the QCustomPlot widget. Causes the internal buffer QPixmap to be
-  resized to the new size. The viewport and the axis rect are resized appropriately. Finally a
-  replot is performed.
+  Event handler for a resize of the QCustomPlot widget. Causes the internal buffer to be resized to
+  the new size. The viewport and the axis rect are resized appropriately. Finally a replot is
+  performed.
 */
 void QCustomPlot::resizeEvent(QResizeEvent *event)
 {
   // resize and repaint the buffer:
-  buffer = QPixmap(event->size());
+  mPaintBuffer = QPixmap(event->size());
   mViewport = rect();
   updateAxisRect();
   replot();
@@ -7109,6 +7555,15 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
     if (QCPAbstractPlottable *ap = plottableAt(event->pos(), false))
     {
       emit plottableDoubleClick(ap, event);
+      foundHit = true;
+    }
+  }
+  // for items:
+  if (!foundHit && receivers(SIGNAL(itemDoubleClick(QCPAbstractItem*,QMouseEvent*))) > 0)
+  {
+    if (QCPAbstractItem *ai = itemAt(event->pos(), false))
+    {
+      emit itemDoubleClick(ai, event);
       foundHit = true;
     }
   }
@@ -7156,6 +7611,12 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   if (event->buttons() & Qt::LeftButton)
   {
     mDragging = true;
+    // initialize antialiasing backup in case we start dragging:
+    if (mNoAntialiasingOnDrag)
+    {
+      mAADragBackup = antialiasedElements();
+      mNotAADragBackup = notAntialiasedElements();
+    }
     // Mouse range dragging interaction:
     if (mInteractions.testFlag(iRangeDrag))
     {
@@ -7208,7 +7669,11 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
         }
       }
       if (mRangeDrag != 0) // if either vertical or horizontal drag was enabled, do a replot
+      {
+        if (mNoAntialiasingOnDrag)
+          setNotAntialiasedElements(QCP::aeAll);
         replot();
+      }
     }
   }
   
@@ -7226,23 +7691,33 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
 {
   emit mouseRelease(event);
   mDragging = false;
+  bool doReplot = false;
+  if (mNoAntialiasingOnDrag)
+  {
+    setAntialiasedElements(mAADragBackup);
+    setNotAntialiasedElements(mNotAADragBackup);
+    doReplot = true;
+  }
   
   // determine whether it was a drag or click operation:
   if ((mDragStart-event->pos()).manhattanLength() < 5) // was a click
   {
     // Mouse selection interaction:
-    if ((mInteractions & (iSelectPlottables|iSelectAxes|iSelectLegend|iSelectTitle)) > 0 
+    if ((mInteractions & (iSelectPlottables|iSelectItems|iSelectAxes|iSelectLegend|iSelectTitle)) > 0 
         && event->button() == Qt::LeftButton)
     {
       bool selectionFound = false;
       bool emitChangedSignal = false;
-      bool additiveSelection = mInteractions.testFlag(iMultiSelect) && event->modifiers().testFlag(Qt::ControlModifier);
+      bool additiveSelection = mInteractions.testFlag(iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
       // Mouse selection of legend:
       if (mInteractions.testFlag(iSelectLegend))
         selectionFound |= legend->handleLegendSelection(event, additiveSelection, emitChangedSignal);
       // Mouse selection of plottables:
       if (mInteractions.testFlag(iSelectPlottables))
         selectionFound |= handlePlottableSelection((!selectionFound || additiveSelection) ? event : 0, additiveSelection, emitChangedSignal);
+      // Mouse selection of items:
+      if (mInteractions.testFlag(iSelectItems))
+        selectionFound |= handleItemSelection((!selectionFound || additiveSelection) ? event : 0, additiveSelection, emitChangedSignal);
       // Mouse selection of axes:
       if (mInteractions.testFlag(iSelectAxes))
         selectionFound |= handleAxisSelection((!selectionFound || additiveSelection) ? event : 0, additiveSelection, emitChangedSignal);
@@ -7252,7 +7727,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       
       if (emitChangedSignal)
         emit selectionChangedByUser();
-      replot();
+      doReplot = true;
     }
     
     // emit specialized object click signals:
@@ -7272,6 +7747,15 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       if (QCPAbstractPlottable *ap = plottableAt(event->pos(), false))
       {
         emit plottableClick(ap, event);
+        foundHit = true;
+      }
+    }
+    // for items:
+    if (!foundHit && receivers(SIGNAL(itemClick(QCPAbstractItem*,QMouseEvent*))) > 0)
+    {
+      if (QCPAbstractItem *ai = itemAt(event->pos(), false))
+      {
+        emit itemClick(ai, event);
         foundHit = true;
       }
     }
@@ -7300,6 +7784,9 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       }
     }
   } // was a click end
+  
+  if (doReplot)
+    replot();
   
   QWidget::mouseReleaseEvent(event);
 }
@@ -7367,6 +7854,8 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
 */
 bool QCustomPlot::handlePlottableSelection(QMouseEvent *event, bool additiveSelection, bool &modified)
 {
+  // Note: This code is basically identical to handleItemSelection, only for plottables
+  
   bool selectionFound = false;
   if (event)
   {
@@ -7400,6 +7889,67 @@ bool QCustomPlot::handlePlottableSelection(QMouseEvent *event, bool additiveSele
       if (mPlottables.at(i)->selected() && mPlottables.at(i)->selectable())
       {
         mPlottables.at(i)->setSelected(false);
+        modified = true;
+      }
+    }
+  }
+  return selectionFound;
+}
+
+/*! \internal
+  
+  Handles a mouse \a event for the item selection interaction. Returns true, when a selectable
+  item was hit by the mouse event. The output variable \a modified is set to true when the
+  selection state of an item has changed.
+  
+  When \a additiveSelecton is true, any new selections become selected in addition to the recent
+  selections. The recent selections are not cleared. Further, clicking on one object multiple times
+  in additive selection mode, toggles the selection of that object on and off.
+  
+  To indicate that all items that are selectable shall be deselected, pass 0 as \a event.
+  
+  Unlike for axis and legend selection, this function can't be exported to the respective class
+  itself (i.e. QCPAbstractItem). The function needs to know the distance of the mouse event to
+  all items in the plot, in order to choose the item with the smallest distance. This
+  wouldn't work if it were local to a single item.
+*/
+bool QCustomPlot::handleItemSelection(QMouseEvent *event, bool additiveSelection, bool &modified)
+{
+  // Note: This code is basically identical to handlePlottableSelection, only for items
+  
+  bool selectionFound = false;
+  if (event)
+  {
+    QCPAbstractItem *itemSelection = itemAt(event->pos(), true);
+    // handle selection of found plottable:
+    if (itemSelection)
+    {
+      selectionFound = true;
+      if (!itemSelection->selected() || additiveSelection)
+      {
+        itemSelection->setSelected(!itemSelection->selected());
+        modified = true;
+      }
+    }
+    // deselect all others (if itemSelection is 0, all items are deselected):
+    if (!additiveSelection)
+    {
+      for (int i=0; i<mItems.size(); ++i)
+      {
+        if (mItems.at(i) != itemSelection && mItems.at(i)->selected() && mItems.at(i)->selectable())
+        {
+          mItems.at(i)->setSelected(false);
+          modified = true;
+        }
+      }
+    }
+  } else // event == 0, so deselect selectable items
+  {
+    for (int i=0; i<mItems.size(); ++i)
+    {
+      if (mItems.at(i)->selected() && mItems.at(i)->selectable())
+      {
+        mItems.at(i)->setSelected(false);
         modified = true;
       }
     }
@@ -7468,25 +8018,21 @@ bool QCustomPlot::handleTitleSelection(QMouseEvent *event, bool additiveSelectio
   calculates and applies appropriate margins if autoMargin is true and finally draws
   all elements with the passed \a painter. (axis background, title, subgrid, grid, axes, plottables)
 */
-void QCustomPlot::draw(QPainter *painter)
+void QCustomPlot::draw(QCPPainter *painter)
 {
-
-  // draw title:
+  // calculate title bounding box:
   if (!mTitle.isEmpty())
   {
     painter->setFont(titleSelected() ? mSelectedTitleFont : mTitleFont);
-    painter->setPen(QPen(titleSelected() ? mSelectedTitleColor : mTitleColor));
     mTitleBoundingBox = painter->fontMetrics().boundingRect(mViewport, Qt::TextDontClip | Qt::AlignHCenter, mTitle);
-    painter->drawText(mTitleBoundingBox, Qt::TextDontClip | Qt::AlignHCenter, mTitle);
   } else
     mTitleBoundingBox = QRect();
   
   // prepare values of ticks and tick strings:
-  xAxis->generateTickVectors();
-  yAxis->generateTickVectors();
-  xAxis2->generateTickVectors();
-  yAxis2->generateTickVectors();
-  
+  xAxis->setupTickVectors();
+  yAxis->setupTickVectors();
+  xAxis2->setupTickVectors();
+  yAxis2->setupTickVectors();
   // set auto margin such that tick/axis labels etc. are not clipped:
   if (mAutoMargin)
   {
@@ -7495,37 +8041,37 @@ void QCustomPlot::draw(QPainter *painter)
               xAxis2->calculateMargin()+mTitleBoundingBox.height(),
               xAxis->calculateMargin());
   }
+  // position legend:
+  legend->reArrange();
   
   // draw axis background:
   drawAxisBackground(painter);
   
-  // draw grids (and zerolines):
-  xAxis->drawSubGrid(painter);
-  yAxis->drawSubGrid(painter);
-  xAxis2->drawSubGrid(painter);
-  yAxis2->drawSubGrid(painter);
-  xAxis->drawGrid(painter);
-  yAxis->drawGrid(painter);
-  xAxis2->drawGrid(painter);
-  yAxis2->drawGrid(painter);
-  
-  // draw all plottables:
-  for (int i=0; i < mPlottables.size(); ++i)
+  // draw all layered objects (grid, axes, plottables, items, legend,...):
+  for (int layerIndex=0; layerIndex < mLayers.size(); ++layerIndex)
   {
-    painter->save(); // since this might be user subclass, we save painter outside - just in case
-    mPlottables.at(i)->draw(painter);
-    painter->restore();
+    QList<QCPLayerable*> layerChildren = mLayers.at(layerIndex)->children();
+    for (int k=0; k < layerChildren.size(); ++k)
+    {
+      QCPLayerable *child = layerChildren.at(k);
+      if (child->visible())
+      {
+        painter->save();
+        painter->setClipRect(child->clipRect().translated(0, -1));
+        child->applyDefaultAntialiasingHint(painter);
+        child->draw(painter);
+        painter->restore();
+      }
+    }
   }
   
-  // draw axes, ticks and axis labels:
-  xAxis->drawAxis(painter);
-  yAxis->drawAxis(painter);
-  xAxis2->drawAxis(painter);
-  yAxis2->drawAxis(painter);
-  
-  // draw legend:
-  legend->reArrange();
-  legend->draw(painter);
+  // draw title:
+  if (!mTitle.isEmpty())
+  {
+    painter->setFont(titleSelected() ? mSelectedTitleFont : mTitleFont);
+    painter->setPen(QPen(titleSelected() ? mSelectedTitleColor : mTitleColor));
+    painter->drawText(mTitleBoundingBox, Qt::TextDontClip | Qt::AlignHCenter, mTitle);
+  }
 }
 
 /*! \internal
@@ -7540,7 +8086,7 @@ void QCustomPlot::draw(QPainter *painter)
   
   \see draw, setAxisBackground, setAxisBackgroundScaled, setAxisBackgroundScaledMode
 */
-void QCustomPlot::drawAxisBackground(QPainter *painter)
+void QCustomPlot::drawAxisBackground(QCPPainter *painter)
 {
   if (!mAxisBackground.isNull())
   {
@@ -7579,9 +8125,57 @@ void QCustomPlot::updateAxisRect()
   
   Returns whether the point \a pos in pixels hits the plot title.
 */
-bool QCustomPlot::selectTestTitle(const QPoint &pos) const
+bool QCustomPlot::selectTestTitle(const QPointF &pos) const
 {
-  return mTitleBoundingBox.contains(pos);
+  return mTitleBoundingBox.contains(pos.toPoint());
+}
+
+/*!
+  Saves the plot to a rastered image file \a fileName in the image format \a
+  format. The plot is sized to \a width and \a height in pixels and scaled with
+  \a scale. (width 100 and scale 2.0 lead to a full resolution file with width
+  200) If the \a format supports compression, \a quality may be between 0 and
+  100 to control it.
+  
+  Returns true on success. If this function fails, most likely the given \a format isn't supported
+  by the system, see Qt docs about QImageWriter::supportedImageFormats().
+  
+  \see saveBmp, saveJpg, savePng
+*/
+bool QCustomPlot::saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality)
+{
+  int newWidth, newHeight;
+  if (width == 0 || height == 0)
+  {
+    newWidth = this->width();
+    newHeight = this->height();
+  } else
+  {
+    newWidth = width;
+    newHeight = height;
+  }
+  int scaledWidth = qRound(scale*newWidth);
+  int scaledHeight = qRound(scale*newHeight);
+
+  QPixmap pngBuffer(scaledWidth, scaledHeight); // use QPixmap instead of QImage (like live painting buffer), because it supports background transparency (of mColor).
+  pngBuffer.fill(mColor);
+  QCPPainter painter(&pngBuffer);
+  QRect oldViewport = mViewport;
+  mViewport = QRect(0, 0, newWidth, newHeight);
+  updateAxisRect();
+  if (!qFuzzyCompare(scale, 1.0))
+  {
+    if (scale > 1.0) // for scale < 1 we always want cosmetic pens where possible, because else lines would disappear
+    {
+      painter.setScaledExportMode(true);
+      painter.setRenderHint(QPainter::NonCosmeticDefaultPen);
+    }
+    painter.scale(scale, scale);
+  }
+  draw(&painter);
+  mViewport = oldViewport;
+  updateAxisRect();
+  return pngBuffer.save(fileName, format, quality);
 }
 
 
@@ -7603,7 +8197,7 @@ bool QCustomPlot::selectTestTitle(const QPoint &pos) const
   \li A stackable bar chart can be achieved with \ref QCPBars.
   \li A box of a statistical box plot is created with \ref QCPStatisticalBox.
   
-  \section subclassing Creating own plottables
+  \section plottables-subclassing Creating own plottables
   
   To create an own plottable, you implement a subclass of QCPAbstractPlottable. These are the pure
   virtual functions, you must implement:
@@ -7663,23 +8257,22 @@ bool QCustomPlot::selectTestTitle(const QPoint &pos) const
   Clears all data in the plottable.
 */
 
-/*! \fn double QCPAbstractPlottable::selectTest(double key, double value) const = 0
+/*! \fn double QCPAbstractPlottable::selectTest(const QPointF &pos) const = 0
   
   This function is used to decide whether a click hits a plottable or not.
 
-  \a key and \a value represent a point in plot coordinates (coordinates of the plottable's key and
-  value axes). This function returns the shortest pixel distance to the plottable (e.g. to the
-  scatters/lines of a graph). If the plottable is either invisible, contains no data or the
-  distance couldn't be determined, -1.0 is returned. \ref setSelectable has no influence on the
-  return value of this function.
+  \a pos is a point in pixel coordinates on the QCustomPlot surface. This function returns the
+  shortest pixel distance of this point to the plottable (e.g. to the scatters/lines of a graph).
+  If the plottable is either invisible, contains no data or the distance couldn't be determined,
+  -1.0 is returned. \ref setSelectable has no influence on the return value of this function.
 
   If the plottable is represented not by single lines but by an area like QCPBars or
   QCPStatisticalBox, a click inside the area returns a constant value greater zero (typically 99%
   of the selectionTolerance of the parent QCustomPlot). If the click lies outside the area, this
   function returns -1.0.
   
-  Providing a constant value for area-plottables allows selecting graph lines even when they are
-  obscured by such area-plottables, by clicking close to the lines (i.e. closer than
+  Providing a constant value for area objects allows selecting line objects even when they are
+  obscured by such area objects, by clicking close to the lines (i.e. closer than
   0.99*selectionTolerance).
   
   The actual setting of the selection state is not done by this function. This is handled by the
@@ -7688,14 +8281,17 @@ bool QCustomPlot::selectTestTitle(const QPoint &pos) const
   \see setSelected, QCustomPlot::setInteractions
 */
 
-/*! \fn void QCPAbstractPlottable::draw(QPainter *painter) const = 0
+/*! \fn void QCPAbstractPlottable::draw(QCPPainter *painter) = 0
   \internal
   
   Draws this plottable with the provided \a painter. Called by \ref QCustomPlot::draw on all its
-  plottables.
+  visible plottables.
+  
+  The cliprect of the provided painter is set to the axis rect of the key/value axis of this
+  plottable (what \ref clipRect returns), before this function is called.
 */
 
-/*! \fn void QCPAbstractPlottable::drawLegendIcon(QPainter *painter, const QRect &rect) const = 0
+/*! \fn void QCPAbstractPlottable::drawLegendIcon(QCPPainter *painter, const QRect &rect) const = 0
   \internal
   
   called by QCPLegend::draw (via QCPPlottableLegendItem::draw) to create a graphical representation
@@ -7754,10 +8350,11 @@ bool QCustomPlot::selectTestTitle(const QPoint &pos) const
   \see setKeyAxis, setValueAxis
 */
 QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QObject(keyAxis->parentPlot()),
-  mParentPlot(keyAxis->parentPlot()),
+  QCPLayerable(keyAxis->parentPlot()),
   mName(""),
-  mVisible(true),
+  mAntialiasedFill(true),
+  mAntialiasedScatters(true),
+  mAntialiasedErrorBars(false),
   mPen(Qt::black),
   mSelectedPen(Qt::black),
   mBrush(Qt::NoBrush),
@@ -7768,9 +8365,9 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mSelectable(true)
 {
   if (keyAxis->parentPlot() != valueAxis->parentPlot())
-    qDebug() << FUNCNAME << "Parent plot of keyAxis is not the same as that of valueAxis.";
+    qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
   if (keyAxis->orientation() == valueAxis->orientation())
-    qDebug() << FUNCNAME << "keyAxis and valueAxis must be orthogonal to each other.";
+    qDebug() << Q_FUNC_INFO << "keyAxis and valueAxis must be orthogonal to each other.";
 }
 
 /*!
@@ -7783,13 +8380,38 @@ void QCPAbstractPlottable::setName(const QString &name)
 }
 
 /*!
-  If the plottable visibility is set to false, it won't be drawn to the plot surface.
-  It will still appear in a \ref QCPLegend that it's associated with, though.
+  Sets whether fills of this plottable is drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
 */
-void QCPAbstractPlottable::setVisible(bool visible)
+void QCPAbstractPlottable::setAntialiasedFill(bool enabled)
 {
-  mVisible = visible;
+  mAntialiasedFill = enabled;
 }
+
+/*!
+  Sets whether the scatter symbols of this plottable are drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPAbstractPlottable::setAntialiasedScatters(bool enabled)
+{
+  mAntialiasedScatters = enabled;
+}
+
+/*!
+  Sets whether the error bars of this plottable are drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPAbstractPlottable::setAntialiasedErrorBars(bool enabled)
+{
+  mAntialiasedErrorBars = enabled;
+}
+
 
 /*!
   The pen is used to draw basic lines that make up the plottable representation in the
@@ -7914,7 +8536,7 @@ void QCPAbstractPlottable::setSelected(bool selected)
   Rescales the key and value axes associated with this plottable to contain all displayed data, so
   the whole plottable is visible. If the scaling of an axis is logarithmic, rescaleAxes will make
   sure not to rescale to an illegal range i.e. a range containing different signs and/or zero.
-  Instead it will stay in the current sign domain and ignore all entities of the plottable that lie
+  Instead it will stay in the current sign domain and ignore all parts of the plottable that lie
   outside of that domain.
   
   \a onlyEnlarge makes sure the ranges are only expanded, never reduced. So it's possible to show
@@ -7940,7 +8562,6 @@ void QCPAbstractPlottable::rescaleKeyAxis(bool onlyEnlarge) const
   
   bool validRange;
   QCPRange newRange = getKeyRange(validRange, signDomain);
-  
   if (validRange)
   {
     if (onlyEnlarge)
@@ -8019,6 +8640,12 @@ bool QCPAbstractPlottable::removeFromLegend() const
     return mParentPlot->legend->removeItem(lip);
   else
     return false;
+}
+
+/* inherits documentation from base class */
+QRect QCPAbstractPlottable::clipRect() const
+{
+  return mKeyAxis->axisRect() | mValueAxis->axisRect();
 }
 
 /*! \internal
@@ -8110,6 +8737,99 @@ QBrush QCPAbstractPlottable::mainBrush() const
   return mSelected ? mSelectedBrush : mBrush;
 }
 
+/*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing plottable lines.
+
+  This is the antialiasing state the painter passed to the \ref draw method is in by default.
+  
+  This function takes into account the local setting of the antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint, applyErrorBarsAntialiasingHint
+*/
+void QCPAbstractPlottable::applyDefaultAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiased, QCP::aePlottables);
+}
+
+/*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing plottable fills.
+  
+  This function takes into account the local setting of the fill antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased, applyDefaultAntialiasingHint, applyScattersAntialiasingHint, applyErrorBarsAntialiasingHint
+*/
+void QCPAbstractPlottable::applyFillAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiasedFill, QCP::aeFills);
+}
+
+/*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing plottable scatter points.
+  
+  This function takes into account the local setting of the scatters antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased, applyFillAntialiasingHint, applyDefaultAntialiasingHint, applyErrorBarsAntialiasingHint
+*/
+void QCPAbstractPlottable::applyScattersAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiasedScatters, QCP::aeScatters);
+}
+
+/*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing plottable error bars.
+  
+  This function takes into account the local setting of the error bars antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint, applyDefaultAntialiasingHint
+*/
+void QCPAbstractPlottable::applyErrorBarsAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiasedErrorBars, QCP::aeErrorBars);
+}
+
+/*! \internal
+
+  Finds the shortest squared distance of \a point to the line segment defined by \a start and \a
+  end.
+  
+  This function may be used to help with the implementation of the \ref selectTest function for
+  specific plottables.
+  
+  \note This function is identical to QCPAbstractItem::distSqrToLine
+*/
+double QCPAbstractPlottable::distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const
+{
+  QVector2D a(start);
+  QVector2D b(end);
+  QVector2D p(point);
+  QVector2D v(b-a);
+  
+  double vLengthSqr = v.lengthSquared();
+  if (!qFuzzyIsNull(vLengthSqr))
+  {
+    double mu = QVector2D::dotProduct(p-a, v)/vLengthSqr;
+    if (mu < 0)
+      return (a-p).lengthSquared();
+    else if (mu > 1)
+      return (b-p).lengthSquared();
+    else
+      return ((a + mu*v)-p).lengthSquared();
+  } else
+    return (a-p).lengthSquared();
+}
+
 
 // ================================================================================
 // =================== QCPAbstractLegendItem
@@ -8142,7 +8862,7 @@ QBrush QCPAbstractPlottable::mainBrush() const
 
 /* start documentation of pure virtual functions */
 
-/*! \fn void QCPAbstractLegendItem::draw(QPainter *painter, const QRect &rect) const = 0;
+/*! \fn void QCPAbstractLegendItem::draw(QCPPainter *painter, const QRect &rect) const = 0;
   
   Draws this legend item with \a painter inside the specified \a rect. The \a rect typically has
   the size which was returned from a preceding \ref size call.
@@ -8174,6 +8894,7 @@ QBrush QCPAbstractPlottable::mainBrush() const
 QCPAbstractLegendItem::QCPAbstractLegendItem(QCPLegend *parent) : 
   QObject(parent),
   mParentLegend(parent),
+  mAntialiased(false),
   mFont(parent->font()),
   mTextColor(parent->textColor()),
   mSelectedFont(parent->selectedFont()),
@@ -8181,6 +8902,17 @@ QCPAbstractLegendItem::QCPAbstractLegendItem(QCPLegend *parent) :
   mSelectable(true),
   mSelected(false)
 {
+}
+
+/*!
+  Sets whether this legend item is drawn antialiased or not.
+  
+  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPAbstractLegendItem::setAntialiased(bool enabled)
+{
+  mAntialiased = enabled;
 }
 
 /*!
@@ -8254,6 +8986,22 @@ void QCPAbstractLegendItem::setSelected(bool selected)
   }
 }
 
+/*! \internal
+
+  Sets the QPainter::Antialiasing render hint on the provided \a painter, depending on the \ref
+  setAntialiased state of this legend item as well as the overrides \ref
+  QCustomPlot::setAntialiasedElements and \ref QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPAbstractLegendItem::applyAntialiasingHint(QCPPainter *painter) const
+{
+  if (mParentLegend->mParentPlot->notAntialiasedElements().testFlag(QCP::aeLegendItems))
+    painter->setAntialiasing(false);
+  else if (mParentLegend->mParentPlot->antialiasedElements().testFlag(QCP::aeLegendItems))
+    painter->setAntialiasing(true);
+  else
+    painter->setAntialiasing(mAntialiased);
+}
+
 
 // ================================================================================
 // =================== QCPPlottableLegendItem
@@ -8290,9 +9038,9 @@ void QCPAbstractLegendItem::setSelected(bool selected)
 */
 QCPPlottableLegendItem::QCPPlottableLegendItem(QCPLegend *parent, QCPAbstractPlottable *plottable) :
   QCPAbstractLegendItem(parent),
-  mPlottable(plottable)
+  mPlottable(plottable),
+  mTextWrap(false)
 {
-  mTextWrap = false;
 }
 
 /*!
@@ -8348,7 +9096,7 @@ QFont QCPPlottableLegendItem::getFont() const
   calling this function. Ideally, the width of the rect should be the result of a preceding call to
   \ref size.
 */
-void QCPPlottableLegendItem::draw(QPainter *painter, const QRect &rect) const
+void QCPPlottableLegendItem::draw(QCPPainter *painter, const QRect &rect) const
 {
   if (!mPlottable) return;
   painter->setFont(getFont());
@@ -8476,6 +9224,10 @@ QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mSelectedPen.setWidthF(2.5);
   mSelectedPen.setColor(QColor(80, 80, 255)); // lighter than Qt::blue of mPen
   mSelectedBrush = mBrush;
+  
+  setScatterSize(6);
+  setScatterStyle(QCP::ssNone);
+  setLineStyle(lsLine);
 }
 
 QCPCurve::~QCPCurve()
@@ -8542,6 +9294,51 @@ void QCPCurve::setData(const QVector<double> &key, const QVector<double> &value)
     newData.value = value[i];
     mData->insertMulti(newData.t, newData);
   }
+}
+
+/*! 
+  Sets the visual appearance of single data points in the plot. If set to \ref QCP::ssNone, no scatter points
+  are drawn (e.g. for line-only-plots with appropriate line style).
+  \see ScatterStyle, setLineStyle
+*/
+void QCPCurve::setScatterStyle(QCP::ScatterStyle style)
+{
+  mScatterStyle = style;
+}
+
+/*! 
+  This defines how big (in pixels) single scatters are drawn, if scatter style (\ref
+  setScatterStyle) isn't \ref QCP::ssNone, \ref QCP::ssDot or \ref QCP::ssPixmap. Floating point values are
+  allowed for fine grained control over optical appearance with antialiased painting.
+  
+  \see ScatterStyle
+*/
+void QCPCurve::setScatterSize(double size)
+{
+  mScatterSize = size;
+}
+
+/*! 
+  If the scatter style (\ref setScatterStyle) is set to ssPixmap, this function defines the QPixmap
+  that will be drawn centered on the data point coordinate.
+  
+  \see ScatterStyle
+*/
+void QCPCurve::setScatterPixmap(const QPixmap &pixmap)
+{
+  mScatterPixmap = pixmap;
+}
+
+/*!
+  Sets how the single data points are connected in the plot or how they are represented visually
+  apart from the scatter symbol. For scatter-only plots, set \a style to \ref lsNone and \ref
+  setScatterStyle to the desired scatter style.
+  
+  \see setScatterStyle
+*/
+void QCPCurve::setLineStyle(QCPCurve::LineStyle style)
+{
+  mLineStyle = style;
 }
 
 /*!
@@ -8677,20 +9474,18 @@ void QCPCurve::clearData()
 }
 
 /* inherits documentation from base class */
-double QCPCurve::selectTest(double key, double value) const
+double QCPCurve::selectTest(const QPointF &pos) const
 {
   if (mData->isEmpty() || !mVisible)
     return -1;
   
-  return pointDistance(coordsToPixels(key, value));
+  return pointDistance(pos);
 }
 
 /* inherits documentation from base class */
-void QCPCurve::draw(QPainter *painter) const
+void QCPCurve::draw(QCPPainter *painter)
 {
-  if (!mVisible) return;
   if (mData->isEmpty()) return;
-  painter->setClipRect(mKeyAxis->axisRect() | mValueAxis->axisRect());
   
   // allocate line vector:
   QVector<QPointF> *lineData = new QVector<QPointF>;
@@ -8699,36 +9494,91 @@ void QCPCurve::draw(QPainter *painter) const
   // draw curve fill:
   if (mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeFills));
+    applyFillAntialiasingHint(painter);
     painter->setPen(Qt::NoPen);
     painter->setBrush(mainBrush());
     painter->drawPolygon(QPolygonF(*lineData));
   }
   // draw curve line:
-  if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
+  if (mLineStyle != lsNone && mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
+    applyDefaultAntialiasingHint(painter);
     painter->setPen(mainPen());
     painter->setBrush(Qt::NoBrush);
-    painter->drawPolyline(QPolygonF(*lineData));
+    // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
+    if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
+        painter->pen().style() == Qt::SolidLine &&
+        !painter->pdfExportMode())
+    {
+      for (int i=1; i<lineData->size(); ++i)
+        painter->drawLine(lineData->at(i-1), lineData->at(i));
+    } else
+    {  
+      painter->drawPolyline(QPolygonF(*lineData));
+    }
   }
+  // draw scatters:
+  if (mScatterStyle != QCP::ssNone)
+    drawScatterPlot(painter, lineData);
   // free allocated line data:
   delete lineData;
 }
 
 /* inherits documentation from base class */
-void QCPCurve::drawLegendIcon(QPainter *painter, const QRect &rect) const
+void QCPCurve::drawLegendIcon(QCPPainter *painter, const QRect &rect) const
 {
   // draw fill:
   if (mBrush.style() != Qt::NoBrush)
   {
-    painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
-    painter->fillRect(rect.left(), rect.top()+rect.height()/2.0, rect.width(), rect.height()/3.0, mBrush);
+    applyFillAntialiasingHint(painter);
+    painter->fillRect(QRectF(rect.left(), rect.top()+rect.height()/2.0, rect.width(), rect.height()/3.0), mBrush);
   }
   // draw line vertically centered:
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
-  painter->setPen(mPen);
-  painter->drawLine(rect.left(), rect.top()+rect.height()/2.0, rect.right()+5, rect.top()+rect.height()/2.0); // +5 on x2 else last segment is missing from dashed/dotted pens
+  if (mLineStyle != lsNone)
+  {
+    applyDefaultAntialiasingHint(painter);
+    painter->setPen(mPen);
+    painter->drawLine(QLineF(rect.left(), rect.top()+rect.height()/2.0, rect.right()+5, rect.top()+rect.height()/2.0)); // +5 on x2 else last segment is missing from dashed/dotted pens
+  }
+  // draw scatter symbol:
+  if (mScatterStyle != QCP::ssNone)
+  {
+    if (mScatterStyle == QCP::ssPixmap && (mScatterPixmap.size().width() > rect.width() || mScatterPixmap.size().height() > rect.height()))
+    {
+      // handle pixmap scatters that are larger than legend icon rect separately.
+      // We resize them and draw them manually, instead of calling drawScatter:
+      QSize newSize = mScatterPixmap.size();
+      newSize.scale(rect.size(), Qt::KeepAspectRatio);
+      QRect targetRect;
+      targetRect.setSize(newSize);
+      targetRect.moveCenter(rect.center());
+      bool smoothBackup = painter->testRenderHint(QPainter::SmoothPixmapTransform);
+      painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+      painter->drawPixmap(targetRect, mScatterPixmap);
+      painter->setRenderHint(QPainter::SmoothPixmapTransform, smoothBackup);
+    } else
+    {
+      applyScattersAntialiasingHint(painter);
+      painter->setPen(mPen);
+      painter->drawScatter(QRectF(rect).center().x(), QRectF(rect).center().y(), mScatterSize, mScatterStyle);
+    }
+  }
+}
+
+/*! \internal
+  
+  Draws scatter symbols at every data point passed in \a pointData. scatter symbols are independent of
+  the line style and are always drawn if scatter style is not \ref QCP::ssNone.
+*/
+void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const
+{
+  // draw scatter point symbols:
+  applyScattersAntialiasingHint(painter);
+  painter->setPen(mainPen());
+  painter->setBrush(mainBrush());
+  painter->setScatterPixmap(mScatterPixmap);
+  for (int i=0; i<pointData->size(); ++i)
+    painter->drawScatter(pointData->at(i).x(), pointData->at(i).y(), mScatterSize, mScatterStyle);
 }
 
 /*! \internal
@@ -8739,14 +9589,14 @@ void QCPCurve::drawLegendIcon(QPainter *painter, const QRect &rect) const
 */
 void QCPCurve::getCurveData(QVector<QPointF> *lineData) const
 {
-  /* Edges of axis rect R divide space into 9 regions:
+  /* Extended sides of axis rect R divide space into 9 regions:
      1__|_4_|__7  
      2__|_R_|__8
      3  | 6 |  9 
      General idea: If the two points of a line segment are in the same region (that is not R), the line segment corner is removed.
      Curves outside R become straight lines closely outside of R which greatly reduces drawing time, yet keeps the look of lines and
      fills inside R consistent.
-     The region inside R has index 5.
+     The region R has index 5.
   */
   lineData->reserve(mData->size());
   QCPCurveDataMap::const_iterator it;
@@ -8812,7 +9662,7 @@ void QCPCurve::getCurveData(QVector<QPointF> *lineData) const
     {
       // using outsideCoordsToPixels instead of coorsToPixels for optimized point placement (places points just outside axisRect instead of potentially far away)
       
-      // if we're coming from R or we skip diagonally over the edge regions (so line might still be visible in R), we can't place points optimized
+      // if we're coming from R or we skip diagonally over the corner regions (so line might still be visible in R), we can't place points optimized
       if (lastRegion == 5 || // coming from R
           ((lastRegion==2 && currentRegion==4) || (lastRegion==4 && currentRegion==2)) || // skip top left diagonal
           ((lastRegion==4 && currentRegion==8) || (lastRegion==8 && currentRegion==4)) || // skip top right diagonal
@@ -8856,7 +9706,7 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
 {
   if (mData->isEmpty())
   {
-    qDebug() << FUNCNAME << "requested point distance on curve" << mName << "without data";
+    qDebug() << Q_FUNC_INFO << "requested point distance on curve" << mName << "without data";
     return 500;
   }
   if (mData->size() == 1)
@@ -8877,28 +9727,6 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
   }
   delete lineData;
   return sqrt(minDistSqr);
-}
-
-/*! \internal
-
-  finds the shortest squared distance of \a point to the line segment defined by \a ptA and \a ptB.
-  This is a helper function for \ref pointDistance.
-  
-  \note This function is identical to QCPGraph::distSqrToLine
-*/
-double QCPCurve::distSqrToLine(QPointF ptA, QPointF ptB, QPointF point) const
-{
-  QVector2D a(ptA);
-  QVector2D b(ptB);
-  QVector2D p(point);
-  QVector2D v(b-a);
-  double mu = (QVector2D::dotProduct(p, v)-QVector2D::dotProduct(a, v))/v.lengthSquared();
-  if (mu <= 0)
-    return (a-p).lengthSquared();
-  else if (mu >= 1)
-    return (b-p).lengthSquared();
-  else
-    return ((a + mu*v)-p).lengthSquared();
 }
 
 /*! \internal
@@ -9057,7 +9885,6 @@ QCPRange QCPCurve::getValueRange(bool &validRange, SignDomain inSignDomain) cons
   The constructed QCPBars can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
   then takes ownership of the bar chart.
 */
-
 QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
   mBarBelow(0),
@@ -9149,7 +9976,7 @@ void QCPBars::moveBelow(QCPBars *bars)
   if (bars == this) return;
   if (bars->keyAxis() != mKeyAxis || bars->valueAxis() != mValueAxis)
   {
-    qDebug() << FUNCNAME << "passed QCPBars* doesn't have same key and value axis as this QCPBars";
+    qDebug() << Q_FUNC_INFO << "passed QCPBars* doesn't have same key and value axis as this QCPBars";
     return;
   }
   // remove from stacking:
@@ -9182,7 +10009,7 @@ void QCPBars::moveAbove(QCPBars *bars)
   if (bars == this) return;
   if (bars && (bars->keyAxis() != mKeyAxis || bars->valueAxis() != mValueAxis))
   {
-    qDebug() << FUNCNAME << "passed QCPBars* doesn't have same key and value axis as this QCPBars";
+    qDebug() << Q_FUNC_INFO << "passed QCPBars* doesn't have same key and value axis as this QCPBars";
     return;
   }
   // remove from stacking:
@@ -9305,25 +10132,26 @@ void QCPBars::clearData()
 }
 
 /* inherits documentation from base class */
-double QCPBars::selectTest(double key, double value) const
+double QCPBars::selectTest(const QPointF &pos) const
 {
   QCPBarDataMap::ConstIterator it;
+  double posKey, posValue;
+  pixelsToCoords(pos, posKey, posValue);
   for (it = mData->constBegin(); it != mData->constEnd(); ++it)
   {
     double baseValue = getBaseValue(it.key(), it.value().value >=0);
     QCPRange keyRange(it.key()-mWidth*0.5, it.key()+mWidth*0.5);
     QCPRange valueRange(baseValue, baseValue+it.value().value);
-    if (keyRange.contains(key) && valueRange.contains(value))
+    if (keyRange.contains(posKey) && valueRange.contains(posValue))
       return mParentPlot->selectionTolerance()*0.99;
   }
   return -1;
 }
 
 /* inherits documentation from base class */
-void QCPBars::draw(QPainter *painter) const
+void QCPBars::draw(QCPPainter *painter)
 {
-  if (!mVisible || mData->isEmpty()) return;
-  painter->setClipRect(mKeyAxis->axisRect() | mValueAxis->axisRect());
+  if (mData->isEmpty()) return;
   
   QCPBarDataMap::const_iterator it;
   for (it = mData->constBegin(); it != mData->constEnd(); ++it)
@@ -9334,7 +10162,7 @@ void QCPBars::draw(QPainter *painter) const
     // draw bar fill:
     if (mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0)
     {
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeFills));
+      applyFillAntialiasingHint(painter);
       painter->setPen(Qt::NoPen);
       painter->setBrush(mainBrush());
       painter->drawPolygon(barPolygon);
@@ -9342,7 +10170,7 @@ void QCPBars::draw(QPainter *painter) const
     // draw bar line:
     if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
     {
-      painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
+      applyDefaultAntialiasingHint(painter);
       painter->setPen(mainPen());
       painter->setBrush(Qt::NoBrush);
       painter->drawPolyline(barPolygon);
@@ -9351,13 +10179,13 @@ void QCPBars::draw(QPainter *painter) const
 }
 
 /* inherits documentation from base class */
-void QCPBars::drawLegendIcon(QPainter *painter, const QRect &rect) const
+void QCPBars::drawLegendIcon(QCPPainter *painter, const QRect &rect) const
 {
   // draw filled rect:
+  applyDefaultAntialiasingHint(painter);
   painter->setBrush(mBrush);
   painter->setPen(mPen);
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
-  QRect r = QRect(0, 0, rect.width()*0.67, rect.height()*0.67);
+  QRectF r = QRectF(0, 0, rect.width()*0.67, rect.height()*0.67);
   r.moveCenter(rect.center());
   painter->drawRect(r);
 }
@@ -9507,7 +10335,7 @@ QCPRange QCPBars::getValueRange(bool &validRange, SignDomain inSignDomain) const
     ++it;
   }
   
-  validRange = !qFuzzyCompare(range.lower+1.0, range.upper+1.0);
+  validRange = range.lower < range.upper;
   return range;
 }
 
@@ -9515,6 +10343,7 @@ QCPRange QCPBars::getValueRange(bool &validRange, SignDomain inSignDomain) const
 // ================================================================================
 // =================== QCPStatisticalBox
 // ================================================================================
+
 /*! \class QCPStatisticalBox
   \brief A plottable representing a single statistical box in a plot.
 
@@ -9540,12 +10369,12 @@ QCPRange QCPBars::getValueRange(bool &validRange, SignDomain inSignDomain) const
   
   The median indicator line has its own pen, \ref setMedianPen.
   
-  If the pens are changed, especially the median and whisker pen, make sure to set the capStyle to
-  Qt::FlatCap. Else, e.g. the median line might exceed the quartile box by a few pixels due to the
-  pen cap being not perfectly flat.
+  If the pens are changed, especially the whisker pen, make sure to set the capStyle to
+  Qt::FlatCap. Else, e.g. the whisker line might exceed the bar line by a few pixels due to the pen
+  cap being not perfectly flat.
   
-  The Outlier data points are drawn as circles. Their look can be controlled with \ref
-  setOutlierPen and \ref setOutlierBrush. The size (diameter) can be set with \ref setOutlierSize
+  The Outlier data points are drawn normal scatter points. Their look can be controlled with \ref
+  setOutlierStyle and \ref setOutlierPen. The size (diameter) can be set with \ref setOutlierSize
   in pixels.
   
   \section usage Usage
@@ -9585,30 +10414,19 @@ QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mUpperQuartile(0),
   mMaximum(0)
 {
-  QPen whiskerPen;
-  whiskerPen.setStyle(Qt::DashLine);
-  whiskerPen.setCapStyle(Qt::FlatCap);
-  setWhiskerPen(whiskerPen);
+  setOutlierStyle(QCP::ssCircle);
+  setOutlierSize(5);
   setWhiskerWidth(0.2);
-  
-  QPen medianPen;
-  medianPen.setWidthF(3);
-  medianPen.setCapStyle(Qt::FlatCap);
-  setMedianPen(medianPen);
-  
-  setBrush(Qt::NoBrush);
   setWidth(0.5);
   
-  QPen outlierPen;
-  outlierPen.setColor(Qt::blue);
-  setOutlierPen(outlierPen);
-  setOutlierBrush(Qt::NoBrush);
-  setOutlierSize(5);
-  
-  mSelectedPen = mPen;
-  mSelectedPen.setWidthF(2.5);
-  mSelectedPen.setColor(QColor(80, 80, 255));
-  mSelectedBrush = mBrush;
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue, 2.5));
+  setMedianPen(QPen(Qt::black, 3, Qt::SolidLine, Qt::FlatCap));
+  setWhiskerPen(QPen(Qt::black, 0, Qt::DashLine, Qt::FlatCap));
+  setWhiskerBarPen(QPen(Qt::black));
+  setOutlierPen(QPen(Qt::blue));
+  setBrush(Qt::NoBrush);
+  setSelectedBrush(Qt::NoBrush);
 }
 
 QCPStatisticalBox::~QCPStatisticalBox()
@@ -9764,9 +10582,9 @@ void QCPStatisticalBox::setMedianPen(const QPen &pen)
 }
 
 /*!
-  Sets the pixel size (diameter) of the circles that represent the outliers.
+  Sets the pixel size of the scatter symbols that represent the outlier data points.
   
-  \see setOutlierPen, setOutlierBrush, setOutliers
+  \see setOutlierPen, setOutliers
 */
 void QCPStatisticalBox::setOutlierSize(double pixels)
 {
@@ -9774,9 +10592,9 @@ void QCPStatisticalBox::setOutlierSize(double pixels)
 }
 
 /*!
-  Sets the pen used to draw the outlier circles.
+  Sets the pen used to draw the outlier data points.
   
-  \see setOutlierSize, setOutlierBrush, setOutliers
+  \see setOutlierSize, setOutliers
 */
 void QCPStatisticalBox::setOutlierPen(const QPen &pen)
 {
@@ -9784,13 +10602,13 @@ void QCPStatisticalBox::setOutlierPen(const QPen &pen)
 }
 
 /*!
-  Sets the brush used to fill the outlier circles.
+  Sets the scatter style of the outlier data points.
   
   \see setOutlierSize, setOutlierPen, setOutliers
 */
-void QCPStatisticalBox::setOutlierBrush(const QBrush &brush)
+void QCPStatisticalBox::setOutlierStyle(QCP::ScatterStyle style)
 {
-  mOutlierBrush = brush;
+  mOutlierStyle = style;
 }
 
 /* inherits documentation from base class */
@@ -9806,69 +10624,79 @@ void QCPStatisticalBox::clearData()
 }
 
 /* inherits documentation from base class */
-double QCPStatisticalBox::selectTest(double key, double value) const
+double QCPStatisticalBox::selectTest(const QPointF &pos) const
 {
+  double posKey, posValue;
+  pixelsToCoords(pos, posKey, posValue);
   // quartile box:
   QCPRange keyRange(mKey-mWidth*0.5, mKey+mWidth*0.5);
   QCPRange valueRange(mLowerQuartile, mUpperQuartile);
-  if (keyRange.contains(key) && valueRange.contains(value))
+  if (keyRange.contains(posKey) && valueRange.contains(posValue))
     return mParentPlot->selectionTolerance()*0.99;
   
   // min/max whiskers:
-  if (QCPRange(mMinimum, mMaximum).contains(value))
-    return qAbs(mKeyAxis->coordToPixel(mKey)-mKeyAxis->coordToPixel(key));
+  if (QCPRange(mMinimum, mMaximum).contains(posValue))
+    return qAbs(mKeyAxis->coordToPixel(mKey)-mKeyAxis->coordToPixel(posKey));
   
   return -1;
 }
 
 /* inherits documentation from base class */
-void QCPStatisticalBox::draw(QPainter *painter) const
+void QCPStatisticalBox::draw(QCPPainter *painter)
 {
-  if (!mVisible) return;
-  painter->setClipRect(mKeyAxis->axisRect() | mValueAxis->axisRect());
+  QRectF quartileBox;
+  drawQuartileBox(painter, &quartileBox);
   
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
-  drawQuartileBox(painter);
+  painter->save();
+  painter->setClipRect(quartileBox, Qt::IntersectClip);
   drawMedian(painter);
+  painter->restore();
+  
   drawWhiskers(painter);
   drawOutliers(painter);
 }
 
 /* inherits documentation from base class */
-void QCPStatisticalBox::drawLegendIcon(QPainter *painter, const QRect &rect) const
+void QCPStatisticalBox::drawLegendIcon(QCPPainter *painter, const QRect &rect) const
 {
   // draw filled rect:
-  painter->setRenderHint(QPainter::Antialiasing, mParentPlot->antialiasedElements().testFlag(QCustomPlot::aeGraphs));
+  applyDefaultAntialiasingHint(painter);
   painter->setPen(mPen);
   painter->setBrush(mBrush);
-  QRect r = QRect(0, 0, rect.width()*0.67, rect.height()*0.67);
+  QRectF r = QRectF(0, 0, rect.width()*0.67, rect.height()*0.67);
   r.moveCenter(rect.center());
   painter->drawRect(r);
 }
 
 /*! \internal
   
-  Draws the quartile box.
+  Draws the quartile box. \a box is an output parameter that returns the quartile box (in pixel
+  coordinates) which is used to set the clip rect of the painter before calling \ref drawMedian (so
+  the median doesn't draw outside the quartile box).
 */
-void QCPStatisticalBox::drawQuartileBox(QPainter *painter) const
+void QCPStatisticalBox::drawQuartileBox(QCPPainter *painter, QRectF *quartileBox) const
 {
   QRectF box;
   box.setTopLeft(coordsToPixels(mKey-mWidth*0.5, mUpperQuartile));
   box.setBottomRight(coordsToPixels(mKey+mWidth*0.5, mLowerQuartile));
+  applyDefaultAntialiasingHint(painter);
   painter->setPen(mainPen());
   painter->setBrush(mainBrush());
   painter->drawRect(box);
+  if (quartileBox)
+    *quartileBox = box;
 }
 
 /*! \internal
   
   Draws the median line inside the quartile box.
 */
-void QCPStatisticalBox::drawMedian(QPainter *painter) const
+void QCPStatisticalBox::drawMedian(QCPPainter *painter) const
 {
   QLineF medianLine;
   medianLine.setP1(coordsToPixels(mKey-mWidth*0.5, mMedian));
   medianLine.setP2(coordsToPixels(mKey+mWidth*0.5, mMedian));
+  applyDefaultAntialiasingHint(painter);
   painter->setPen(mMedianPen);
   painter->drawLine(medianLine);
 }
@@ -9877,13 +10705,14 @@ void QCPStatisticalBox::drawMedian(QPainter *painter) const
   
   Draws both whisker backbones and bars.
 */
-void QCPStatisticalBox::drawWhiskers(QPainter *painter) const
+void QCPStatisticalBox::drawWhiskers(QCPPainter *painter) const
 {
   QLineF backboneMin, backboneMax, barMin, barMax;
   backboneMax.setPoints(coordsToPixels(mKey, mUpperQuartile), coordsToPixels(mKey, mMaximum));
   backboneMin.setPoints(coordsToPixels(mKey, mLowerQuartile), coordsToPixels(mKey, mMinimum));
   barMax.setPoints(coordsToPixels(mKey-mWhiskerWidth*0.5, mMaximum), coordsToPixels(mKey+mWhiskerWidth*0.5, mMaximum));
   barMin.setPoints(coordsToPixels(mKey-mWhiskerWidth*0.5, mMinimum), coordsToPixels(mKey+mWhiskerWidth*0.5, mMinimum));
+  applyErrorBarsAntialiasingHint(painter);
   painter->setPen(mWhiskerPen);
   painter->drawLine(backboneMin);
   painter->drawLine(backboneMax);
@@ -9896,12 +10725,16 @@ void QCPStatisticalBox::drawWhiskers(QPainter *painter) const
   
   Draws the outlier circles.
 */
-void QCPStatisticalBox::drawOutliers(QPainter *painter) const
+void QCPStatisticalBox::drawOutliers(QCPPainter *painter) const
 {
+  applyScattersAntialiasingHint(painter);
   painter->setPen(mOutlierPen);
-  painter->setBrush(mOutlierBrush);
+  painter->setBrush(Qt::NoBrush);
   for (int i=0; i<mOutliers.size(); ++i)
-    painter->drawEllipse(coordsToPixels(mKey, mOutliers.at(i)), mOutlierSize*0.5, mOutlierSize*0.5);
+  {
+    QPointF dataPoint = coordsToPixels(mKey, mOutliers.at(i));
+    painter->drawScatter(dataPoint.x(), dataPoint.y(), mOutlierSize, mOutlierStyle);
+  }
 }
 
 /* inherits documentation from base class */
@@ -9983,7 +10816,7 @@ QCPRange QCPStatisticalBox::getValueRange(bool &validRange, SignDomain inSignDom
       }
     }
     // return the bounds if we found some sensible values:
-    if (haveLower && haveUpper && !qFuzzyCompare(upper+1.0, lower+1.0))
+    if (haveLower && haveUpper && lower < upper)
     {
       validRange = true;
       return QCPRange(lower, upper);
@@ -9996,39 +10829,4205 @@ QCPRange QCPStatisticalBox::getValueRange(bool &validRange, SignDomain inSignDom
 }
 
 
+// ================================================================================
+// =================== QCPAbstractItem
+// ================================================================================
 
+/*! \class QCPAbstractItem
+  \brief The abstract base class for all items in a plot.
+  
+  In QCustomPlot, items are supplemental graphical elements that are neither plottables
+  (QCPAbstractPlottable) nor axes (QCPAxis). While plottables are always tied to two axes and thus
+  plot coordinates, items can also be placed in absolute coordinates independent of any axes. Each
+  specific item has at least one QCPItemPosition member which controls the positioning. Some items
+  are defined by more than one coordinate and thus have two or more QCPItemPosition members (For
+  example, QCPItemRect has \a topLeft and \a bottomRight).
+  
+  This abstract base class defines a very basic interface like visibility and clipping. Since this
+  class is abstract, it can't be instantiated. Use one of the subclasses or create a subclass
+  yourself to create new items.
+  
+  The built-in items are:
+  <table>
+  <tr><td>QCPItemLine</td><td>A line defined by a start and an end point. May have different ending styles on each side (e.g. arrows).</td></tr>
+  <tr><td>QCPItemStraightLine</td><td>A straight line defined by a start and a direction point. Unlike QCPItemLine, the straight line is infinitely long and has no endings.</td></tr>
+  <tr><td>QCPItemCurve</td><td>A curve defined by start, end and two intermediate control points. May have different ending styles on each side (e.g. arrows).</td></tr>
+  <tr><td>QCPItemRect</td><td>A rectangle</td></tr>
+  <tr><td>QCPItemEllipse</td><td>An ellipse</td></tr>
+  <tr><td>QCPItemPixmap</td><td>An arbitrary pixmap</td></tr>
+  <tr><td>QCPItemText</td><td>A text label</td></tr>
+  <tr><td>QCPItemBracket</td><td>A bracket which may be used to reference/highlight certain parts in the plot.</td></tr>
+  <tr><td>QCPItemTracer</td><td>An item that can be attached to a QCPGraph and sticks to its data points, given a key coordinate.</td></tr>
+  </table>
+  
+  \section items-using Using items
+  
+  First you instantiate the item you want to use and add it to the plot:
+  \code
+  QCPItemLine *line = new QCPItemLine(customPlot);
+  customPlot->addItem(line);
+  \endcode
+  by default, the positions of the item are bound to the x- and y-Axis of the plot. So we can just
+  set the plot coordinates where the line should start/end:
+  \code
+  line->start->setCoords(-0.1, 0.8);
+  line->end->setCoords(1.1, 0.2);
+  \endcode
+  If we wanted the line to be positioned not in plot coordinates but a different coordinate system,
+  e.g. absolute pixel positions on the QCustomPlot surface, we would have changed the position type
+  like this:
+  \code
+  line->start->setType(QCPItemPosition::ptAbsolute);
+  line->end->setType(QCPItemPosition::ptAbsolute);
+  \endcode
+  Then we can set the coordinates, this time in pixels:
+  \code
+  line->start->setCoords(100, 200);
+  line->end->setCoords(450, 320);
+  \endcode
+  
+  \section items-subclassing Creating own items
+  
+  To create an own item, you implement a subclass of QCPAbstractItem. These are the pure
+  virtual functions, you must implement:
+  \li \ref selectTest
+  \li \ref draw
+  
+  See the documentation of those functions for what they need to do.
+  
+  \subsection items-positioning Allowing the item to be positioned
+  
+  As mentioned, item positions are represented by QCPItemPosition members. Let's assume the new item shall
+  have only one coordinate as its position (as opposed to two like a rect or multiple like a polygon). You then add
+  a public member of type QCPItemPosition like so:
+  
+  \code QCPItemPosition * const myPosition;\endcode
+  
+  the const makes sure the pointer itself can't be modified from the user of your new item (the QCPItemPosition
+  instance it points to, can be modified, of course).
+  The initialization of this pointer is made easy with the \ref createPosition function. Just assign
+  the return value of this function to each QCPItemPosition in the constructor of your item. \ref createPosition
+  takes a string which is the name of the position, typically this is identical to the variable name.
+  For example, the constructor of QCPItemExample could look like this:
+  
+  \code
+  QCPItemExample::QCPItemExample(QCustomPlot *parentPlot) :
+    QCPAbstractItem(parentPlot),
+    myPosition(createPosition("myPosition"))
+  {
+    // other constructor code
+  }
+  \endcode
+  
+  \subsection items-drawing The draw function
+  
+  Your implementation of the draw function should check whether the item is visible (\a mVisible)
+  and then draw the item. You can retrieve its position in pixel coordinates from the position
+  member(s) via \ref QCPItemPosition::pixelPoint.
 
+  To optimize performance you should calculate a bounding rect first (don't forget to take the pen
+  width into account), check whether it intersects the \ref clipRect, and only draw the item at all
+  if this is the case.
+  
+  \subsection items-selection The selectTest function
+  
+  Your implementation of the \ref selectTest function may use the helpers \ref distSqrToLine and
+  \ref rectSelectTest. With these, the implementation of the selection test becomes significantly
+  simpler for most items.
+  
+  \subsection anchors Providing anchors
+  
+  Providing anchors (QCPItemAnchor) starts off like adding a position. First you create a public
+  member, e.g.
+  
+  \code QCPItemAnchor * const bottom;\endcode
 
+  and create it in the constructor with the \ref createAnchor function, assigning it a name and an
+  anchor id (an integer enumerating all anchors on the item, you may create an own enum for this).
+  Since anchors can be placed anywhere, relative to the item's position(s), your item needs to
+  provide the position of every anchor with the reimplementation of the \ref anchorPixelPoint(int
+  anchorId) function.
+  
+  In essence the QCPItemAnchor is merely an intermediary that itself asks your item for the pixel
+  position when anything attached to the anchor needs to know the coordinates.
+*/
 
+/* start of documentation of inline functions */
 
+/*! \fn QList<QCPItemPosition*> QCPAbstractItem::positions() const
+  
+  Returns all positions of the item in a list.
+  
+  \see anchors, position
+*/
 
+/*! \fn QList<QCPItemAnchor*> QCPAbstractItem::anchors() const
+  
+  Returns all anchors of the item in a list. Note that since a position (QCPItemPosition) is always
+  also an anchor, the list will also contain the positions of this item.
+  
+  \see positions, anchor
+*/
 
+/* end of documentation of inline functions */
+/* start documentation of pure virtual functions */
 
+/*! \fn double QCPAbstractItem::selectTest(const QPointF &pos) const = 0
+  
+  This function is used to decide whether a click hits an item or not.
 
-void QCustomPlot::save()
+  \a pos is a point in pixel coordinates on the QCustomPlot surface. This function returns the
+  shortest pixel distance of this point to the item. If the item is either invisible or the
+  distance couldn't be determined, -1.0 is returned. \ref setSelectable has no influence on the
+  return value of this function.
+
+  If the item is represented not by single lines but by an area like QCPItemRect or QCPItemText, a
+  click inside the area returns a constant value greater zero (typically 99% of the
+  selectionTolerance of the parent QCustomPlot). If the click lies outside the area, this function
+  returns -1.0.
+  
+  Providing a constant value for area objects allows selecting line objects even when they are
+  obscured by such area objects, by clicking close to the lines (i.e. closer than
+  0.99*selectionTolerance).
+  
+  The actual setting of the selection state is not done by this function. This is handled by the
+  parent QCustomPlot when the mouseReleaseEvent occurs.
+  
+  \see setSelected, QCustomPlot::setInteractions
+*/
+
+/*! \fn void QCPAbstractItem::draw(QCPPainter *painter) = 0
+  \internal
+  
+  Draws this item with the provided \a painter. Called by \ref QCustomPlot::draw on all its
+  visible items.
+  
+  The cliprect of the provided painter is set to the rect returned by \ref clipRect before this
+  function is called. For items this depends on the clipping settings defined by \ref
+  setClipToAxisRect, \ref setClipKeyAxis and \ref setClipValueAxis.
+*/
+
+/* end documentation of pure virtual functions */
+/* start documentation of signals */
+
+/*! \fn void QCPAbstractItem::selectionChanged(bool selected)
+  This signal is emitted when the selection state of this item has changed, either by user interaction
+  or by a direct call to \ref setSelected.
+*/
+
+/* end documentation of signals */
+
+/*!
+  Base class constructor which initializes base class members.
+*/
+QCPAbstractItem::QCPAbstractItem(QCustomPlot *parentPlot) :
+  QCPLayerable(parentPlot),
+  mClipToAxisRect(true),
+  mClipKeyAxis(parentPlot->xAxis),
+  mClipValueAxis(parentPlot->yAxis),
+  mSelectable(true),
+  mSelected(false)
 {
-    qDebug()<<"save";
-    QFileDialog *dialog = new QFileDialog();
-    QString str = QDir::currentPath();
-    QString filename = dialog->getSaveFileName(this, tr("Save File"), str +
-                                               "/zapiane/wykres.png",
-                                               tr("Images (*.png)"));
-    savePngScaled(filename,2.0);
-   // fileDialog.setNameFilter("PDF-Files (*.pdf)");
+}
+
+QCPAbstractItem::~QCPAbstractItem()
+{
+  // don't delete mPositions because every position is also an anchor and thus in mAnchors
+  qDeleteAll(mAnchors);
+}
+
+/*!
+  Sets whether the item shall be clipped to the axis rect or whether it shall be visible on the
+  entire QCustomPlot. The axis rect is defined by the clip axes which can be set via \ref
+  setClipAxes or individually with \ref setClipKeyAxis and \ref setClipValueAxis.
+*/
+void QCPAbstractItem::setClipToAxisRect(bool clip)
+{
+  mClipToAxisRect = clip;
+}
+
+/*!
+  Sets both clip axes. Together they define the axis rect that will be used to clip the item
+  when \ref setClipToAxisRect is set to true.
+  
+  \see setClipToAxisRect, setClipKeyAxis, setClipValueAxis
+*/
+void QCPAbstractItem::setClipAxes(QCPAxis *keyAxis, QCPAxis *valueAxis)
+{
+  mClipKeyAxis = keyAxis;
+  mClipValueAxis = valueAxis;
+}
+
+/*!
+  Sets the clip key axis. Together with the clip value axis it defines the axis rect that will be
+  used to clip the item when \ref setClipToAxisRect is set to true.
+  
+  \see setClipToAxisRect, setClipAxes, setClipValueAxis
+*/
+void QCPAbstractItem::setClipKeyAxis(QCPAxis *axis)
+{
+  mClipKeyAxis = axis;
+}
+
+/*!
+  Sets the clip value axis. Together with the clip key axis it defines the axis rect that will be
+  used to clip the item when \ref setClipToAxisRect is set to true.
+  
+  \see setClipToAxisRect, setClipAxes, setClipKeyAxis
+*/
+void QCPAbstractItem::setClipValueAxis(QCPAxis *axis)
+{
+  mClipValueAxis = axis;
+}
+
+/*!
+  Sets whether the user can (de-)select this item by clicking on the QCustomPlot surface.
+  (When \ref QCustomPlot::setInteractions contains QCustomPlot::iSelectItems.)
+  
+  However, even when \a selectable was set to false, it is possible to set the selection manually,
+  by calling \ref setSelected directly.
+  
+  \see QCustomPlot::setInteractions, setSelected
+*/
+void QCPAbstractItem::setSelectable(bool selectable)
+{
+  mSelectable = selectable;
+}
+
+/*!
+  Sets whether this item is selected or not. When selected, it might use a different visual
+  appearance (e.g. pen and brush), this depends on the specific item, though.
+
+  The entire selection mechanism for items is handled automatically when \ref
+  QCustomPlot::setInteractions contains QCustomPlot::iSelectItems. You only need to call this function when you
+  wish to change the selection state manually.
+  
+  This function can change the selection state even when \ref setSelectable was set to false.
+  
+  emits the \ref selectionChanged signal when \a selected is different from the previous selection state.
+  
+  \see selectTest
+*/
+void QCPAbstractItem::setSelected(bool selected)
+{
+  if (mSelected != selected)
+  {
+    mSelected = selected;
+    emit selectionChanged(mSelected);
+  }
+}
+
+/*!
+  Returns the QCPItemPosition with the specified \a name. If this item doesn't have a position by
+  that name, returns 0.
+  
+  This function provides an alternative way to access item positions. Normally, you access
+  positions direcly by their member pointers (which typically have the same variable name as \a
+  name).
+  
+  \see positions, anchor 
+*/
+QCPItemPosition *QCPAbstractItem::position(const QString &name) const
+{
+  for (int i=0; i<mPositions.size(); ++i)
+  {
+    if (mPositions.at(i)->name() == name)
+      return mPositions.at(i);
+  }
+  qDebug() << Q_FUNC_INFO << "position with name not found:" << name;
+  return 0;
+}
+
+/*!
+  Returns the QCPItemAnchor with the specified \a name. If this item doesn't have an anchor by
+  that name, returns 0.
+  
+  This function provides an alternative way to access item anchors. Normally, you access
+  anchors direcly by their member pointers (which typically have the same variable name as \a
+  name).
+  
+  \see anchors, position 
+*/
+QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
+{
+  for (int i=0; i<mAnchors.size(); ++i)
+  {
+    if (mAnchors.at(i)->name() == name)
+      return mAnchors.at(i);
+  }
+  qDebug() << Q_FUNC_INFO << "anchor with name not found:" << name;
+  return 0;
+}
+
+/*!
+  Returns whether this item has an anchor with the specified \a name.
+  
+  Note that you can check for positions with this function, too, because every position is also an
+  anchor (QCPItemPosition inherits from QCPItemAnchor).
+  
+  \see anchor, position 
+*/
+bool QCPAbstractItem::hasAnchor(const QString &name) const
+{
+  for (int i=0; i<mAnchors.size(); ++i)
+  {
+    if (mAnchors.at(i)->name() == name)
+      return true;
+  }
+  return false;
+}
+
+/*! \internal
+  
+  Returns the rect the visual representation of this item is clipped to. This depends on the
+  current setting of \ref setClipToAxisRect aswell as the clip axes set with \ref setClipAxes.
+  
+  If the item is not clipped to an axis rect, the \ref QCustomPlot::viewport rect is returned.
+  
+  \see draw
+*/
+QRect QCPAbstractItem::clipRect() const
+{
+  if (mClipToAxisRect)
+  {
+    if (mClipKeyAxis && mClipValueAxis)
+      return mClipKeyAxis->axisRect() | mClipValueAxis->axisRect();
+    else if (mClipKeyAxis)
+      return mClipKeyAxis->axisRect();
+    else if (mClipValueAxis)
+      return mClipValueAxis->axisRect();
+  }
+  
+  return mParentPlot->viewport();
+}
+
+/*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing item lines.
+
+  This is the antialiasing state the painter passed to the \ref draw method is in by default.
+  
+  This function takes into account the local setting of the antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased
+*/
+void QCPAbstractItem::applyDefaultAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiased, QCP::aeItems);
+}
+
+/*! \internal
+
+  Finds the shortest squared distance of \a point to the line segment defined by \a start and \a
+  end.
+  
+  This function may be used to help with the implementation of the \ref selectTest function for
+  specific items.
+  
+  \note This function is identical to QCPAbstractPlottable::distSqrToLine
+  
+  \see rectSelectTest
+*/
+double QCPAbstractItem::distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const
+{
+  QVector2D a(start);
+  QVector2D b(end);
+  QVector2D p(point);
+  QVector2D v(b-a);
+  
+  double vLengthSqr = v.lengthSquared();
+  if (!qFuzzyIsNull(vLengthSqr))
+  {
+    double mu = QVector2D::dotProduct(p-a, v)/vLengthSqr;
+    if (mu < 0)
+      return (a-p).lengthSquared();
+    else if (mu > 1)
+      return (b-p).lengthSquared();
+    else
+      return ((a + mu*v)-p).lengthSquared();
+  } else
+    return (a-p).lengthSquared();
+}
+
+/*! \internal
+
+  A convenience function which returns the selectTest value for a specified \a rect and a specified
+  click position \a pos. \a filledRect defines whether a click inside the rect should also be
+  considered a hit or whether only the rect border is sensitive to hits.
+  
+  This function may be used to help with the implementation of the \ref selectTest function for
+  specific items.
+  
+  For example, if your item consists of four rects, call this function four times, once for each
+  rect, in your \ref selectTest reimplementation. Finally, return the minimum of all four returned
+  values which were greater or equal to zero. (Because this function may return -1.0 when \a pos
+  doesn't hit \a rect at all). If all calls returned -1.0, return -1.0, too, because your item
+  wasn't hit.
+  
+  \see distSqrToLine
+*/
+double QCPAbstractItem::rectSelectTest(const QRectF &rect, const QPointF &pos, bool filledRect) const
+{
+  double result = -1;
+
+  // distance to border:
+  QList<QLineF> lines;
+  lines << QLineF(rect.topLeft(), rect.topRight()) << QLineF(rect.bottomLeft(), rect.bottomRight())
+        << QLineF(rect.topLeft(), rect.bottomLeft()) << QLineF(rect.topRight(), rect.bottomRight());
+  double minDistSqr = std::numeric_limits<double>::max();
+  for (int i=0; i<lines.size(); ++i)
+  {
+    double distSqr = distSqrToLine(lines.at(i).p1(), lines.at(i).p2(), pos);
+    if (distSqr < minDistSqr)
+      minDistSqr = distSqr;
+  }
+  result = qSqrt(minDistSqr);
+  
+  // filled rect, allow click inside to count as hit:
+  if (filledRect && result > mParentPlot->selectionTolerance()*0.99)
+  {
+    if (rect.contains(pos))
+      result = mParentPlot->selectionTolerance()*0.99;
+  }
+  return result;
+}
+
+/*! \internal
+
+  Returns the pixel position of the anchor with Id \a anchorId. This function must be reimplemented in
+  item subclasses if they want to provide anchors (QCPItemAnchor).
+  
+  For example, if the item has two anchors with id 0 and 1, this function takes one of these anchor
+  ids and returns the respective pixel points of the specified anchor.
+  
+  \see createAnchor
+*/
+QPointF QCPAbstractItem::anchorPixelPoint(int anchorId) const
+{
+  qDebug() << Q_FUNC_INFO << "called on item which shouldn't have any anchors (anchorPixelPos not reimplemented). anchorId" << anchorId;
+  return QPointF();
+}
+
+/*! \internal
+
+  Creates a QCPItemPosition, registers it with this item and returns a pointer to it. The specified
+  \a name must be a unique string that is usually identical to the variable name of the position
+  member (This is needed to provide the name based \ref position access to positions).
+  
+  Don't delete positions created by this function manually, as the item will take care of it.
+  
+  Use this function in the constructor (initialization list) of the specific item subclass to
+  create each position member. Don't create QCPItemPositions with \b new yourself, because they
+  won't be registered with the item properly.
+  
+  \see createAnchor
+*/
+QCPItemPosition *QCPAbstractItem::createPosition(const QString &name)
+{
+  if (hasAnchor(name))
+    qDebug() << Q_FUNC_INFO << "anchor/position with name exists already:" << name;
+  QCPItemPosition *newPosition = new QCPItemPosition(mParentPlot, this, name);
+  mPositions.append(newPosition);
+  mAnchors.append(newPosition); // every position is also an anchor
+  newPosition->setType(QCPItemPosition::ptPlotCoords);
+  newPosition->setAxes(mParentPlot->xAxis, mParentPlot->yAxis);
+  newPosition->setCoords(0, 0);
+  return newPosition;
+}
+
+/*! \internal
+
+  Creates a QCPItemAnchor, registers it with this item and returns a pointer to it. The specified
+  \a name must be a unique string that is usually identical to the variable name of the anchor
+  member (This is needed to provide the name based \ref anchor access to anchors).
+  
+  The \a anchorId must be a number identifying the created anchor. It is recommended to create an
+  enum (e.g. "AnchorIndex") for this on each item that uses anchors. This id is used by the anchor
+  to identify itself when it calls QCPAbstractItem::anchorPixelPoint. That function then returns
+  the correct pixel coordinates for the passed anchor id.
+  
+  Don't delete anchors created by this function manually, as the item will take care of it.
+  
+  Use this function in the constructor (initialization list) of the specific item subclass to
+  create each anchor member. Don't create QCPItemAnchors with \b new yourself, because then they
+  won't be registered with the item properly.
+  
+  \see createPosition
+*/
+QCPItemAnchor *QCPAbstractItem::createAnchor(const QString &name, int anchorId)
+{
+  if (hasAnchor(name))
+    qDebug() << Q_FUNC_INFO << "anchor/position with name exists already:" << name;
+  QCPItemAnchor *newAnchor = new QCPItemAnchor(mParentPlot, this, name, anchorId);
+  mAnchors.append(newAnchor);
+  return newAnchor;
 }
 
 
-void QCustomPlot::contextMenuEvent(QContextMenuEvent *event)
-{
-    qDebug()<<"menu";
+// ================================================================================
+// =================== QCPItemPosition
+// ================================================================================
 
-    QAction * saveAct = new QAction(tr("&Save"), this);
-   // saveAct->setShortcuts(QKeySequence::Save);
-   // saveAct->setStatusTip(tr("Save the document to disk"));
-    connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-    QMenu menu(this);
-    menu.addAction(saveAct);
-     // //   menu.addAction(copyAct);
-     //    menu.addAction(pasteAct);
-         menu.exec(event->globalPos());
+/*! \class QCPItemPosition
+  \brief Manages the position of an item.
+  
+  Every item has at least one public QCPItemPosition member pointer which provides ways to position the
+  item on the QCustomPlot surface. Some items have multiple positions, for example QCPItemRect has two:
+  \a topLeft and \a bottomRight.
+
+  QCPItemPosition has a type (\ref PositionType) that can be set with \ref setType. This type defines
+  how coordinates passed to \ref setCoords are to be interpreted, e.g. as absolute pixel coordinates, as
+  plot coordinates of certain axes, etc.
+
+  Further, QCPItemPosition may have a parent QCPItemAnchor, see \ref setParentAnchor. (Note that every
+  QCPItemPosition inherits from QCPItemAnchor and thus can itself be used as parent anchor for other
+  positions.) This way you can tie multiple items together. If the QCPItemPosition has a parent, the
+  coordinates set with \ref setCoords are considered to be absolute values in the reference frame of the
+  parent anchor, where (0, 0) means directly ontop of the parent anchor. For example, You could attach
+  the \a start position of a QCPItemLine to the \a bottom anchor of a QCPItemText to make the starting
+  point of the line always be centered under the text label, no matter where the text is moved to, or is
+  itself tied to.
+
+  To set the apparent pixel position on the QCustomPlot surface directly, use \ref setPixelPoint. This
+  works no matter what type this QCPItemPosition is or what parent-child situation it is in, as \ref
+  setPixelPoint transforms the coordinates appropriately, to make the position appear at the specified
+  pixel values.
+*/
+
+/*!
+  Creates a new QCPItemPosition. You shouldn't create QCPItemPosition instances directly, even if
+  you want to make a new item subclass. Use \ref QCPAbstractItem::createPosition instead, as
+  explained in the subclassing section of the QCPAbstractItem documentation.
+*/
+QCPItemPosition::QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name) :
+  QCPItemAnchor(parentPlot, parentItem, name),
+  mPositionType(ptAbsolute),
+  mKeyAxis(0),
+  mValueAxis(0),
+  mKey(0),
+  mValue(0),
+  mParentAnchor(0)
+{
 }
+
+QCPItemPosition::~QCPItemPosition()
+{
+  // unregister as parent at children:
+  // Note: this is done in ~QCPItemAnchor again, but it's important QCPItemPosition does it itself, because only then
+  //       the setParentAnchor(0) call the correct QCPItemPosition::pixelPos function instead of QCPItemAnchor::pixelPos
+  QList<QCPItemPosition*> currentChildren(mChildren.toList());
+  for (int i=0; i<currentChildren.size(); ++i)
+    currentChildren.at(i)->setParentAnchor(0); // this acts back on this anchor and child removes itself from mChildren
+  // unregister as child in parent:
+  if (mParentAnchor)
+    mParentAnchor->removeChild(this);
+}
+
+/*!
+  Sets the type of the position. The type defines how the coordinates passed to \ref setCoords
+  should be handled and how the QCPItemPosition should behave in the plot. Note that the position
+  type \ref ptPlotCoords is only available (and sensible) when the position has no parent anchor
+  (\ref setParentAnchor).
+  
+  The possible values for \a type can be separated in two main categories:
+
+  \li The position is regarded as a point in plot coordinates. This corresponds to \ref ptPlotCoords
+  and requires two axes that define the plot coordinate system. They can be specified with \ref setAxes.
+  By default, the QCustomPlot's x- and yAxis are used.
+  
+  \li The position is fixed on the QCustomPlot surface, i.e. independant of axis ranges. This
+  corresponds to all other types, i.e. \ref ptAbsolute, \ref ptViewportRatio and \ref ptAxisRectRatio. They
+  differ only in the way the absolute position is described, see the documentation of PositionType
+  for details.
+  
+  \note If the type is changed, the apparent pixel position on the plot is preserved. This means
+  the coordinates as retrieved with coords() and set with \ref setCoords may change in the process.
+*/
+void QCPItemPosition::setType(QCPItemPosition::PositionType type)
+{
+  if (mPositionType != type)
+  {
+    QPointF pixelP = pixelPoint();
+    mPositionType = type;
+    setPixelPoint(pixelP);
+  }
+}
+
+/*!
+  Sets the parent of this QCPItemPosition to \a parentAnchor. This means the position will now
+  follow any position changes of the anchor. The local coordinate system of positions with a parent
+  anchor always is absolute with (0, 0) being exactly on top of the parent anchor. (Hence the type
+  shouldn't be \ref ptPlotCoords for positions with parent anchors.)
+  
+  if \a keepPixelPosition is true, the current pixel position of the QCPItemPosition is preserved
+  during reparenting. If it's set to false, the coordinates are set to (0, 0), i.e. the position
+  will be exactly on top of the parent anchor.
+  
+  To remove this QCPItemPosition from any parent anchor, set \a parentAnchor to 0.
+  
+  \note If the QCPItemPosition previously had no parent and the type is \ref ptPlotCoords, the type
+  is set to \ref ptAbsolute, to keep the position in a valid state.
+*/
+bool QCPItemPosition::setParentAnchor(QCPItemAnchor *parentAnchor, bool keepPixelPosition)
+{
+  // make sure self is not assigned as parent:
+  if (parentAnchor == this)
+  {
+    qDebug() << Q_FUNC_INFO << "can't set self as parent anchor" << reinterpret_cast<quintptr>(parentAnchor);
+    return false;
+  }
+  // make sure no recursive parent-child-relationships are created:
+  QCPItemAnchor *currentParent = parentAnchor;
+  while (currentParent)
+  {
+    if (QCPItemPosition *currentParentPos = dynamic_cast<QCPItemPosition*>(currentParent))
+    {
+      // is a QCPItemPosition, might have further parent, so keep iterating
+      if (currentParentPos == this)
+      {
+        qDebug() << Q_FUNC_INFO << "can't create recursive parent-child-relationship" << reinterpret_cast<quintptr>(parentAnchor);
+        return false;
+      }
+      currentParent = currentParentPos->mParentAnchor;
+    } else
+    {
+      // is a QCPItemAnchor, can't have further parent, so just compare parent items
+      if (currentParent->mParentItem == mParentItem)
+      {
+        qDebug() << Q_FUNC_INFO << "can't create recursive parent-child-relationship" << reinterpret_cast<quintptr>(parentAnchor);
+        return false;
+      }
+      break;
+    }
+  }
+  
+  // if previously no parent set and PosType is still ptPlotCoords, set to ptAbsolute:
+  if (!mParentAnchor && mPositionType == ptPlotCoords)
+    setType(ptAbsolute);
+  
+  // save pixel position:
+  QPointF pixelP;
+  if (keepPixelPosition)
+    pixelP = pixelPoint();
+  // unregister at current parent anchor:
+  if (mParentAnchor)
+    mParentAnchor->removeChild(this);
+  // register at new parent anchor:
+  if (parentAnchor)
+    parentAnchor->addChild(this);
+  mParentAnchor = parentAnchor;
+  // restore pixel position under new parent:
+  if (keepPixelPosition)
+    setPixelPoint(pixelP);
+  else
+    setCoords(0, 0);
+  return true;
+}
+
+/*!
+  Sets the coordinates of this QCPItemPosition. What the coordinates mean, is defined by the type
+  (\ref setType).
+  
+  For example, if the type is \ref ptAbsolute, \a key and \a value mean the x and y pixel position
+  on the QCustomPlot surface where the origin (0, 0) is in the top left corner of the QCustomPlot
+  viewport. If the type is \ref ptPlotCoords, \a key and \a value mean a point in the plot
+  coordinate system defined by the axes set by \ref setAxes. (By default the QCustomPlot's x- and
+  yAxis.)
+
+  \see setPixelPoint
+*/
+void QCPItemPosition::setCoords(double key, double value)
+{
+  mKey = key;
+  mValue = value;
+}
+
+/*! \overload
+
+  Sets the coordinates as a QPointF \a pos where pos.x has the meaning of \a key and pos.y the
+  meaning of \a value of the \ref setCoords(double key, double value) function.
+*/
+void QCPItemPosition::setCoords(const QPointF &pos)
+{
+  setCoords(pos.x(), pos.y());
+}
+
+/*!
+  Returns the final absolute pixel position of the QCPItemPosition on the QCustomPlot surface. It
+  includes all effects of type (\ref setType) and possible parent anchors (\ref setParentAnchor).
+
+  \see setPixelPoint
+*/
+QPointF QCPItemPosition::pixelPoint() const
+{
+  switch (mPositionType)
+  {
+    case ptAbsolute:
+    {
+      if (mParentAnchor)
+        return QPointF(mKey, mValue) + mParentAnchor->pixelPoint();
+      else
+        return QPointF(mKey, mValue);
+    }
+    
+    case ptViewportRatio:
+    {
+      if (mParentAnchor)
+      {
+        return QPointF(mKey*mParentPlot->viewport().width(),
+                       mValue*mParentPlot->viewport().height()) + mParentAnchor->pixelPoint();
+      } else
+      {
+        return QPointF(mKey*mParentPlot->viewport().width(),
+                       mValue*mParentPlot->viewport().height()) + mParentPlot->viewport().topLeft();
+      }
+    }
+      
+    case ptAxisRectRatio:
+    {
+      if (mParentAnchor)
+      {
+        return QPointF(mKey*mParentPlot->axisRect().width(),
+                       mValue*mParentPlot->axisRect().height()) + mParentAnchor->pixelPoint();
+      } else
+      {
+        return QPointF(mKey*mParentPlot->axisRect().width(),
+                       mValue*mParentPlot->axisRect().height()) + mParentPlot->axisRect().topLeft();
+      }
+    }
+    
+    case ptPlotCoords:
+    {
+      double x, y;
+      if (mKeyAxis && mValueAxis)
+      {
+        // both key and value axis are given, translate key/value to x/y coordinates:
+        if (mKeyAxis->orientation() == Qt::Horizontal)
+        {
+          x = mKeyAxis->coordToPixel(mKey);
+          y = mValueAxis->coordToPixel(mValue);
+        } else
+        {
+          y = mKeyAxis->coordToPixel(mKey);
+          x = mValueAxis->coordToPixel(mValue);
+        }
+      } else if (mKeyAxis)
+      {
+        // only key axis is given, depending on orientation only transform x or y to key coordinate, other stays pixel:
+        if (mKeyAxis->orientation() == Qt::Horizontal)
+        {
+          x = mKeyAxis->coordToPixel(mKey);
+          y = mValue;
+        } else
+        {
+          y = mKeyAxis->coordToPixel(mKey);
+          x = mValue;
+        }
+      } else if (mValueAxis)
+      {
+        // only value axis is given, depending on orientation only transform x or y to value coordinate, other stays pixel:
+        if (mValueAxis->orientation() == Qt::Horizontal)
+        {
+          x = mValueAxis->coordToPixel(mValue);
+          y = mKey;
+        } else
+        {
+          y = mValueAxis->coordToPixel(mValue);
+          x = mKey;
+        }
+      } else
+      {
+        // no axis given, basically the same as if mAnchorType were atNone
+        x = mKey;
+        y = mValue;
+      }
+      return QPointF(x, y);
+    }
+  }
+  return QPointF();
+}
+
+/*!
+  When \ref setType is ptPlotCoords, this function may be used to specify the axes the coordinates set
+  with \ref setCoords relate to.
+*/
+void QCPItemPosition::setAxes(QCPAxis *keyAxis, QCPAxis *valueAxis)
+{
+  mKeyAxis = keyAxis;
+  mValueAxis = valueAxis;
+}
+
+/*!
+  Sets the apparent pixel position. This works no matter what type this QCPItemPosition is or what
+  parent-child situation it is in, as \ref setPixelPoint transforms the coordinates appropriately, to
+  make the position appear at the specified pixel values.
+
+  Only if the type is \ref ptAbsolute and no parent anchor is set, this function is identical to \ref
+  setCoords.
+
+  \see setCoords
+*/
+void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
+{
+  switch (mPositionType)
+  {
+    case ptAbsolute:
+    {
+      if (mParentAnchor)
+        setCoords(pixelPoint-mParentAnchor->pixelPoint());
+      else
+        setCoords(pixelPoint);
+      break;
+    }
+      
+    case ptViewportRatio:
+    {
+      if (mParentAnchor)
+      {
+        QPointF p(pixelPoint-mParentAnchor->pixelPoint());
+        p.rx() /= (double)mParentPlot->viewport().width();
+        p.ry() /= (double)mParentPlot->viewport().height();
+        setCoords(p);
+      } else
+      {
+        QPointF p(pixelPoint-mParentPlot->viewport().topLeft());
+        p.rx() /= (double)mParentPlot->viewport().width();
+        p.ry() /= (double)mParentPlot->viewport().height();
+        setCoords(p);
+      }
+      break;
+    }
+      
+    case ptAxisRectRatio:
+    {
+      if (mParentAnchor)
+      {
+        QPointF p(pixelPoint-mParentAnchor->pixelPoint());
+        p.rx() /= (double)mParentPlot->axisRect().width();
+        p.ry() /= (double)mParentPlot->axisRect().height();
+        setCoords(p);
+      } else
+      {
+        QPointF p(pixelPoint-mParentPlot->axisRect().topLeft());
+        p.rx() /= (double)mParentPlot->axisRect().width();
+        p.ry() /= (double)mParentPlot->axisRect().height();
+        setCoords(p);
+      }
+      break;
+    }
+      
+    case ptPlotCoords:
+    {
+      double newKey, newValue;
+      if (mKeyAxis && mValueAxis)
+      {
+        // both key and value axis are given, translate point to key/value coordinates:
+        if (mKeyAxis->orientation() == Qt::Horizontal)
+        {
+          newKey = mKeyAxis->pixelToCoord(pixelPoint.x());
+          newValue = mValueAxis->pixelToCoord(pixelPoint.y());
+        } else
+        {
+          newKey = mKeyAxis->pixelToCoord(pixelPoint.y());
+          newValue = mValueAxis->pixelToCoord(pixelPoint.x());
+        }
+      } else if (mKeyAxis)
+      {
+        // only key axis is given, depending on orientation only transform x or y to key coordinate, other stays pixel:
+        if (mKeyAxis->orientation() == Qt::Horizontal)
+        {
+          newKey = mKeyAxis->pixelToCoord(pixelPoint.x());
+          newValue = pixelPoint.y();
+        } else
+        {
+          newKey = mKeyAxis->pixelToCoord(pixelPoint.y());
+          newValue = pixelPoint.x();
+        }
+      } else if (mValueAxis)
+      {
+        // only value axis is given, depending on orientation only transform x or y to value coordinate, other stays pixel:
+        if (mValueAxis->orientation() == Qt::Horizontal)
+        {
+          newKey = pixelPoint.y();
+          newValue = mValueAxis->pixelToCoord(pixelPoint.x());
+        } else
+        {
+          newKey = pixelPoint.x();
+          newValue = mValueAxis->pixelToCoord(pixelPoint.y());
+        }
+      } else
+      {
+        // no axis given, basically the same as if mAnchorType were atNone
+        newKey = pixelPoint.x();
+        newValue = pixelPoint.y();
+      }
+      setCoords(newKey, newValue);
+      break;
+    }
+  }
+}
+
+
+// ================================================================================
+// =================== QCPItemStraightLine
+// ================================================================================
+
+/*! \class QCPItemStraightLine
+  \brief A straight line that spans infinitely in both directions
+
+  \image html QCPItemStraightLine.png "Straight line example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has two positions, \a point1 and \a point2, which define the straight line.
+*/
+
+/*!
+  Creates a straight line item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemStraightLine::QCPItemStraightLine(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  point1(createPosition("point1")),
+  point2(createPosition("point2"))
+{
+  point1->setCoords(0, 0);
+  point2->setCoords(1, 1);
+  
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue,2));
+}
+
+QCPItemStraightLine::~QCPItemStraightLine()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the line
+  
+  \see setSelectedPen
+*/
+void QCPItemStraightLine::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the line when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemStraightLine::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/* inherits documentation from base class */
+double QCPItemStraightLine::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  return distToStraightLine(QVector2D(point1->pixelPoint()), QVector2D(point2->pixelPoint()-point1->pixelPoint()), QVector2D(pos));
+}
+
+/* inherits documentation from base class */
+void QCPItemStraightLine::draw(QCPPainter *painter)
+{
+  QVector2D start(point1->pixelPoint());
+  QVector2D end(point2->pixelPoint());
+  // get visible segment of straight line inside clipRect:
+  double clipPad = mainPen().widthF();
+  QLineF line = getRectClippedStraightLine(start, end-start, clipRect().adjusted(-clipPad, -clipPad, clipPad, clipPad));
+  // paint visible segment, if existent:
+  if (!line.isNull())
+  {
+    painter->setPen(mainPen());
+    painter->drawLine(line);
+  }
+}
+
+/*! \internal
+
+  finds the shortest distance of \a point to the straight line defined by the base point \a
+  base and the direction vector \a vec.
+  
+  This is a helper function for \ref selectTest.
+*/
+double QCPItemStraightLine::distToStraightLine(const QVector2D &base, const QVector2D &vec, const QVector2D &point) const
+{
+  return qAbs((base.y()-point.y())*vec.x()-(base.x()-point.x())*vec.y())/vec.length();
+}
+
+/*! \internal
+
+  Returns the section of the straight line defined by \a base and direction vector \a
+  vec, that is visible in the specified \a rect.
+  
+  This is a helper function for \ref draw.
+*/
+QLineF QCPItemStraightLine::getRectClippedStraightLine(const QVector2D &base, const QVector2D &vec, const QRect &rect) const
+{
+  double bx, by;
+  double gamma;
+  QLineF result;
+  if (vec.x() == 0 && vec.y() == 0)
+    return result;
+  if (qFuzzyIsNull(vec.x())) // line is vertical
+  {
+    // check top of rect:
+    bx = rect.left();
+    by = rect.top();
+    gamma = base.x()-bx + (by-base.y())*vec.x()/vec.y();
+    if (gamma >= 0 && gamma <= rect.width())
+      result.setLine(bx+gamma, rect.top(), bx+gamma, rect.bottom()); // no need to check bottom because we know line is vertical
+  } else if (qFuzzyIsNull(vec.y())) // line is horizontal
+  {
+    // check left of rect:
+    bx = rect.left();
+    by = rect.top();
+    gamma = base.y()-by + (bx-base.x())*vec.y()/vec.x();
+    if (gamma >= 0 && gamma <= rect.height())
+      result.setLine(rect.left(), by+gamma, rect.right(), by+gamma); // no need to check right because we know line is horizontal
+  } else // line is skewed
+  {
+    QList<QVector2D> pointVectors;
+    // check top of rect:
+    bx = rect.left();
+    by = rect.top();
+    gamma = base.x()-bx + (by-base.y())*vec.x()/vec.y();
+    if (gamma >= 0 && gamma <= rect.width())
+      pointVectors.append(QVector2D(bx+gamma, by));
+    // check bottom of rect:
+    bx = rect.left();
+    by = rect.bottom();
+    gamma = base.x()-bx + (by-base.y())*vec.x()/vec.y();
+    if (gamma >= 0 && gamma <= rect.width())
+      pointVectors.append(QVector2D(bx+gamma, by));
+    // check left of rect:
+    bx = rect.left();
+    by = rect.top();
+    gamma = base.y()-by + (bx-base.x())*vec.y()/vec.x();
+    if (gamma >= 0 && gamma <= rect.height())
+      pointVectors.append(QVector2D(bx, by+gamma));
+    // check right of rect:
+    bx = rect.right();
+    by = rect.top();
+    gamma = base.y()-by + (bx-base.x())*vec.y()/vec.x();
+    if (gamma >= 0 && gamma <= rect.height())
+      pointVectors.append(QVector2D(bx, by+gamma));
+    
+    // evaluate points:
+    if (pointVectors.size() == 2)
+    {
+      result.setPoints(pointVectors.at(0).toPointF(), pointVectors.at(1).toPointF());
+    } else if (pointVectors.size() > 2)
+    {
+      // line probably goes through corner of rect, and we got two points there. single out the point pair with greatest distance:
+      double distSqrMax = 0;
+      QVector2D pv1, pv2;
+      for (int i=0; i<pointVectors.size()-1; ++i)
+      {
+        for (int k=i+1; k<pointVectors.size(); ++k)
+        {
+          double distSqr = (pointVectors.at(i)-pointVectors.at(k)).lengthSquared();
+          if (distSqr > distSqrMax)
+          {
+            pv1 = pointVectors.at(i);
+            pv2 = pointVectors.at(k);
+            distSqrMax = distSqr;
+          }
+        }
+      }
+      result.setPoints(pv1.toPointF(), pv2.toPointF());
+    }
+  }
+  return result;
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the
+  item is not selected and mSelectedPen when it is.
+*/
+QPen QCPItemStraightLine::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+
+// ================================================================================
+// =================== QCPItemLine
+// ================================================================================
+
+/*! \class QCPItemLine
+  \brief A line from one point to another
+
+  \image html QCPItemLine.png "Line example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has two positions, \a start and \a end, which define the end points of the line.
+  
+  With \ref setHead and \ref setTail you may set different line ending styles, e.g. to create an arrow.
+*/
+
+/*!
+  Creates a line item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemLine::QCPItemLine(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  start(createPosition("start")),
+  end(createPosition("end"))
+{
+  start->setCoords(0, 0);
+  end->setCoords(1, 1);
+  
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue,2));
+}
+
+QCPItemLine::~QCPItemLine()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the line
+  
+  \see setSelectedPen
+*/
+void QCPItemLine::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the line when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemLine::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the line ending style of the head. The head corresponds to the \a end position.
+  
+  Note that due to the overloaded QCPLineEnding constructor, you may directly specify
+  a QCPLineEnding::EndingStyle here, e.g. \code setHead(QCPLineEnding::esSpikeArrow) \endcode
+  
+  \see setTail
+*/
+void QCPItemLine::setHead(const QCPLineEnding &head)
+{
+  mHead = head;
+}
+
+/*!
+  Sets the line ending style of the tail. The tail corresponds to the \a start position.
+  
+  Note that due to the overloaded QCPLineEnding constructor, you may directly specify
+  a QCPLineEnding::EndingStyle here, e.g. \code setTail(QCPLineEnding::esSpikeArrow) \endcode
+  
+  \see setHead
+*/
+void QCPItemLine::setTail(const QCPLineEnding &tail)
+{
+  mTail = tail;
+}
+
+/* inherits documentation from base class */
+double QCPItemLine::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  return qSqrt(distSqrToLine(start->pixelPoint(), end->pixelPoint(), pos));
+}
+
+/* inherits documentation from base class */
+void QCPItemLine::draw(QCPPainter *painter)
+{
+  QVector2D startVec(start->pixelPoint());
+  QVector2D endVec(end->pixelPoint());
+  if (startVec.toPoint() == endVec.toPoint())
+    return;
+  // get visible segment of straight line inside clipRect:
+  double clipPad = qMax(mHead.boundingDistance(), mTail.boundingDistance());
+  clipPad = qMax(clipPad, mainPen().widthF());
+  QLineF line = getRectClippedLine(startVec, endVec, clipRect().adjusted(-clipPad, -clipPad, clipPad, clipPad));
+  // paint visible segment, if existent:
+  if (!line.isNull())
+  {
+    painter->setPen(mainPen());
+    painter->drawLine(line);
+    painter->setBrush(Qt::SolidPattern);
+    if (mTail.style() != QCPLineEnding::esNone)
+      mTail.draw(painter, startVec, startVec-endVec);
+    if (mHead.style() != QCPLineEnding::esNone)
+      mHead.draw(painter, endVec, endVec-startVec);
+  }
+}
+
+/*! \internal
+
+  Returns the section of the line defined by \a start and \a end, that is visible in the specified
+  \a rect.
+  
+  This is a helper function for \ref draw.
+*/
+QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &end, const QRect &rect) const
+{
+  bool containsStart = rect.contains(start.x(), start.y());
+  bool containsEnd = rect.contains(end.x(), end.y());
+  if (containsStart && containsEnd)
+    return QLineF(start.toPointF(), end.toPointF());
+  
+  QVector2D base = start;
+  QVector2D vec = end-start;
+  double bx, by;
+  double gamma, mu;
+  QLineF result;
+  QList<QVector2D> pointVectors;
+
+  if (!qFuzzyIsNull(vec.y())) // line is not horizontal
+  {
+    // check top of rect:
+    bx = rect.left();
+    by = rect.top();
+    mu = (by-base.y())/vec.y();
+    if (mu >= 0 && mu <= 1)
+    {
+      gamma = base.x()-bx + mu*vec.x();
+      if (gamma >= 0 && gamma <= rect.width())
+        pointVectors.append(QVector2D(bx+gamma, by));
+    }
+    // check bottom of rect:
+    bx = rect.left();
+    by = rect.bottom();
+    mu = (by-base.y())/vec.y();
+    if (mu >= 0 && mu <= 1)
+    {
+      gamma = base.x()-bx + mu*vec.x();
+      if (gamma >= 0 && gamma <= rect.width())
+        pointVectors.append(QVector2D(bx+gamma, by));
+    }
+  }
+  if (!qFuzzyIsNull(vec.x())) // line is not vertical
+  {
+    // check left of rect:
+    bx = rect.left();
+    by = rect.top();
+    mu = (bx-base.x())/vec.x();
+    if (mu >= 0 && mu <= 1)
+    {
+      gamma = base.y()-by + mu*vec.y();
+      if (gamma >= 0 && gamma <= rect.height())
+        pointVectors.append(QVector2D(bx, by+gamma));
+    }
+    // check right of rect:
+    bx = rect.right();
+    by = rect.top();
+    mu = (bx-base.x())/vec.x();
+    if (mu >= 0 && mu <= 1)
+    {
+      gamma = base.y()-by + mu*vec.y();
+      if (gamma >= 0 && gamma <= rect.height())
+        pointVectors.append(QVector2D(bx, by+gamma));
+    }
+  }
+  
+  if (containsStart)
+    pointVectors.append(start);
+  if (containsEnd)
+    pointVectors.append(end);
+  
+  // evaluate points:
+  if (pointVectors.size() == 2)
+  {
+    result.setPoints(pointVectors.at(0).toPointF(), pointVectors.at(1).toPointF());
+  } else if (pointVectors.size() > 2)
+  {
+    // line probably goes through corner of rect, and we got two points there. single out the point pair with greatest distance:
+    double distSqrMax = 0;
+    QVector2D pv1, pv2;
+    for (int i=0; i<pointVectors.size()-1; ++i)
+    {
+      for (int k=i+1; k<pointVectors.size(); ++k)
+      {
+        double distSqr = (pointVectors.at(i)-pointVectors.at(k)).lengthSquared();
+        if (distSqr > distSqrMax)
+        {
+          pv1 = pointVectors.at(i);
+          pv2 = pointVectors.at(k);
+          distSqrMax = distSqr;
+        }
+      }
+    }
+    result.setPoints(pv1.toPointF(), pv2.toPointF());
+  }
+  return result;
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the
+  item is not selected and mSelectedPen when it is.
+*/
+QPen QCPItemLine::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+
+// ================================================================================
+// =================== QCPItemEllipse
+// ================================================================================
+
+/*! \class QCPItemEllipse
+  \brief An ellipse
+
+  \image html QCPItemEllipse.png "Ellipse example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has two positions, \a topLeft and \a bottomRight, which define the rect the ellipse will be drawn in.
+*/
+
+/*!
+  Creates an ellipse item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemEllipse::QCPItemEllipse(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  topLeft(createPosition("topLeft")),
+  bottomRight(createPosition("bottomRight")),
+  topLeftRim(createAnchor("topLeftRim", aiTopLeftRim)),
+  top(createAnchor("top", aiTop)),
+  topRightRim(createAnchor("topRightRim", aiTopRightRim)),
+  right(createAnchor("right", aiRight)),
+  bottomRightRim(createAnchor("bottomRightRim", aiBottomRightRim)),
+  bottom(createAnchor("bottom", aiBottom)),
+  bottomLeftRim(createAnchor("bottomLeftRim", aiBottomLeftRim)),
+  left(createAnchor("left", aiLeft))
+{
+  topLeft->setCoords(0, 1);
+  bottomRight->setCoords(1, 0);
+  
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue, 2));
+  setBrush(Qt::NoBrush);
+  setSelectedBrush(Qt::NoBrush);
+}
+
+QCPItemEllipse::~QCPItemEllipse()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the line of the ellipse
+  
+  \see setSelectedPen, setBrush
+*/
+void QCPItemEllipse::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the line of the ellipse when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemEllipse::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the brush that will be used to fill the ellipse. To disable filling, set \a brush to
+  Qt::NoBrush.
+  
+  \see setSelectedBrush, setPen
+*/
+void QCPItemEllipse::setBrush(const QBrush &brush)
+{
+  mBrush = brush;
+}
+
+/*!
+  Sets the brush that will be used to fill the ellipse when selected. To disable filling, set \a
+  brush to Qt::NoBrush.
+  
+  \see setBrush
+*/
+void QCPItemEllipse::setSelectedBrush(const QBrush &brush)
+{
+  mSelectedBrush = brush;
+}
+
+/* inherits documentation from base class */
+double QCPItemEllipse::selectTest(const QPointF &pos) const
+{
+  double result = -1;
+  QPointF p1 = topLeft->pixelPoint();
+  QPointF p2 = bottomRight->pixelPoint();
+  QPointF center((p1+p2)/2.0);
+  double a = qAbs(p1.x()-p2.x())/2.0;
+  double b = qAbs(p1.y()-p2.y())/2.0;
+  double x = pos.x()-center.x();
+  double y = pos.y()-center.y();
+  
+  // distance to border:
+  double c = 1.0/qSqrt(x*x/(a*a)+y*y/(b*b));
+  result = qAbs(c-1)*qSqrt(x*x+y*y);
+  // filled ellipse, allow click inside to count as hit:
+  if (result > mParentPlot->selectionTolerance()*0.99 && mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0)
+  {
+    if (x*x/(a*a) + y*y/(b*b) <= 1)
+      result = mParentPlot->selectionTolerance()*0.99;
+  }
+  return result;
+}
+
+/* inherits documentation from base class */
+void QCPItemEllipse::draw(QCPPainter *painter)
+{
+  QPointF p1 = topLeft->pixelPoint();
+  QPointF p2 = bottomRight->pixelPoint();
+  if (p1.toPoint() == p2.toPoint())
+    return;
+  QRectF ellipseRect = QRectF(p1, p2).normalized();
+  QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
+  if (ellipseRect.intersects(clip)) // only draw if bounding rect of ellipse is visible in cliprect
+  {
+    painter->setPen(mainPen());
+    painter->setBrush(mainBrush());
+    try
+    {
+      painter->drawEllipse(ellipseRect);
+    } catch (...)
+    {
+      qDebug() << Q_FUNC_INFO << "Item too large for memory, setting invisible";
+      setVisible(false);
+    }
+  }
+}
+
+/* inherits documentation from base class */
+QPointF QCPItemEllipse::anchorPixelPoint(int anchorId) const
+{
+  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint());
+  switch (anchorId)
+  {
+    case aiTopLeftRim:     return rect.center()+(rect.topLeft()-rect.center())*1/qSqrt(2);
+    case aiTop:            return (rect.topLeft()+rect.topRight())*0.5;
+    case aiTopRightRim:    return rect.center()+(rect.topRight()-rect.center())*1/qSqrt(2);
+    case aiRight:          return (rect.topRight()+rect.bottomRight())*0.5;
+    case aiBottomRightRim: return rect.center()+(rect.bottomRight()-rect.center())*1/qSqrt(2);
+    case aiBottom:         return (rect.bottomLeft()+rect.bottomRight())*0.5;
+    case aiBottomLeftRim:  return rect.center()+(rect.bottomLeft()-rect.center())*1/qSqrt(2);
+    case aiLeft:           return (rect.topLeft()+rect.bottomLeft())*0.5;;
+  }
+  
+  qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
+  return QPointF();
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the item is not selected
+  and mSelectedPen when it is.
+*/
+QPen QCPItemEllipse::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+/*! \internal
+
+  Returns the brush that should be used for drawing fills of the item. Returns mBrush when the item
+  is not selected and mSelectedBrush when it is.
+*/
+QBrush QCPItemEllipse::mainBrush() const
+{
+  return mSelected ? mSelectedBrush : mBrush;
+}
+
+
+// ================================================================================
+// =================== QCPItemRect
+// ================================================================================
+
+/*! \class QCPItemRect
+  \brief A rectangle
+
+  \image html QCPItemRect.png "Rectangle example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has two positions, \a topLeft and \a bottomRight, which define the rectangle.
+*/
+
+/*!
+  Creates a rectangle item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemRect::QCPItemRect(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  topLeft(createPosition("topLeft")),
+  bottomRight(createPosition("bottomRight")),
+  top(createAnchor("top", aiTop)),
+  topRight(createAnchor("topRight", aiTopRight)),
+  right(createAnchor("right", aiRight)),
+  bottom(createAnchor("bottom", aiBottom)),
+  bottomLeft(createAnchor("bottomLeft", aiBottomLeft)),
+  left(createAnchor("left", aiLeft))
+{
+  topLeft->setCoords(0, 1);
+  bottomRight->setCoords(1, 0);
+  
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue,2));
+  setBrush(Qt::NoBrush);
+  setSelectedBrush(Qt::NoBrush);
+}
+
+QCPItemRect::~QCPItemRect()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the line of the rectangle
+  
+  \see setSelectedPen, setBrush
+*/
+void QCPItemRect::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the line of the rectangle when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemRect::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the brush that will be used to fill the rectangle. To disable filling, set \a brush to
+  Qt::NoBrush.
+  
+  \see setSelectedBrush, setPen
+*/
+void QCPItemRect::setBrush(const QBrush &brush)
+{
+  mBrush = brush;
+}
+
+/*!
+  Sets the brush that will be used to fill the rectangle when selected. To disable filling, set \a
+  brush to Qt::NoBrush.
+  
+  \see setBrush
+*/
+void QCPItemRect::setSelectedBrush(const QBrush &brush)
+{
+  mSelectedBrush = brush;
+}
+
+/* inherits documentation from base class */
+double QCPItemRect::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint()).normalized();
+  bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
+  return rectSelectTest(rect, pos, filledRect);
+}
+
+/* inherits documentation from base class */
+void QCPItemRect::draw(QCPPainter *painter)
+{
+  QPointF p1 = topLeft->pixelPoint();
+  QPointF p2 = bottomRight->pixelPoint();
+  if (p1.toPoint() == p2.toPoint())
+    return;
+  QRectF rect = QRectF(p1, p2).normalized();
+  double clipPad = mainPen().widthF();
+  QRectF boundingRect = rect.adjusted(-clipPad, -clipPad, clipPad, clipPad);
+  if (boundingRect.intersects(clipRect())) // only draw if bounding rect of rect item is visible in cliprect
+  {
+    painter->setPen(mainPen());
+    painter->setBrush(mainBrush());
+    painter->drawRect(rect);
+  }
+}
+
+/* inherits documentation from base class */
+QPointF QCPItemRect::anchorPixelPoint(int anchorId) const
+{
+  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint());
+  switch (anchorId)
+  {
+    case aiTop:         return (rect.topLeft()+rect.topRight())*0.5;
+    case aiTopRight:    return rect.topRight();
+    case aiRight:       return (rect.topRight()+rect.bottomRight())*0.5;
+    case aiBottom:      return (rect.bottomLeft()+rect.bottomRight())*0.5;
+    case aiBottomLeft:  return rect.bottomLeft();
+    case aiLeft:        return (rect.topLeft()+rect.bottomLeft())*0.5;;
+  }
+  
+  qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
+  return QPointF();
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the item is not selected
+  and mSelectedPen when it is.
+*/
+QPen QCPItemRect::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+/*! \internal
+
+  Returns the brush that should be used for drawing fills of the item. Returns mBrush when the item
+  is not selected and mSelectedBrush when it is.
+*/
+QBrush QCPItemRect::mainBrush() const
+{
+  return mSelected ? mSelectedBrush : mBrush;
+}
+
+
+// ================================================================================
+// =================== QCPItemPixmap
+// ================================================================================
+
+/*! \class QCPItemPixmap
+  \brief An arbitrary pixmap
+
+  \image html QCPItemPixmap.png "Pixmap example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has two positions, \a topLeft and \a bottomRight, which define the rectangle the pixmap will
+  be drawn in. Depending on the scale setting (\ref setScaled), the pixmap will be either scaled to
+  fit the rectangle or be drawn aligned to the topLeft position.
+  
+  If scaling is enabled and \a topLeft is further to the bottom/right than \a bottomRight (as shown
+  on the right side of the example image), the pixmap will be flipped in the respective
+  orientations.
+*/
+
+/*!
+  Creates a rectangle item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemPixmap::QCPItemPixmap(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  topLeft(createPosition("topLeft")),
+  bottomRight(createPosition("bottomRight")),
+  top(createAnchor("top", aiTop)),
+  topRight(createAnchor("topRight", aiTopRight)),
+  right(createAnchor("right", aiRight)),
+  bottom(createAnchor("bottom", aiBottom)),
+  bottomLeft(createAnchor("bottomLeft", aiBottomLeft)),
+  left(createAnchor("left", aiLeft))
+{
+  topLeft->setCoords(0, 1);
+  bottomRight->setCoords(1, 0);
+  
+  setPen(Qt::NoPen);
+  setSelectedPen(QPen(Qt::blue));
+  setScaled(false, Qt::KeepAspectRatio);
+}
+
+QCPItemPixmap::~QCPItemPixmap()
+{
+}
+
+/*!
+  Sets the pixmap that will be displayed.
+*/
+void QCPItemPixmap::setPixmap(const QPixmap &pixmap)
+{
+  mPixmap = pixmap;
+}
+
+/*!
+  Sets whether the pixmap will be scaled to fit the rectangle defined by the \a topLeft and \a
+  bottomRight positions.
+*/
+void QCPItemPixmap::setScaled(bool scaled, Qt::AspectRatioMode aspectRatioMode)
+{
+  mScaled = scaled;
+  mAspectRatioMode = aspectRatioMode;
+  updateScaledPixmap();
+}
+
+/*!
+  Sets the pen that will be used to draw a border around the pixmap.
+  
+  \see setSelectedPen, setBrush
+*/
+void QCPItemPixmap::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw a border around the pixmap when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemPixmap::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/* inherits documentation from base class */
+double QCPItemPixmap::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  return rectSelectTest(getFinalRect(), pos, true);
+}
+
+/* inherits documentation from base class */
+void QCPItemPixmap::draw(QCPPainter *painter)
+{
+  bool flipHorz = false;
+  bool flipVert = false;
+  QRect rect = getFinalRect(&flipHorz, &flipVert);
+  double clipPad = mainPen().style() == Qt::NoPen ? 0 : mainPen().widthF();
+  QRect boundingRect = rect.adjusted(-clipPad, -clipPad, clipPad, clipPad);
+  if (boundingRect.intersects(clipRect()))
+  {
+    updateScaledPixmap(rect, flipHorz, flipVert);
+    painter->drawPixmap(rect.topLeft(), mScaled ? mScaledPixmap : mPixmap);
+    QPen pen = mainPen();
+    if (pen.style() != Qt::NoPen)
+    {
+      painter->setPen(pen);
+      painter->setBrush(Qt::NoBrush);
+      painter->drawRect(rect);
+    }
+  }
+}
+
+/* inherits documentation from base class */
+QPointF QCPItemPixmap::anchorPixelPoint(int anchorId) const
+{
+  bool flipHorz;
+  bool flipVert;
+  QRect rect = getFinalRect(&flipHorz, &flipVert);
+  // we actually want denormal rects (negative width/height) here, so restore
+  // the flipped state:
+  if (flipHorz)
+    rect.adjust(rect.width(), 0, -rect.width(), 0);
+  if (flipVert)
+    rect.adjust(0, rect.height(), 0, -rect.height());
+  
+  switch (anchorId)
+  {
+    case aiTop:         return (rect.topLeft()+rect.topRight())*0.5;
+    case aiTopRight:    return rect.topRight();
+    case aiRight:       return (rect.topRight()+rect.bottomRight())*0.5;
+    case aiBottom:      return (rect.bottomLeft()+rect.bottomRight())*0.5;
+    case aiBottomLeft:  return rect.bottomLeft();
+    case aiLeft:        return (rect.topLeft()+rect.bottomLeft())*0.5;;
+  }
+  
+  qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
+  return QPointF();
+}
+
+/*! \internal
+  
+  Creates the buffered scaled image (\a mScaledPixmap) to fit the specified \a finalRect. The
+  parameters \a flipHorz and \a flipVert control whether the resulting image shall be flipped
+  horizontally or vertically. (This is used when \a topLeft is further to the bottom/right than \a
+  bottomRight.)
+  
+  This function only creates the scaled pixmap when the buffered pixmap has a different size than
+  the expected result, so calling this function repeatedly, e.g. in the \ref draw function, does
+  not cause expensive rescaling every time.
+  
+  If scaling is disabled, sets mScaledPixmap to a null QPixmap.
+*/
+void QCPItemPixmap::updateScaledPixmap(QRect finalRect, bool flipHorz, bool flipVert)
+{
+  if (mScaled)
+  {
+    if (finalRect.isNull())
+      finalRect = getFinalRect(&flipHorz, &flipVert);
+    if (finalRect.size() != mScaledPixmap.size())
+    {
+      mScaledPixmap = mPixmap.scaled(finalRect.size(), mAspectRatioMode, Qt::SmoothTransformation);
+      if (flipHorz || flipVert)
+        mScaledPixmap = QPixmap::fromImage(mScaledPixmap.toImage().mirrored(flipHorz, flipVert));
+    }
+  } else if (!mScaledPixmap.isNull())
+    mScaledPixmap = QPixmap();
+}
+
+/*! \internal
+  
+  Returns the final (tight) rect the pixmap is drawn in, depending on the current item positions
+  and scaling settings.
+  
+  The output parameters \a flippedHorz and \a flippedVert return whether the pixmap should be drawn
+  flipped horizontally or vertically in the returned rect. (The returned rect itself is always
+  normalized, i.e. the top left corner of the rect is actually further to the top/left than the
+  bottom right corner). This is the case when the item position \a topLeft is further to the
+  bottom/right than \a bottomRight.
+  
+  If scaling is disabled, returns a rect with size of the original pixmap and the top left corner
+  aligned with the item position \a topLeft. The position \a bottomRight is ignored.
+*/
+QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
+{
+  QRect result;
+  bool flipHorz = false;
+  bool flipVert = false;
+  QPoint p1 = topLeft->pixelPoint().toPoint();
+  QPoint p2 = bottomRight->pixelPoint().toPoint();
+  if (p1 == p2)
+    return QRect(p1, QSize(0, 0));
+  if (mScaled)
+  {
+    QSize newSize = QSize(p2.x()-p1.x(), p2.y()-p1.y());
+    QPoint topLeft = p1;
+    if (newSize.width() < 0)
+    {
+      flipHorz = true;
+      newSize.rwidth() *= -1;
+      topLeft.setX(p2.x());
+    }
+    if (newSize.height() < 0)
+    {
+      flipVert = true;
+      newSize.rheight() *= -1;
+      topLeft.setY(p2.y());
+    }
+    QSize scaledSize = mPixmap.size();
+    scaledSize.scale(newSize, mAspectRatioMode);
+    result = QRect(topLeft, scaledSize);
+  } else
+  {
+    result = QRect(p1, mPixmap.size());
+  }
+  if (flippedHorz)
+    *flippedHorz = flipHorz;
+  if (flippedVert)
+    *flippedVert = flipVert;
+  return result;
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the item is not selected
+  and mSelectedPen when it is.
+*/
+QPen QCPItemPixmap::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+
+// ================================================================================
+// =================== QCPItemText
+// ================================================================================
+
+/*! \class QCPItemText
+  \brief A text label
+
+  \image html QCPItemText.png "Text example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  Its position is defined by the member \a position and the setting of \ref setPositionAlignment.
+  The latter controls which part of the text rect shall be aligned with \a position.
+  
+  The text alignment itself (i.e. left, center, right) can be controlled with \ref
+  setTextAlignment.
+  
+  The text may be rotated around the \a position point with \ref setRotation.
+*/
+
+/*!
+  Creates a text item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemText::QCPItemText(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  position(createPosition("position")),
+  topLeft(createAnchor("topLeft", aiTopLeft)),
+  top(createAnchor("top", aiTop)),
+  topRight(createAnchor("topRight", aiTopRight)),
+  right(createAnchor("right", aiRight)),
+  bottomRight(createAnchor("bottomRight", aiBottomRight)),
+  bottom(createAnchor("bottom", aiBottom)),
+  bottomLeft(createAnchor("bottomLeft", aiBottomLeft)),
+  left(createAnchor("left", aiLeft))
+{
+  position->setCoords(0, 0);
+  
+  setRotation(0);
+  setTextAlignment(Qt::AlignTop|Qt::AlignHCenter);
+  setPositionAlignment(Qt::AlignCenter);
+  setText("text");
+  
+  setPen(Qt::NoPen);
+  setSelectedPen(Qt::NoPen);
+  setBrush(Qt::NoBrush);
+  setSelectedBrush(Qt::NoBrush);
+  setColor(Qt::black);
+  setSelectedColor(Qt::blue);
+}
+
+QCPItemText::~QCPItemText()
+{
+}
+
+/*!
+  Sets the color of the text.
+*/
+void QCPItemText::setColor(const QColor &color)
+{
+  mColor = color;
+}
+
+/*!
+  Sets the color of the text that will be used when the item is selected.
+*/
+void QCPItemText::setSelectedColor(const QColor &color)
+{
+  mSelectedColor = color;
+}
+
+/*!
+  Sets the pen that will be used do draw a rectangular border around the text. To disable the
+  border, set \a pen to Qt::NoPen.
+  
+  \see setSelectedPen, setBrush, setPadding
+*/
+void QCPItemText::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used do draw a rectangular border around the text, when the item is
+  selected. To disable the border, set \a pen to Qt::NoPen.
+  
+  \see setPen
+*/
+void QCPItemText::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the brush that will be used do fill the background of the text. To disable the
+  background, set \a brush to Qt::NoBrush.
+  
+  \see setSelectedBrush, setPen, setPadding
+*/
+void QCPItemText::setBrush(const QBrush &brush)
+{
+  mBrush = brush;
+}
+
+/*!
+  Sets the brush that will be used do fill the background of the text, when the item is selected. To disable the
+  background, set \a brush to Qt::NoBrush.
+  
+  \see setBrush
+*/
+void QCPItemText::setSelectedBrush(const QBrush &brush)
+{
+  mSelectedBrush = brush;
+}
+
+/*!
+  Sets the font of the text.
+  
+  \see setSelectedFont, setColor
+*/
+void QCPItemText::setFont(const QFont &font)
+{
+  mFont = font;
+}
+
+/*!
+  Sets the font of the text that will be used when the item is selected.
+  
+  \see setFont
+*/
+void QCPItemText::setSelectedFont(const QFont &font)
+{
+  mSelectedFont = font;
+}
+
+/*!
+  Sets the text that will be displayed. Multi-line texts are supported by inserting a line break
+  character, e.g. '\n'.
+  
+  \see setFont, setColor, setTextAlignment
+*/
+void QCPItemText::setText(const QString &text)
+{
+  mText = text;
+}
+
+/*!
+  Sets which point of the text rect shall be aligned with \a position.
+  
+  Examples:
+  \li If \a alignment is <tt>Qt::AlignHCenter | Qt::AlignTop</tt>, the text will be positioned such
+  that the top of the text rect will be horizontally centered on \a position.
+  \li If \a alignment is <tt>Qt::AlignLeft | Qt::AlignBottom</tt>, \a position will indicate the
+  bottom left corner of the text rect.
+  
+  If you want to control the alignment of (multi-lined) text within the text rect, use \ref
+  setTextAlignment.
+*/
+void QCPItemText::setPositionAlignment(Qt::Alignment alignment)
+{
+  mPositionAlignment = alignment;
+}
+
+/*!
+  Controls how (multi-lined) text is aligned inside the text rect (typically Qt::AlignLeft, Qt::AlignCenter or Qt::AlignRight).
+*/
+void QCPItemText::setTextAlignment(Qt::Alignment alignment)
+{
+  mTextAlignment = alignment;
+}
+
+/*!
+  Sets the angle in degrees by which the text (and the text rectangle, if visible) will be rotated
+  around \a position.
+*/
+void QCPItemText::setRotation(double degrees)
+{
+  mRotation = degrees;
+}
+
+/*!
+  Sets the distance between the border of the text rectangle and the text. The appearance (and
+  visibility) of the text rectangle can be controlled with \ref setPen and \ref setBrush.
+*/
+void QCPItemText::setPadding(const QMargins &padding)
+{
+  mPadding = padding;
+}
+
+/* inherits documentation from base class */
+double QCPItemText::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  // The rect may be rotated, so we transform the actual clicked pos to the rotated
+  // coordinate system, wo we can use the normal rectSelectTest function for non-rotated rects:
+  QPointF positionPixels(position->pixelPoint());
+  QTransform inputTransform;
+  inputTransform.translate(positionPixels.x(), positionPixels.y());
+  inputTransform.rotate(-mRotation);
+  inputTransform.translate(-positionPixels.x(), -positionPixels.y());
+  QPointF rotatedPos = inputTransform.map(pos);
+  QFontMetrics fontMetrics(mFont);
+  QRect textRect = fontMetrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip|mTextAlignment, mText);
+  QRect textBoxRect = textRect.adjusted(-mPadding.left(), -mPadding.top(), mPadding.right(), mPadding.bottom());
+  QPointF textPos = getTextDrawPoint(positionPixels, textBoxRect, mPositionAlignment);
+  textBoxRect.moveTopLeft(textPos.toPoint());
+
+  return rectSelectTest(textBoxRect, rotatedPos, true);
+}
+
+/* inherits documentation from base class */
+void QCPItemText::draw(QCPPainter *painter)
+{
+  QPointF pos(position->pixelPoint());
+  QTransform transform;
+  transform.translate(pos.x(), pos.y());
+  if (!qFuzzyIsNull(mRotation))
+    transform.rotate(mRotation);
+  painter->setFont(mainFont());
+  QRect textRect = painter->fontMetrics().boundingRect(0, 0, 0, 0, Qt::TextDontClip|mTextAlignment, mText);
+  QRect textBoxRect = textRect.adjusted(-mPadding.left(), -mPadding.top(), mPadding.right(), mPadding.bottom());
+  QPointF textPos = getTextDrawPoint(QPointF(0, 0), textBoxRect, mPositionAlignment); // 0, 0 because the transform does the translation
+  textRect.moveTopLeft(textPos.toPoint()+QPoint(mPadding.left(), mPadding.top()));
+  textBoxRect.moveTopLeft(textPos.toPoint());
+  double clipPad = mainPen().widthF();
+  QRect boundingRect = textBoxRect.adjusted(-clipPad, -clipPad, clipPad, clipPad);
+  if (transform.mapRect(boundingRect).intersects(clipRect()))
+  {
+    painter->setTransform(transform);
+    if ((mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0) ||
+        (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0))
+    {
+      painter->setPen(mainPen());
+      painter->setBrush(mainBrush());
+      painter->drawRect(textBoxRect);
+    }
+    painter->setBrush(Qt::NoBrush);
+    painter->setPen(QPen(mainColor()));
+    painter->drawText(textRect, Qt::TextDontClip|mTextAlignment, mText);
+  }
+}
+
+/* inherits documentation from base class */
+QPointF QCPItemText::anchorPixelPoint(int anchorId) const
+{
+  // get actual rect points (pretty much copied from draw function):
+  QPointF pos(position->pixelPoint());
+  QTransform transform;
+  transform.translate(pos.x(), pos.y());
+  if (!qFuzzyIsNull(mRotation))
+    transform.rotate(mRotation);
+  QFontMetrics fontMetrics(mainFont());
+  QRect textRect = fontMetrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip|mTextAlignment, mText);
+  QRectF textBoxRect = textRect.adjusted(-mPadding.left(), -mPadding.top(), mPadding.right(), mPadding.bottom());
+  QPointF textPos = getTextDrawPoint(QPointF(0, 0), textBoxRect, mPositionAlignment); // 0, 0 because the transform does the translation
+  textBoxRect.moveTopLeft(textPos.toPoint());
+  QPolygonF rectPoly = transform.map(QPolygonF(textBoxRect));
+  
+  switch (anchorId)
+  {
+    case aiTopLeft:     return rectPoly.at(0);
+    case aiTop:         return (rectPoly.at(0)+rectPoly.at(1))*0.5;
+    case aiTopRight:    return rectPoly.at(1);
+    case aiRight:       return (rectPoly.at(1)+rectPoly.at(2))*0.5;
+    case aiBottomRight: return rectPoly.at(2);
+    case aiBottom:      return (rectPoly.at(2)+rectPoly.at(3))*0.5;
+    case aiBottomLeft:  return rectPoly.at(3);
+    case aiLeft:        return (rectPoly.at(3)+rectPoly.at(0))*0.5;
+  }
+  
+  qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
+  return QPointF();
+}
+
+/*! \internal
+  
+  Returns the point that must be given to the QPainter::drawText function (which expects the top
+  left point of the text rect), according to the position \a pos, the text bounding box \a rect and
+  the requested \a positionAlignment.
+  
+  For example, if \a positionAlignment is <tt>Qt::AlignLeft | Qt::AlignBottom</tt> the returned point
+  will be shifted upward by the height of \a rect, starting from \a pos. So if the text is finally
+  drawn at that point, the lower left corner of the resulting text rect is at \a pos.
+*/
+QPointF QCPItemText::getTextDrawPoint(const QPointF &pos, const QRectF &rect, Qt::Alignment positionAlignment) const
+{
+  if (positionAlignment == 0 || positionAlignment == (Qt::AlignLeft|Qt::AlignTop))
+    return pos;
+  
+  QPointF result = pos; // start at top left
+  if (positionAlignment.testFlag(Qt::AlignHCenter))
+    result.rx() -= rect.width()/2.0;
+  else if (positionAlignment.testFlag(Qt::AlignRight))
+    result.rx() -= rect.width();
+  if (positionAlignment.testFlag(Qt::AlignVCenter))
+    result.ry() -= rect.height()/2.0;
+  else if (positionAlignment.testFlag(Qt::AlignBottom))
+    result.ry() -= rect.height();
+  return result;
+}
+
+/*! \internal
+
+  Returns the font that should be used for drawing text. Returns mFont when the item is not selected
+  and mSelectedFont when it is.
+*/
+QFont QCPItemText::mainFont() const
+{
+  return mSelected ? mSelectedFont : mFont;
+}
+
+/*! \internal
+
+  Returns the color that should be used for drawing text. Returns mColor when the item is not
+  selected and mSelectedColor when it is.
+*/
+QColor QCPItemText::mainColor() const
+{
+  return mSelected ? mSelectedColor : mColor;
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the item is not selected
+  and mSelectedPen when it is.
+*/
+QPen QCPItemText::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+/*! \internal
+
+  Returns the brush that should be used for drawing fills of the item. Returns mBrush when the item
+  is not selected and mSelectedBrush when it is.
+*/
+QBrush QCPItemText::mainBrush() const
+{
+  return mSelected ? mSelectedBrush : mBrush;
+}
+
+
+// ================================================================================
+// =================== QCPPainter
+// ================================================================================
+
+/*! \class QCPPainter
+  \brief QPainter subclass used internally
+  
+  This internal class is used to provide some extended functionality e.g. for tweaking position
+  consistency between antialiased and non-antialiased painting and drawing common shapes (like
+  scatter symbols). Further it provides workarounds for QPainter quirks.
+  
+  \warning This class intentionally hides non-virtual functions of QPainter, e.g. setPen, save and
+  restore. So while it is possible to pass a QCPPainter instance to a function that expects a
+  QPainter pointer, some of the workarounds and tweaks will be unavailable to the function (because
+  it will call the base class implementations of the functions actually hidden by QCPPainter).
+*/
+
+/*!
+  Creates a new QCPPainter instance and sets default values
+*/
+QCPPainter::QCPPainter() :
+  QPainter(),
+  mScaledExportMode(false),
+  mPdfExportMode(false),
+  mIsAntialiasing(false)
+{
+}
+
+/*!
+  Creates a new QCPPainter instance on the specified paint \a device and sets default values. Just
+  like the analogous QPainter constructor, begins painting on \a device immediately.
+*/
+QCPPainter::QCPPainter(QPaintDevice *device) :
+  QPainter(device),
+  mScaledExportMode(false),
+  mPdfExportMode(false),
+  mIsAntialiasing(false)
+{
+}
+
+QCPPainter::~QCPPainter()
+{
+}
+
+/*!
+  Sets the pixmap that will be used to draw scatters with \ref drawScatter, when the style is
+  QCP::ssPixmap.
+*/
+void QCPPainter::setScatterPixmap(const QPixmap pm)
+{
+  mScatterPixmap = pm;
+}
+
+/*!
+  Sets the pen of the painter and applies certain fixes to it, depending on the mode of this
+  QCPPainter.
+  
+  \note this function hides the non-virtual base class implementation.
+*/
+void QCPPainter::setPen(const QPen &pen)
+{
+  QPainter::setPen(pen);
+  if (mScaledExportMode)
+    fixScaledPen();
+}
+
+/*! \overload
+  
+  Sets the pen (by color) of the painter and applies certain fixes to it, depending on the mode of
+  this QCPPainter.
+  
+  \note this function hides the non-virtual base class implementation.
+*/
+void QCPPainter::setPen(const QColor &color)
+{
+  QPainter::setPen(color);
+  if (mScaledExportMode)
+    fixScaledPen();
+}
+
+/*! \overload
+  
+  Sets the pen (by style) of the painter and applies certain fixes to it, depending on the mode of
+  this QCPPainter.
+  
+  \note this function hides the non-virtual base class implementation.
+*/
+void QCPPainter::setPen(Qt::PenStyle penStyle)
+{
+  QPainter::setPen(penStyle);
+  if (mScaledExportMode)
+    fixScaledPen();
+}
+
+/*! \overload
+  
+  Works around a Qt bug introduced with Qt 4.8 which makes drawing QLineF unpredictable when
+  antialiasing is disabled.
+  
+  \note this function hides the non-virtual base class implementation.
+*/
+void QCPPainter::drawLine(const QLineF &line)
+{
+  if (mIsAntialiasing)
+    QPainter::drawLine(line);
+  else
+    QPainter::drawLine(line.toLine());
+}
+
+/*! 
+  Sets whether painting uses antialiasing or not. Use this method instead of using setRenderHint
+  with QPainter::Antialiasing directly, as it allows QCPPainter to regain pixel exactness between
+  antialiased and non-antialiased painting (Since Qt uses slightly different coordinate systems for
+  AA/Non-AA painting).
+*/
+void QCPPainter::setAntialiasing(bool enabled)
+{
+  if (mPdfExportMode)
+    return;
+  
+  setRenderHint(QPainter::Antialiasing, enabled);
+  if (mIsAntialiasing != enabled)
+  {
+    if (mIsAntialiasing)
+      translate(-0.5, -0.5);
+    else
+      translate(0.5, 0.5);
+    mIsAntialiasing = enabled;
+  }
+}
+
+/*!
+  Saves the painter (see QPainter::save). Since QCPPainter adds some new internal state to
+  QPainter, the save/restore functions are reimplemented to also save/restore those members.
+  
+  \note this function hides the non-virtual base class implementation.
+  
+  \see restore
+*/
+void QCPPainter::save()
+{
+  mAntialiasingStack.push(mIsAntialiasing);
+  QPainter::save();
+}
+
+/*!
+  Restores the painter (see QPainter::restore). Since QCPPainter adds some new internal state to
+  QPainter, the save/restore functions are reimplemented to also save/restore those members.
+  
+  \note this function hides the non-virtual base class implementation.
+  
+  \see save
+*/
+void QCPPainter::restore()
+{
+  if (!mAntialiasingStack.isEmpty())
+    mIsAntialiasing = mAntialiasingStack.pop();
+  else
+    qDebug() << Q_FUNC_INFO << "Unbalanced save/restore";
+  QPainter::restore();
+}
+
+/*!
+  Sets whether the painter shall adjust its fixes/workarounds optimized for vectorized pdf export.
+
+  This means for example, that the antialiasing/non-antialiasing fix introduced with \ref
+  setAntialiasing is not used, since PDF is not rastered and thus works with floating point data
+  natively.
+*/
+void QCPPainter::setPdfExportMode(bool enabled)
+{
+  mPdfExportMode = enabled;
+}
+
+/*!
+  Sets whether the painter shall adjust its fixes/workarounds optimized for scaled export to
+  rastered image formats.
+
+  For example this provides a workaround for a QPainter bug that prevents scaling of pen widths for
+  pens with width 0, although the QPainter::NonCosmeticDefaultPen render hint is set.
+*/
+void QCPPainter::setScaledExportMode(bool enabled)
+{
+  mScaledExportMode = enabled;
+}
+
+/*!
+  Provides a workaround for a QPainter bug that prevents scaling of pen widths for pens with width
+  0, although the QPainter::NonCosmeticDefaultPen render hint is set.
+  
+  Changes the pen width from 0 to 1, if appropriate.
+  
+  Does nothing if the QCPPainter is not in scaled export mode (\ref setScaledExportMode).
+*/
+void QCPPainter::fixScaledPen()
+{
+  if (mScaledExportMode && pen().isCosmetic() && qFuzzyIsNull(pen().widthF()))
+  {
+    QPen p = pen();
+    p.setWidth(1);
+    QPainter::setPen(p);
+  }
+}
+
+/*! 
+  Draws a single scatter point with the specified \a style and \a size in pixels at the pixel position \a x and \a y.
+  
+  If the \a style is ssPixmap, make sure to pass the respective pixmap with \ref setScatterPixmap before calling
+  this function.
+*/
+void QCPPainter::drawScatter(double x, double y, double size, QCP::ScatterStyle style)
+{
+  double w = size/2.0;
+  switch (style)
+  {
+    case QCP::ssNone: break;
+    case QCP::ssDot:
+    {
+      drawPoint(QPointF(x, y));
+      break;
+    }
+    case QCP::ssCross:
+    {
+      drawLine(QLineF(x-w, y-w, x+w, y+w));
+      drawLine(QLineF(x-w, y+w, x+w, y-w));
+      break;
+    }
+    case QCP::ssPlus:
+    {
+      drawLine(QLineF(x-w, y, x+w, y));
+      drawLine(QLineF(x, y+w, x, y-w));
+      break;
+    }
+    case QCP::ssCircle:
+    {
+      setBrush(Qt::NoBrush);
+      drawEllipse(QPointF(x,y), w, w);
+      break;
+    }
+    case QCP::ssDisc:
+    {
+      setBrush(QBrush(pen().color()));
+      drawEllipse(QPointF(x,y), w, w);
+      break;
+    }
+    case QCP::ssSquare:
+    {
+      setBrush(Qt::NoBrush);
+      drawRect(QRectF(x-w, y-w, size, size));
+      break;
+    }
+    case QCP::ssDiamond:
+    {
+      setBrush(Qt::NoBrush);
+      drawLine(QLineF(x-w, y, x, y-w));
+      drawLine(QLineF(x, y-w, x+w, y));
+      drawLine(QLineF(x+w, y, x, y+w));
+      drawLine(QLineF(x, y+w, x-w, y));
+      break;
+    }
+    case QCP::ssStar:
+    {
+      drawLine(QLineF(x-w, y, x+w, y));
+      drawLine(QLineF(x, y+w, x, y-w));
+      drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.707, y+w*0.707));
+      drawLine(QLineF(x-w*0.707, y+w*0.707, x+w*0.707, y-w*0.707));
+      break;
+    }
+    case QCP::ssTriangle:
+    {
+      drawLine(QLineF(x-w, y+0.755*w, x+w, y+0.755*w));
+      drawLine(QLineF(x+w, y+0.755*w, x, y-0.977*w));
+      drawLine(QLineF(x, y-0.977*w, x-w, y+0.755*w));
+      break;
+    }
+    case QCP::ssTriangleInverted:
+    {
+      drawLine(QLineF(x-w, y-0.755*w, x+w, y-0.755*w));
+      drawLine(QLineF(x+w, y-0.755*w, x, y+0.977*w));
+      drawLine(QLineF(x, y+0.977*w, x-w, y-0.755*w));
+      break;
+    }
+    case QCP::ssCrossSquare:
+    {
+      setBrush(Qt::NoBrush);
+      drawLine(QLineF(x-w, y-w, x+w*0.95, y+w*0.95));
+      drawLine(QLineF(x-w, y+w*0.95, x+w*0.95, y-w));
+      drawRect(QRectF(x-w,y-w,size,size));
+      break;
+    }
+    case QCP::ssPlusSquare:
+    {
+      setBrush(Qt::NoBrush);
+      drawLine(QLineF(x-w, y, x+w*0.95, y));
+      drawLine(QLineF(x, y+w, x, y-w));
+      drawRect(QRectF(x-w, y-w, size, size));
+      break;
+    }
+    case QCP::ssCrossCircle:
+    {
+      setBrush(Qt::NoBrush);
+      drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.67, y+w*0.67));
+      drawLine(QLineF(x-w*0.707, y+w*0.67, x+w*0.67, y-w*0.707));
+      drawEllipse(QPointF(x,y), w, w);
+      break;
+    }
+    case QCP::ssPlusCircle:
+    {
+      setBrush(Qt::NoBrush);
+      drawLine(QLineF(x-w, y, x+w, y));
+      drawLine(QLineF(x, y+w, x, y-w));
+      drawEllipse(QPointF(x,y), w, w);
+      break;
+    }
+    case QCP::ssPeace:
+    {
+      setBrush(Qt::NoBrush);
+      drawLine(QLineF(x, y-w, x, y+w));
+      drawLine(QLineF(x, y, x-w*0.707, y+w*0.707));
+      drawLine(QLineF(x, y, x+w*0.707, y+w*0.707));
+      drawEllipse(QPointF(x,y), w, w);
+      break;
+    }
+    case QCP::ssPixmap:
+    {
+      drawPixmap(x-mScatterPixmap.width()*0.5, y-mScatterPixmap.height()*0.5, mScatterPixmap);
+      // if something in here is changed, adapt QCP::ssPixmap special case in drawLegendIcon(), too
+      break;
+    }
+  }
+}
+
+
+// ================================================================================
+// =================== QCPLineEnding
+// ================================================================================
+
+/*! \class QCPLineEnding
+  \brief Handles the different ending decorations for line-like items
+  
+  \image html QCPLineEnding.png "The various ending styles currently supported"
+  
+  For every ending a line-like item has, an instance of this class exists. For example, QCPItemLine
+  has two endings which can be set with QCPItemLine::setHead and QCPItemLine::setTail.
+ 
+  The styles themselves are defined via the enum QCPLineEnding::EndingStyle. Most decorations can
+  be modified regarding width and length, see \ref setWidth and \ref setLength. The direction of
+  the ending decoration (e.g. direction an arrow is pointing) is controlled by the line-like item.
+  For example, when both endings of a QCPItemLine are set to be arrows, they will point to opposite
+  directions, e.g. "outward". This can be changed by \ref setInverted, which would make the
+  respective arrow point inward.
+  
+  Note that due to the overloaded QCPLineEnding constructor, you may directly specify a
+  QCPLineEnding::EndingStyle where actually a QCPLineEnding is expected, e.g. \code
+  myItemLine->setHead(QCPLineEnding::esSpikeArrow) \endcode
+*/
+
+/*!
+  Creates a QCPLineEnding instance with default values (style \ref esNone).
+*/
+QCPLineEnding::QCPLineEnding() :
+  mStyle(esNone),
+  mWidth(8),
+  mLength(10),
+  mInverted(false)
+{
+}
+
+/*!
+  Creates a QCPLineEnding instance with the specified values.
+*/
+QCPLineEnding::QCPLineEnding(QCPLineEnding::EndingStyle style, double width, double length, bool inverted) :
+  mStyle(style),
+  mWidth(width),
+  mLength(length),
+  mInverted(inverted)
+{
+}
+
+/*!
+  Sets the style of the ending decoration.
+*/
+void QCPLineEnding::setStyle(QCPLineEnding::EndingStyle style)
+{
+  mStyle = style;
+}
+
+/*!
+  Sets the width of the ending decoration, if the style supports it. On arrows, for example, the
+  width defines the size perpendicular to the arrow's pointing direction.
+  
+  \see setLength
+*/
+void QCPLineEnding::setWidth(double width)
+{
+  mWidth = width;
+}
+
+/*!
+  Sets the length of the ending decoration, if the style supports it. On arrows, for example, the
+  length defines the size in pointing direction.
+  
+  \see setWidth
+*/
+void QCPLineEnding::setLength(double length)
+{
+  mLength = length;
+}
+
+/*!
+  Sets whether the direction of the ending decoration shall be inverted with respect to the natural
+  direction given by the parent item. For example, an arrow decoration will point inward when
+  \a inverted is set to true.
+*/
+void QCPLineEnding::setInverted(bool inverted)
+{
+  mInverted = inverted;
+}
+
+/*! \internal
+  
+  Returns the maximum pixel radius the ending decoration might cover, starting from the position
+  the decoration is drawn at (typically a line ending/\ref QCPItemPosition of an item).
+  
+  This is relevant for clipping. Only omit painting of the decoration when the position where the
+  decoration is supposed to be drawn is farther away from the clipping rect than the returned
+  distance.
+*/
+double QCPLineEnding::boundingDistance() const
+{
+  switch (mStyle)
+  {
+    case esNone:
+      return 0;
+      
+    case esFlatArrow:
+    case esSpikeArrow:
+    case esLineArrow:
+      return qSqrt(mWidth*mWidth+mLength*mLength); // items that have width and length
+      
+    case esDisc:
+    case esSquare:
+    case esDiamond:
+    case esBar:
+      return mWidth*1.42; // items that only have a width -> with*sqrt(2)
+  }
+  return 0;
+}
+
+/*! \internal
+  
+  Draws the line ending with the specified \a painter at the position \a pos. The direction of the
+  line ending is controlled with \a dir.
+*/
+void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVector2D &dir) const
+{
+  if (mStyle == esNone)
+    return;
+  
+  QVector2D lengthVec(dir.normalized()*(mInverted ? -1 : 1));
+  if (lengthVec.isNull())
+    lengthVec = QVector2D(1, 0);
+  QVector2D widthVec(-lengthVec.y(), lengthVec.x());
+  lengthVec *= mLength;
+  widthVec *= mWidth*0.5;
+  
+  QPen penBackup = painter->pen();
+  QPen miterPen = penBackup;
+  miterPen.setJoinStyle(Qt::MiterJoin);
+  switch (mStyle)
+  {
+    case esNone: break;
+    case esFlatArrow:
+    {
+      QPointF points[3] = {pos.toPointF(),
+                           (pos-lengthVec+widthVec).toPointF(),
+                           (pos-lengthVec-widthVec).toPointF()
+                          };
+      painter->setPen(miterPen);
+      painter->drawConvexPolygon(points, 3);
+      painter->setPen(penBackup);
+      break;
+    }
+    case esSpikeArrow:
+    {
+      QPointF points[4] = {pos.toPointF(),
+                           (pos-lengthVec+widthVec).toPointF(),
+                           (pos-lengthVec*0.8).toPointF(),
+                           (pos-lengthVec-widthVec).toPointF()
+                          };
+      painter->setPen(miterPen);
+      painter->drawConvexPolygon(points, 4);
+      painter->setPen(penBackup);
+      break;
+    }
+    case esLineArrow:
+    {
+      QPointF points[3] = {(pos-lengthVec+widthVec).toPointF(),
+                           pos.toPointF(),
+                           (pos-lengthVec-widthVec).toPointF()
+                          };
+      painter->setPen(miterPen);
+      painter->drawPolyline(points, 3);
+      painter->setPen(penBackup);
+      break;
+    }
+    case esDisc:
+    {
+      painter->drawEllipse(pos.toPointF(),  mWidth*0.5, mWidth*0.5);
+      break;
+    }
+    case esSquare:
+    {
+      QVector2D widthVecPerp(-widthVec.y(), widthVec.x());
+      QPointF points[4] = {(pos-widthVecPerp+widthVec).toPointF(),
+                           (pos-widthVecPerp-widthVec).toPointF(),
+                           (pos+widthVecPerp-widthVec).toPointF(),
+                           (pos+widthVecPerp+widthVec).toPointF()
+                          };
+      painter->setPen(miterPen);
+      painter->drawConvexPolygon(points, 4);
+      painter->setPen(penBackup);
+      break;
+    }
+    case esDiamond:
+    {
+      QVector2D widthVecPerp(-widthVec.y(), widthVec.x());
+      QPointF points[4] = {(pos-widthVecPerp).toPointF(),
+                           (pos-widthVec).toPointF(),
+                           (pos+widthVecPerp).toPointF(),
+                           (pos+widthVec).toPointF()
+                          };
+      painter->setPen(miterPen);
+      painter->drawConvexPolygon(points, 4);
+      painter->setPen(penBackup);
+      break;
+    }
+    case esBar:
+    {
+      painter->drawLine((pos+widthVec).toPointF(), (pos-widthVec).toPointF());
+      break;
+    }
+  }
+}
+
+/*! \internal
+  \overload
+  
+  Draws the line ending. The direction is controlled with the \a angle parameter in radians.
+*/
+void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, double angle) const
+{
+  draw(painter, pos, QVector2D(qCos(angle), qSin(angle)));
+}
+
+
+// ================================================================================
+// =================== QCPItemCurve
+// ================================================================================
+
+/*! \class QCPItemCurve
+  \brief A curved line from one point to another
+
+  \image html QCPItemCurve.png "Curve example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has four positions, \a start and \a end, which define the end points of the line, and two
+  control points which define the direction the line exits from the start and the direction from
+  which it approaches the end: \a startDir and \a endDir.
+  
+  With \ref setHead and \ref setTail you may set different line ending styles, e.g. to create an
+  arrow.
+  
+  Often it is desirable for the control points to stay at fixed relative positions to the start/end
+  point. This can be achieved by setting the parent anchor e.g. of \a startDir simply to \a start,
+  and then specify the desired pixel offset with QCPItemPosition::setCoords on \a startDir.
+*/
+
+/*!
+  Creates a curve item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemCurve::QCPItemCurve(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  start(createPosition("start")),
+  startDir(createPosition("startDir")),
+  endDir(createPosition("endDir")),
+  end(createPosition("end"))
+{
+  start->setCoords(0, 0);
+  startDir->setCoords(0.5, 0);
+  endDir->setCoords(0, 0.5);
+  end->setCoords(1, 1);
+  
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue,2));
+}
+
+QCPItemCurve::~QCPItemCurve()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the line
+  
+  \see setSelectedPen
+*/
+void QCPItemCurve::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the line when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemCurve::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the line ending style of the head. The head corresponds to the \a end position.
+  
+  Note that due to the overloaded QCPLineEnding constructor, you may directly specify
+  a QCPLineEnding::EndingStyle here, e.g. \code setHead(QCPLineEnding::esSpikeArrow) \endcode
+  
+  \see setTail
+*/
+void QCPItemCurve::setHead(const QCPLineEnding &head)
+{
+  mHead = head;
+}
+
+/*!
+  Sets the line ending style of the tail. The tail corresponds to the \a start position.
+  
+  Note that due to the overloaded QCPLineEnding constructor, you may directly specify
+  a QCPLineEnding::EndingStyle here, e.g. \code setTail(QCPLineEnding::esSpikeArrow) \endcode
+  
+  \see setHead
+*/
+void QCPItemCurve::setTail(const QCPLineEnding &tail)
+{
+  mTail = tail;
+}
+
+/* inherits documentation from base class */
+double QCPItemCurve::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  QPointF startVec(start->pixelPoint());
+  QPointF startDirVec(startDir->pixelPoint());
+  QPointF endDirVec(endDir->pixelPoint());
+  QPointF endVec(end->pixelPoint());
+
+  QPainterPath cubicPath(startVec);
+  cubicPath.cubicTo(startDirVec, endDirVec, endVec);
+  
+  QPolygonF polygon = cubicPath.toSubpathPolygons().first();
+  double minDistSqr = std::numeric_limits<double>::max();
+  for (int i=1; i<polygon.size(); ++i)
+  {
+    double distSqr = distSqrToLine(polygon.at(i-1), polygon.at(i), pos);
+    if (distSqr < minDistSqr)
+      minDistSqr = distSqr;
+  }
+  return qSqrt(minDistSqr);
+}
+
+/* inherits documentation from base class */
+void QCPItemCurve::draw(QCPPainter *painter)
+{
+  QPointF startVec(start->pixelPoint());
+  QPointF startDirVec(startDir->pixelPoint());
+  QPointF endDirVec(endDir->pixelPoint());
+  QPointF endVec(end->pixelPoint());
+  if (QVector2D(endVec-startVec).length() > 1e10) // too large curves cause crash
+    return;
+
+  QPainterPath cubicPath(startVec);
+  cubicPath.cubicTo(startDirVec, endDirVec, endVec);
+
+  // paint visible segment, if existent:
+  QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
+  QRect cubicRect = cubicPath.controlPointRect().toRect();
+  if (cubicRect.isEmpty()) // may happen when start and end exactly on same x or y position
+    cubicRect.adjust(0, 0, 1, 1);
+  if (clip.intersects(cubicRect))
+  {
+    painter->setPen(mainPen());
+    painter->drawPath(cubicPath);
+    painter->setBrush(Qt::SolidPattern);
+    if (mTail.style() != QCPLineEnding::esNone)
+      mTail.draw(painter, QVector2D(startVec), M_PI-cubicPath.angleAtPercent(0)/180.0*M_PI);
+    if (mHead.style() != QCPLineEnding::esNone)
+      mHead.draw(painter, QVector2D(endVec), -cubicPath.angleAtPercent(1)/180.0*M_PI);
+  }
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the
+  item is not selected and mSelectedPen when it is.
+*/
+QPen QCPItemCurve::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+
+// ================================================================================
+// =================== QCPLayer
+// ================================================================================
+
+/*! \class QCPLayer
+  \brief A layer that may contain objects, to control the rendering order
+  
+  The Layering system of QCustomPlot is the mechanism to control the rendering order of the
+  elements inside the plot, e.g. that the grid is drawn behind plottables etc.
+  
+  It is based on the two classes QCPLayer and QCPLayerable. A QCustomPlot contains an ordered list
+  of one or more instances of QCPLayer (see QCustomPlot::addLayer, QCustomPlot::layer,
+  QCustomPlot::moveLayer, etc.). The layers are drawn in the order they are in the list.
+
+  A QCPLayer itself contains an ordered list of QCPLayerable instances. QCPLayerable is an abstract
+  base class from which almost all visible objects derive, like axes, grids, graphs, items, etc.
+  
+  By default, QCustomPlot has three layers: "grid", "main" and "axes" (in that order). Initially
+  the QCPGrid instances are on the "grid" layer, so the grid will be drawn beneath the objects on
+  the other two layers. The top layer is "axes" and contains all four axes, so they will be drawn
+  on top. Between these two layers, there is the "main" layer. It is initially empty and set as the
+  current layer (see QCustomPlot::setCurrentLayer). This means, all new plottables, items etc.
+  are created on this layer by default, and are thus drawn above the grid but below the axes.
+  
+  Controlling the ordering of objects is easy: Create a new layer in the position you want it to
+  be, e.g. above "main", with QCustomPlot::addLayer. Then set the current layer with
+  QCustomPlot::setCurrentLayer to that new layer and finally create the objects normally. They will
+  be placed on the new layer automatically, due to the current layer setting. Alternatively you
+  could have also ignored the current layer setting and just moved the objects with
+  QCPLayerable::setLayer to the desired layer after creating them.
+  
+  It is also possible to move whole layers. For example, If you want the grid to be shown in front
+  of all plottables/items on the "main" layer, just move it above "main" with
+  QCustomPlot::moveLayer. This way the ordering might now be "main", "grid", "axes", so while the
+  grid will still be beneath the axes, it will now be drawn above plottables/items on "main", as
+  intended.
+  
+  The rendering order within one layer is simply by order of creation. The item created last (or
+  added last to the layer), is drawn on top of all other objects on that layer.  
+  
+  When a layer is deleted, the objects on it are not deleted with it, but fall on the layer below
+  the deleted layer, see QCustomPlot::removeLayer.
+*/
+
+/* start documentation of inline functions */
+
+/*! \fn QList<QCPLayerable*> QCPLayer::children() const
+  
+  Returns a list of all layerables on this layer. The order corresponds to the rendering order,
+  i.e. layerables with higher indices are drawn above layerables with lower indices.
+*/
+
+/* end documentation of inline functions */
+
+/*!
+  Creates a new QCPLayer instance.
+  
+  Normally you shouldn't directly create layers like this, use QCustomPlot::addLayer instead.
+  
+  \warning It is not checked that \a layerName is actually an unique layer name in \a parentPlot.
+  This check is only performed by QCustomPlot::addLayer.
+*/
+QCPLayer::QCPLayer(QCustomPlot *parentPlot, const QString &layerName) :
+  mParentPlot(parentPlot),
+  mName(layerName)
+{
+  // Note: no need to make sure layerName doesn't already, because layer
+  // management is done with QCustomPlot functions.
+}
+
+QCPLayer::~QCPLayer()
+{
+}
+
+/*!
+  Returns the index this layer has in the QCustomPlot. The index is the integer number by which this layer can be
+  accessed via QCustomPlot::layer.
+  
+  Layers with greater indices will be drawn above layers with smaller indices.
+*/
+int QCPLayer::index() const
+{
+  return mParentPlot->mLayers.indexOf(const_cast<QCPLayer*>(this));
+}
+
+/*! \internal
+  
+  Adds the \a layerable to the list of this layer. If \a prepend is set to true, the layerable will
+  be prepended to the list, i.e. be drawn beneath the other layerables already in the list.
+  
+  This function does not change the \a mLayer member of \a layerable to this layer. (Use
+  QCPLayerable::setLayer to change the layer of an object, not this function.)
+  
+  \see removeChild
+*/
+void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
+{
+  if (!mChildren.contains(layerable))
+  {
+    if (prepend)
+      mChildren.prepend(layerable);
+    else
+      mChildren.append(layerable);
+  } else
+    qDebug() << Q_FUNC_INFO << "layerable is already child of this layer" << reinterpret_cast<quintptr>(layerable);
+}
+
+/*! \internal
+  
+  Removes the \a layerable from the list of this layer.
+  
+  This function does not change the \a mLayer member of \a layerable. (Use QCPLayerable::setLayer
+  to change the layer of an object, not this function.)
+  
+  \see addChild
+*/
+void QCPLayer::removeChild(QCPLayerable *layerable)
+{
+  if (!mChildren.removeOne(layerable))
+    qDebug() << Q_FUNC_INFO << "layerable is not child of this layer" << reinterpret_cast<quintptr>(layerable);
+}
+
+
+// ================================================================================
+// =================== QCPLayerable
+// ================================================================================
+
+/*! \class QCPLayerable
+  \brief Base class for all objects that can be placed on layers
+  
+  This is the abstract base class most visible objects derive from, e.g. plottables, axes, grid
+  etc.
+
+  Every layerable is on a layer (QCPLayer) which allows controlling the rendering order by stacking
+  the layers accordingly.
+  
+  For details about the layering mechanism, see the QCPLayer documentation.
+*/
+
+/* start documentation of pure virtual functions */
+
+/*! \fn virtual void QCPLayerable::applyDefaultAntialiasingHint(QCPPainter *painter) const = 0
+  \internal
+  
+  This function applies the default antialiasing setting to the specified \a painter, using the
+  function \ref applyAntialiasingHint. This is the antialiasing state the painter is in, when \ref
+  draw is called on the layerable. If the layerable has multiple entities whose antialiasing
+  setting may be specified individually, this function should set the antialiasing state of the
+  most prominent entity. In this case however, the \ref draw function usually calls the specialized
+  versions of this function before drawing each entity, effectively overriding the setting of the
+  default antialiasing hint.
+  
+  <b>First example:</b> QCPGraph has multiple entities that have an antialiasing setting: The graph
+  line, fills, scatters and error bars. Those can be configured via QCPGraph::setAntialiased,
+  QCPGraph::setAntialiasedFill, QCPGraph::setAntialiasedScatters etc. Consequently, there isn't
+  only the QCPGraph::applyDefaultAntialiasingHint function (which corresponds to the graph line's
+  antialiasing), but specialized ones like QCPGraph::applyFillAntialiasingHint and
+  QCPGraph::applyScattersAntialiasingHint. So before drawing one of those entities, QCPGraph::draw
+  calls the respective specialized applyAntialiasingHint function.
+  
+  <b>Second example:</b> QCPItemLine consists only of a line so there is only one antialiasing
+  setting which can be controlled with QCPItemLine::setAntialiased. (This function is inherited by
+  all layerables. The specialized functions, as seen on QCPGraph, must be added explicitly to the
+  respective layerable subclass.) Consequently it only has the normal
+  QCPItemLine::applyDefaultAntialiasingHint. The \ref QCPItemLine::draw function doesn't need to
+  care about setting any antialiasing states, because the default antialiasing hint is already set
+  on the painter when the \ref draw function is called, and that's the state it wants to draw the
+  line with.
+*/
+
+/*! \fn virtual void QCPLayerable::draw(QCPPainter *painter) const = 0
+  \internal
+  
+  This function draws the layerable to the specified \a painter.
+  
+  Before this function is called, the painter's antialiasing state is set via \ref
+  applyDefaultAntialiasingHint, see the documentation there. Further, its clipping rectangle was
+  set to \ref clipRect.
+*/
+
+/* end documentation of pure virtual functions */
+
+/*!
+  Creates a new QCPLayerable instance.
+  
+  Since QCPLayerable is an abstract base class, it can't be instantiated directly. Use one of the
+  derived classes.
+*/
+QCPLayerable::QCPLayerable(QCustomPlot *parentPlot) :
+  QObject(0), // rather not bind to parentPlot, incase we want to allow moving of objects between customplots some day
+  mVisible(true),
+  mParentPlot(parentPlot),
+  mLayer(0),
+  mAntialiased(true)
+{
+  if (mParentPlot)
+    setLayer(mParentPlot->currentLayer());
+}
+
+QCPLayerable::~QCPLayerable()
+{
+  if (mLayer)
+  {
+    mLayer->removeChild(this);
+    mLayer = 0;
+  }
+}
+
+/*!
+  Sets the visibility of this layerable object. If an object is not visible, it will not be drawn
+  on the QCustomPlot surface, and user interaction with it (e.g. click/selection) is not possible.
+*/
+void QCPLayerable::setVisible(bool on)
+{
+  mVisible = on;
+}
+
+/*!
+  Sets the \a layer of this layerable object. The object will be placed on top of the other objects
+  already on \a layer.
+  
+  Returns true on success, i.e. if \a layer is a valid layer.
+*/
+bool QCPLayerable::setLayer(QCPLayer *layer)
+{
+  return moveToLayer(layer, false);
+}
+
+/*! \overload
+  Sets the layer of this layerable object by name
+  
+  Returns true on success, i.e. if \a layerName is a valid layer name.
+*/
+bool QCPLayerable::setLayer(const QString &layerName)
+{
+  if (!mParentPlot)
+  {
+    qDebug() << Q_FUNC_INFO << "no parent QCustomPlot set";
+    return false;
+  }
+  if (QCPLayer *layer = mParentPlot->layer(layerName))
+  {
+    return setLayer(layer);
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "there is no layer with name" << layerName;
+    return false;
+  }
+}
+
+/*!
+  Sets whether this object will be drawn antialiased or not.
+  
+  Note that antialiasing settings may be overridden by QCustomPlot::setAntialiasedElements and
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPLayerable::setAntialiased(bool enabled)
+{
+  mAntialiased = enabled;
+}
+
+/*! \internal
+  
+  Moves this layerable object to \a layer. If \a prepend is true, this object will be prepended to
+  the new layer's list, i.e. it will be drawn below the objects already on the layer. If it is
+  false, the object will be appended.
+  
+  Returns true on success, i.e. if \a layer is a valid layer.
+*/
+bool QCPLayerable::moveToLayer(QCPLayer *layer, bool prepend)
+{
+  if (!mParentPlot)
+  {
+    qDebug() << Q_FUNC_INFO << "no parent QCustomPlot set";
+    return false;
+  }
+  if (layer && layer->parentPlot() != mParentPlot)
+  {
+    qDebug() << Q_FUNC_INFO << "layer" << layer->name() << "is not in same QCustomPlot as this layerable";
+    return false;
+  }
+  
+  if (mLayer)
+    mLayer->removeChild(this);
+  mLayer = layer;
+  if (mLayer)
+    mLayer->addChild(this, prepend);
+  return true;
+}
+
+/*! \internal
+
+  Sets the QPainter::Antialiasing render hint on the provided \a painter, depending on the
+  \a localAntialiased value as well as the overrides \ref QCustomPlot::setAntialiasedElements and
+  \ref QCustomPlot::setNotAntialiasedElements. Which override enum this function takes into account is
+  controlled via \a overrideElement.
+*/
+void QCPLayerable::applyAntialiasingHint(QCPPainter *painter, bool localAntialiased, QCP::AntialiasedElement overrideElement) const
+{
+  if (mParentPlot && mParentPlot->notAntialiasedElements().testFlag(overrideElement))
+    painter->setAntialiasing(false);
+  else if (mParentPlot && mParentPlot->antialiasedElements().testFlag(overrideElement))
+    painter->setAntialiasing(true);
+  else
+    painter->setAntialiasing(localAntialiased);
+}
+
+/*! \internal
+  
+  Returns the clipping rectangle of this layerable object. By default, this is the viewport of the parent QCustomPlot.
+  Specific subclasses may reimplement this function to provide different clipping rects.
+  
+  The returned clipping rect is set on the painter before the draw function of the respective
+  object is called.
+*/
+QRect QCPLayerable::clipRect() const
+{
+  if (mParentPlot)
+    return mParentPlot->viewport();
+  else
+    return QRect();
+}
+
+
+// ================================================================================
+// =================== QCPGrid
+// ================================================================================
+
+/*! \class QCPGrid
+  \brief Responsible for drawing the grid of a QCPAxis.
+  
+  This class is tightly bound to QCPAxis. Every axis owns a grid instance internally and uses it to
+  draw the grid. Normally, you don't need to interact with the QCPGrid instance, because QCPAxis
+  reproduces the grid interface in its own interface.
+  
+  The axis and grid drawing was split into two classes to allow them to be placed on different
+  layers (both QCPAxis and QCPGrid inherit from QCPLayerable). So it is possible to have the grid
+  at the background and the axes in the foreground, and any plottables/items in between. This
+  described situation is the default setup, see QCPLayer documentation.  
+*/
+
+/*!
+  Creates a QCPGrid instance and sets default values.
+  
+  You shouldn't instantiate grids on their own, since every QCPAxis brings its own QCPGrid
+  internally
+*/
+QCPGrid::QCPGrid(QCPAxis *parentAxis) :
+  QCPLayerable(parentAxis->parentPlot()),
+  mParentAxis(parentAxis)
+{
+  setPen(QPen(QColor(200,200,200), 0, Qt::DotLine));
+  setSubGridPen(QPen(QColor(220,220,220), 0, Qt::DotLine));
+  setZeroLinePen(QPen(QColor(200,200,200), 0, Qt::SolidLine));
+  setSubGridVisible(false);
+  setAntialiased(false);
+  setAntialiasedSubGrid(false);
+  setAntialiasedZeroLine(false);
+}
+
+QCPGrid::~QCPGrid()
+{
+}
+
+/*!
+  Sets whether grid lines at sub tick marks are drawn.
+  
+  \see setSubGridPen
+*/
+void QCPGrid::setSubGridVisible(bool visible)
+{
+  mSubGridVisible = visible;
+}
+
+/*!
+  Sets whether sub grid lines are drawn antialiased.
+*/
+void QCPGrid::setAntialiasedSubGrid(bool enabled)
+{
+  mAntialiasedSubGrid = enabled;
+}
+
+/*!
+  Sets whether zero lines are drawn antialiased.
+*/
+void QCPGrid::setAntialiasedZeroLine(bool enabled)
+{
+  mAntialiasedZeroLine = enabled;
+}
+
+/*!
+  Sets the pen with which (major) grid lines are drawn.
+*/
+void QCPGrid::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen with which sub grid lines are drawn.
+*/
+void QCPGrid::setSubGridPen(const QPen &pen)
+{
+  mSubGridPen = pen;
+}
+
+/*!
+  Sets the pen with which zero lines are drawn.
+  
+  Zero lines are lines at coordinate 0 which may be drawn with a different pen than other grid
+  lines. To disable zero lines and just draw normal grid lines at zero, set \a pen to Qt::NoPen.
+*/
+void QCPGrid::setZeroLinePen(const QPen &pen)
+{
+  mZeroLinePen = pen;
+}
+
+/*! \internal
+
+  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
+  before drawing the major grid lines.
+
+  This is the antialiasing state the painter passed to the \ref draw method is in by default.
+  
+  This function takes into account the local setting of the antialiasing flag as well as
+  the overrides set e.g. with \ref QCustomPlot::setNotAntialiasedElements.
+  
+  \see setAntialiased
+*/
+void QCPGrid::applyDefaultAntialiasingHint(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiased, QCP::aeGrid);
+}
+
+/*! \internal
+  
+  Draws grid lines and sub grid lines at the positions of (sub) ticks of the parent axis, spanning
+  over the complete axis rect. Also draws the zero line, if appropriate (\ref setZeroLinePen).
+  
+  Called by QCustomPlot::draw to draw the grid of an axis.
+*/
+void QCPGrid::draw(QCPPainter *painter)
+{
+  if (!mParentAxis->visible()) return; // also don't draw grid when parent axis isn't visible
+  
+  if (mSubGridVisible)
+    drawSubGridLines(painter);
+  drawGridLines(painter);
+}
+
+/*! \internal
+  
+  Draws the main grid lines and possibly a zero line with the specified painter.
+  
+  This is a helper function called by \ref draw.
+*/
+void QCPGrid::drawGridLines(QCPPainter *painter) const
+{
+  int lowTick = mParentAxis->mLowestVisibleTick;
+  int highTick = mParentAxis->mHighestVisibleTick;
+  double t; // helper variable, result of coordinate-to-pixel transforms
+  if (mParentAxis->orientation() == Qt::Horizontal)
+  {
+    // draw zeroline:
+    int zeroLineIndex = -1;
+    if (mZeroLinePen.style() != Qt::NoPen && mParentAxis->mRange.lower < 0 && mParentAxis->mRange.upper > 0)
+    {
+      applyAntialiasingHint(painter, mAntialiasedZeroLine, QCP::aeZeroLine);
+      painter->setPen(mZeroLinePen);
+      double epsilon = mParentAxis->range().size()*1E-6; // for comparing double to zero
+      for (int i=lowTick; i <= highTick; ++i)
+      {
+        if (qAbs(mParentAxis->mTickVector.at(i)) < epsilon)
+        {
+          zeroLineIndex = i;
+          t = mParentAxis->coordToPixel(mParentAxis->mTickVector.at(i)); // x
+          painter->drawLine(QLineF(t, mParentAxis->mAxisRect.bottom(), t, mParentAxis->mAxisRect.top()));
+          break;
+        }
+      }
+    }
+    applyDefaultAntialiasingHint(painter);
+    painter->setPen(mPen);
+    for (int i=lowTick; i <= highTick; ++i)
+    {
+      if (i == zeroLineIndex) continue; // don't draw a gridline on top of the zeroline
+      t = mParentAxis->coordToPixel(mParentAxis->mTickVector.at(i)); // x
+      painter->drawLine(QLineF(t, mParentAxis->mAxisRect.bottom(), t, mParentAxis->mAxisRect.top()));
+    }
+  } else
+  {
+    // draw zeroline:
+    int zeroLineIndex = -1;
+    if (mZeroLinePen.style() != Qt::NoPen && mParentAxis->mRange.lower < 0 && mParentAxis->mRange.upper > 0)
+    {
+      applyAntialiasingHint(painter, mAntialiasedZeroLine, QCP::aeZeroLine);
+      painter->setPen(mZeroLinePen);
+      double epsilon = mParentAxis->mRange.size()*1E-6; // for comparing double to zero
+      for (int i=lowTick; i <= highTick; ++i)
+      {
+        if (qAbs(mParentAxis->mTickVector.at(i)) < epsilon)
+        {
+          zeroLineIndex = i;
+          t = mParentAxis->coordToPixel(mParentAxis->mTickVector.at(i)); // y
+          painter->drawLine(QLineF(mParentAxis->mAxisRect.left(), t, mParentAxis->mAxisRect.right(), t));
+          break;
+        }
+      }
+    }
+    // draw grid lines:
+    applyDefaultAntialiasingHint(painter);
+    painter->setPen(mPen);
+    for (int i=lowTick; i <= highTick; ++i)
+    {
+      if (i == zeroLineIndex) continue; // don't draw a gridline on top of the zeroline
+      t = mParentAxis->coordToPixel(mParentAxis->mTickVector.at(i)); // y
+      painter->drawLine(QLineF(mParentAxis->mAxisRect.left(), t, mParentAxis->mAxisRect.right(), t));
+    }
+  }
+}
+
+/*! \internal
+  
+  Draws the sub grid lines with the specified painter.
+  
+  This is a helper function called by \ref draw.
+*/
+void QCPGrid::drawSubGridLines(QCPPainter *painter) const
+{
+  applyAntialiasingHint(painter, mAntialiasedSubGrid, QCP::aeSubGrid);
+  double t; // helper variable, result of coordinate-to-pixel transforms
+  painter->setPen(mSubGridPen);
+  if (mParentAxis->orientation() == Qt::Horizontal)
+  {
+    for (int i=0; i<mParentAxis->mSubTickVector.size(); ++i)
+    {
+      t = mParentAxis->coordToPixel(mParentAxis->mSubTickVector.at(i)); // x
+      painter->drawLine(QLineF(t, mParentAxis->mAxisRect.bottom(), t, mParentAxis->mAxisRect.top()));
+    }
+  } else
+  {
+    for (int i=0; i<mParentAxis->mSubTickVector.size(); ++i)
+    {
+      t = mParentAxis->coordToPixel(mParentAxis->mSubTickVector.at(i)); // y
+      painter->drawLine(QLineF(mParentAxis->mAxisRect.left(), t, mParentAxis->mAxisRect.right(), t));
+    }
+  }
+}
+
+
+// ================================================================================
+// =================== QCPItemAnchor
+// ================================================================================
+
+/*! \class QCPItemAnchor
+  \brief An anchor of an item to which positions can be attached to.
+  
+  An item (QCPAbstractItem) may have one or more anchors. Unlike QCPItemPosition, an anchor doesn't
+  control anything on its item, but provides a way to tie other items via their positions to the
+  anchor.
+
+  For example, a QCPItemRect is defined by its positions \a topLeft and \a bottomRight.
+  Additionally it has various anchors like \a top, \a topRight or \a bottomLeft etc. So you can
+  attach the \a start (which is a QCPItemPosition) of a QCPItemLine to one of the anchors by
+  calling QCPItemPosition::setParentAnchor on \a start, passing the wanted anchor of the
+  QCPItemRect. This way the start of the line will now always follow the respective anchor location
+  on the rect item.
+  
+  Note that QCPItemPosition derives from QCPItemAnchor, so every position can also serve as an
+  anchor to other positions.
+  
+  To learn how to provide anchors in your own item subclasses, see the subclassing section of the
+  QCPAbstractItem documentation.
+*/
+
+/*!
+  Creates a new QCPItemAnchor. You shouldn't create QCPItemAnchor instances directly, even if
+  you want to make a new item subclass. Use \ref QCPAbstractItem::createAnchor instead, as
+  explained in the subclassing section of the QCPAbstractItem documentation.
+*/
+QCPItemAnchor::QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name, int anchorId) :
+  mParentPlot(parentPlot),
+  mParentItem(parentItem),
+  mAnchorId(anchorId),
+  mName(name)
+{
+}
+
+QCPItemAnchor::~QCPItemAnchor()
+{
+  // unregister as parent at children:
+  QList<QCPItemPosition*> currentChildren(mChildren.toList());
+  for (int i=0; i<currentChildren.size(); ++i)
+    currentChildren.at(i)->setParentAnchor(0); // this acts back on this anchor and child removes itself from mChildren
+}
+
+/*!
+  Returns the final absolute pixel position of the QCPItemAnchor on the QCustomPlot surface.
+  
+  The pixel information is internally retrieved via QCPAbstractItem::anchorPixelPosition of the
+  parent item, QCPItemAnchor is just an intermediary.
+*/
+QPointF QCPItemAnchor::pixelPoint() const
+{
+  if (mParentItem)
+  {
+    if (mAnchorId > -1)
+    {
+      return mParentItem->anchorPixelPoint(mAnchorId);
+    } else
+    {
+      qDebug() << Q_FUNC_INFO << "no valid anchor id set:" << mAnchorId;
+      return QPointF();
+    }
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "no parent item set";
+    return QPointF();
+  }
+}
+
+/*! \internal
+
+  Adds \a pos to the child list of this anchor. This is necessary to notify the children prior to
+  destruction of the anchor.
+  
+  Note that this function does not change the parent setting in \a pos.
+*/
+void QCPItemAnchor::addChild(QCPItemPosition *pos)
+{
+  if (!mChildren.contains(pos))
+    mChildren.insert(pos);
+  else
+    qDebug() << Q_FUNC_INFO << "provided pos is child already" << reinterpret_cast<quintptr>(pos);
+}
+
+/*! \internal
+
+  Removes \a pos from the child list of this anchor.
+  
+  Note that this function does not change the parent setting in \a pos.
+*/
+void QCPItemAnchor::removeChild(QCPItemPosition *pos)
+{
+  if (!mChildren.remove(pos))
+    qDebug() << Q_FUNC_INFO << "provided pos isn't child" << reinterpret_cast<quintptr>(pos);
+}
+
+
+// ================================================================================
+// =================== QCPItemBracket
+// ================================================================================
+
+/*! \class QCPItemBracket
+  \brief A bracket for referencing/highlighting certain parts in the plot.
+
+  \image html QCPItemBracket.png "Bracket example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  It has two positions, \a left and \a right, which define the span of the bracket. If \a left is
+  actually farther to the left than \a right, the bracket is opened to the bottom, as shown in the
+  example image.
+  
+  The bracket supports multiple styles via \ref setStyle. The length, i.e. how far the bracket
+  stretches away from the embraced span, can be controlled with \ref setLength.
+  
+  \image html QCPItemBracket-length.png
+  <center>Demonstrating the effect of different values for \ref setLength, for styles \ref
+  bsCalligraphic and \ref bsSquare. Anchors and positions are displayed for reference.</center>
+  
+  It provides an anchor \a center, to allow connection of other items, e.g. an arrow (QCPItemLine
+  or QCPItemCurve) or a text label (QCPItemText), to the bracket.
+*/
+
+/*!
+  Creates a bracket item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemBracket::QCPItemBracket(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  left(createPosition("left")),
+  right(createPosition("right")),
+  center(createAnchor("center", aiCenter))
+{
+  left->setCoords(0, 0);
+  right->setCoords(1, 1);
+  
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue, 2));
+  setLength(8);
+  setStyle(bsCalligraphic);
+}
+
+QCPItemBracket::~QCPItemBracket()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the bracket.
+  
+  Note that when the style is \ref bsCalligraphic, only the color will be taken from the pen, the
+  stroke and width are ignored. To change the apparent stroke width of a calligraphic bracket, use
+  \ref setLength, which has a similar effect.
+  
+  \see setSelectedPen
+*/
+void QCPItemBracket::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the bracket when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemBracket::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the \a length in pixels how far the bracket extends in the direction towards the embraced
+  span of the bracket (i.e. perpendicular to the <i>left</i>-<i>right</i>-direction)
+  
+  \image html QCPItemBracket-length.png
+  <center>Demonstrating the effect of different values for \ref setLength, for styles \ref
+  bsCalligraphic and \ref bsSquare. Anchors and positions are displayed for reference.</center>
+*/
+void QCPItemBracket::setLength(double length)
+{
+  mLength = length;
+}
+
+/*!
+  Sets the style of the bracket, i.e. the shape/visual appearance.
+  
+  \see setPen
+*/
+void QCPItemBracket::setStyle(QCPItemBracket::BracketStyle style)
+{
+  mStyle = style;
+}
+
+/* inherits documentation from base class */
+double QCPItemBracket::selectTest(const QPointF &pos) const
+{
+  if (!mVisible)
+    return -1;
+  
+  QVector2D leftVec(left->pixelPoint());
+  QVector2D rightVec(right->pixelPoint());
+  if (leftVec.toPoint() == rightVec.toPoint())
+    return -1;
+  
+  QVector2D widthVec = (rightVec-leftVec)*0.5;
+  QVector2D lengthVec(-widthVec.y(), widthVec.x());
+  lengthVec = lengthVec.normalized()*mLength;
+  QVector2D centerVec = (rightVec+leftVec)*0.5-lengthVec;
+  
+  return qSqrt(distSqrToLine((centerVec-widthVec).toPointF(), (centerVec+widthVec).toPointF(), pos));
+}
+
+/* inherits documentation from base class */
+void QCPItemBracket::draw(QCPPainter *painter)
+{
+  QVector2D leftVec(left->pixelPoint());
+  QVector2D rightVec(right->pixelPoint());
+  if (leftVec.toPoint() == rightVec.toPoint())
+    return;
+  
+  QVector2D widthVec = (rightVec-leftVec)*0.5;
+  QVector2D lengthVec(-widthVec.y(), widthVec.x());
+  lengthVec = lengthVec.normalized()*mLength;
+  QVector2D centerVec = (rightVec+leftVec)*0.5-lengthVec;
+
+  QPolygon boundingPoly;
+  boundingPoly << leftVec.toPoint() << rightVec.toPoint()
+               << (rightVec-lengthVec).toPoint() << (leftVec-lengthVec).toPoint();
+  QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
+  if (clip.intersects(boundingPoly.boundingRect()))
+  {
+    painter->setPen(mainPen());
+    switch (mStyle)
+    {
+      case bsSquare:
+      {
+        painter->drawLine((centerVec+widthVec).toPointF(), (centerVec-widthVec).toPointF());
+        painter->drawLine((centerVec+widthVec).toPointF(), (centerVec+widthVec+lengthVec).toPointF());
+        painter->drawLine((centerVec-widthVec).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
+        break;
+      }
+      case bsRound:
+      {
+        painter->setBrush(Qt::NoBrush);
+        QPainterPath path;
+        path.moveTo((centerVec+widthVec+lengthVec).toPointF());
+        path.cubicTo((centerVec+widthVec).toPointF(), (centerVec+widthVec).toPointF(), centerVec.toPointF());
+        path.cubicTo((centerVec-widthVec).toPointF(), (centerVec-widthVec).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
+        painter->drawPath(path);
+        break;
+      }
+      case bsCurly:
+      {
+        painter->setBrush(Qt::NoBrush);
+        QPainterPath path;
+        path.moveTo((centerVec+widthVec+lengthVec).toPointF());
+        path.cubicTo((centerVec+widthVec*1-lengthVec*0.8).toPointF(), (centerVec+0.4*widthVec+1*lengthVec).toPointF(), centerVec.toPointF());
+        path.cubicTo((centerVec-0.4*widthVec+1*lengthVec).toPointF(), (centerVec-widthVec*1-lengthVec*0.8).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
+        painter->drawPath(path);
+        break;
+      }
+      case bsCalligraphic:
+      {
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QBrush(mainPen().color()));
+        QPainterPath path;
+        path.moveTo((centerVec+widthVec+lengthVec).toPointF());
+        
+        path.cubicTo((centerVec+widthVec*1-lengthVec*0.8).toPointF(), (centerVec+0.4*widthVec+0.8*lengthVec).toPointF(), centerVec.toPointF());
+        path.cubicTo((centerVec-0.4*widthVec+0.8*lengthVec).toPointF(), (centerVec-widthVec*1-lengthVec*0.8).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
+        
+        path.cubicTo((centerVec-widthVec*1-lengthVec*0.5).toPointF(), (centerVec-0.2*widthVec+1.2*lengthVec).toPointF(), (centerVec+lengthVec*0.2).toPointF());
+        path.cubicTo((centerVec+0.2*widthVec+1.2*lengthVec).toPointF(), (centerVec+widthVec*1-lengthVec*0.5).toPointF(), (centerVec+widthVec+lengthVec).toPointF());
+        
+        painter->drawPath(path);
+        break;
+      }
+    }
+  }
+}
+
+/* inherits documentation from base class */
+QPointF QCPItemBracket::anchorPixelPoint(int anchorId) const
+{
+  QVector2D leftVec(left->pixelPoint());
+  QVector2D rightVec(right->pixelPoint());
+  if (leftVec.toPoint() == rightVec.toPoint())
+    return leftVec.toPointF();
+  
+  QVector2D widthVec = (rightVec-leftVec)*0.5;
+  QVector2D lengthVec(-widthVec.y(), widthVec.x());
+  lengthVec = lengthVec.normalized()*mLength;
+  QVector2D centerVec = (rightVec+leftVec)*0.5-lengthVec;
+  
+  switch (anchorId)
+  {
+    case aiCenter:
+      return centerVec.toPointF();
+  }
+  qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
+  return QPointF();
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the
+  item is not selected and mSelectedPen when it is.
+*/
+QPen QCPItemBracket::mainPen() const
+{
+    return mSelected ? mSelectedPen : mPen;
+}
+
+
+// ================================================================================
+// =================== QCPItemTracer
+// ================================================================================
+
+/*! \class QCPItemTracer
+  \brief Item that sticks to QCPGraph data points
+
+  \image html QCPItemTracer.png "Tracer example. Blue dotted circles are anchors, solid blue discs are positions."
+
+  The tracer can be connected with a QCPGraph via \ref setGraph. Then it will automatically adopt
+  the coordinate axes of the graph and update its \a position to be on the graph's data. This means
+  the key stays controllable via \ref setGraphKey, but the value will follow the graph data. If a
+  QCPGraph is connected, note that setting the coordinates directly via \a position will have no
+  effect, i.e. be overriden in the next redraw (this is when the coodinate update happens).
+  
+  If the specified key in \ref setGraphKey is outside the key bounds of the graph, the tracer will
+  stay at the respective end of the graph.
+  
+  With \ref setInterpolating you may specify whether the tracer may only stay exactly on data
+  points or whether it interpolates data points linearly, if given a key that lies between two data
+  points of the graph.
+  
+  The tracer has different visual styles, see \ref setStyle. It is also possible to make the tracer
+  have no own visual appearance (set the style to \ref tsNone), and just connect other item
+  positions to the tracer \a position (used as an anchor) via \ref
+  QCPItemPosition::setParentAnchor.
+  
+  \note The tracer position is only automatically updated upon redraws. This means when, for
+  example, the data of the graph changes and you immediately afterwards (without a redraw) read the
+  \a position coordinates of the tracer, they will not reflect the updated data of the graph. In
+  this case you should call \ref updatePosition manually, prior to reading the tracer coordinates.
+*/
+
+/*!
+  Creates a tracer item and sets default values.
+  
+  The constructed item can be added to the plot with QCustomPlot::addItem.
+*/
+QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
+  QCPAbstractItem(parentPlot),
+  position(createPosition("position")),
+  mGraph(0)
+{
+  position->setCoords(0, 0);
+
+  setBrush(Qt::NoBrush);
+  setSelectedBrush(Qt::NoBrush);
+  setPen(QPen(Qt::black));
+  setSelectedPen(QPen(Qt::blue, 2));
+  setStyle(tsCrosshair);
+  setSize(6);
+  setInterpolating(false);
+  setGraphKey(0);
+}
+
+QCPItemTracer::~QCPItemTracer()
+{
+}
+
+/*!
+  Sets the pen that will be used to draw the line of the tracer
+  
+  \see setSelectedPen, setBrush
+*/
+void QCPItemTracer::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the pen that will be used to draw the line of the tracer when selected
+  
+  \see setPen, setSelected
+*/
+void QCPItemTracer::setSelectedPen(const QPen &pen)
+{
+  mSelectedPen = pen;
+}
+
+/*!
+  Sets the brush that will be used to draw any fills of the tracer
+  
+  \see setSelectedBrush, setPen
+*/
+void QCPItemTracer::setBrush(const QBrush &brush)
+{
+  mBrush = brush;
+}
+
+/*!
+  Sets the brush that will be used to draw any fills of the tracer, when selected.
+  
+  \see setBrush, setSelected
+*/
+void QCPItemTracer::setSelectedBrush(const QBrush &brush)
+{
+  mSelectedBrush = brush;
+}
+
+/*!
+  Sets the size of the tracer in pixels, if the style supports setting a size (e.g. \ref tsSquare
+  does, \ref tsCrosshair does not).
+*/
+void QCPItemTracer::setSize(double size)
+{
+  mSize = size;
+}
+
+/*!
+  Sets the style/visual appearance of the tracer.
+  
+  If you only want to use the tracer \a position as an anchor for other items, set \a style to
+  \ref tsNone.
+*/
+void QCPItemTracer::setStyle(QCPItemTracer::TracerStyle style)
+{
+  mStyle = style;
+}
+
+/*!
+  Sets the QCPGraph this tracer sticks to. The tracer \a position will be set to type
+  QCPItemPosition::ptPlotCoords and the axes will be set to the axes of \a graph.
+  
+  To free the tracer from any graph, set \a graph to 0. The tracer \a position can then be placed
+  freely like any other item position. This is the state the tracer will assume when its graph gets
+  deleted while still attached to it.
+  
+  \see setGraphKey
+*/
+void QCPItemTracer::setGraph(QCPGraph *graph)
+{
+  if (graph)
+  {
+    if (graph->parentPlot() == mParentPlot)
+    {
+      position->setType(QCPItemPosition::ptPlotCoords);
+      position->setAxes(graph->keyAxis(), graph->valueAxis());
+      mGraph = graph;
+      updatePosition();
+    } else
+      qDebug() << Q_FUNC_INFO << "graph isn't in same QCustomPlot instance as this item";
+  } else
+  {
+    mGraph = 0;
+  }
+}
+
+/*!
+  Sets the key of the graph's data point the tracer will be positioned at. This is the only free
+  cordinate of a tracer when attached to a graph.
+  
+  Depending on \ref setInterpolating, the tracer will be either positioned on the data point
+  closest to \a key, or will stay exactly at \a key and interpolate the value linearly.
+  
+  \see setGraph, setInterpolating
+*/
+void QCPItemTracer::setGraphKey(double key)
+{
+  mGraphKey = key;
+}
+
+/*!
+  Sets whether the value of the graph's data points shall be interpolated, when positioning the
+  tracer.
+  
+  If \a enabled is set to false and a key is given with \ref setGraphKey, the tracer is placed on
+  the data point of the graph which is closest to the key, but which is not necessarily exactly
+  there. If \a enabled is true, the tracer will be positioned exactly at the specified key, and
+  the appropriate value will be interpolated from the graph's data points linearly.
+  
+  \see setGraph, setGraphKey
+*/
+void QCPItemTracer::setInterpolating(bool enabled)
+{
+  mInterpolating = enabled;
+}
+
+/* inherits documentation from base class */
+double QCPItemTracer::selectTest(const QPointF &pos) const
+{
+  if (!mVisible || mStyle == tsNone)
+    return -1;
+
+  QPointF center(position->pixelPoint());
+  double w = mSize/2.0;
+  QRect clip = clipRect();
+  switch (mStyle)
+  {
+    case tsNone: return -1;
+    case tsPlus:
+    {
+      if (clipRect().intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
+        return qSqrt(qMin(distSqrToLine(center+QPointF(-w, 0), center+QPointF(w, 0), pos),
+                          distSqrToLine(center+QPointF(0, -w), center+QPointF(0, w), pos)));
+      break;
+    }
+    case tsCrosshair:
+    {
+      return qSqrt(qMin(distSqrToLine(QPointF(clip.left(), center.y()), QPointF(clip.right(), center.y()), pos),
+                        distSqrToLine(QPointF(center.x(), clip.top()), QPointF(center.x(), clip.bottom()), pos)));
+      break;
+    }
+    case tsCircle:
+    {
+      if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
+      {
+        // distance to border:
+        double centerDist = QVector2D(center-pos).length();
+        double circleLine = w;
+        double result = qAbs(centerDist-circleLine);
+        // filled ellipse, allow click inside to count as hit:
+        if (result > mParentPlot->selectionTolerance()*0.99 && mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0)
+        {
+          if (centerDist <= circleLine)
+            result = mParentPlot->selectionTolerance()*0.99;
+        }
+        return result;
+      }
+      break;
+    }
+    case tsSquare:
+    {
+      if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
+      {
+        QRectF rect = QRectF(center-QPointF(w, w), center+QPointF(w, w));
+        bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
+        return rectSelectTest(rect, pos, filledRect);
+      }
+      break;
+    }
+  }
+  return -1;
+}
+
+/* inherits documentation from base class */
+void QCPItemTracer::draw(QCPPainter *painter)
+{
+  updatePosition();
+  if (mStyle == tsNone)
+    return;
+
+  painter->setPen(mainPen());
+  painter->setBrush(mainBrush());
+  QPointF center(position->pixelPoint());
+  double w = mSize/2.0;
+  QRect clip = clipRect();
+  switch (mStyle)
+  {
+    case tsNone: return;
+    case tsPlus:
+    {
+      if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
+      {
+        painter->drawLine(QLineF(center+QPointF(-w, 0), center+QPointF(w, 0)));
+        painter->drawLine(QLineF(center+QPointF(0, -w), center+QPointF(0, w)));
+      }
+      break;
+    }
+    case tsCrosshair:
+    {
+      if (center.y() > clip.top() && center.y() < clip.bottom())
+        painter->drawLine(QLineF(clip.left(), center.y(), clip.right(), center.y()));
+      if (center.x() > clip.left() && center.x() < clip.right())
+        painter->drawLine(QLineF(center.x(), clip.top(), center.x(), clip.bottom()));
+      break;
+    }
+    case tsCircle:
+    {
+      if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
+        painter->drawEllipse(center, w, w);
+      break;
+    }
+    case tsSquare:
+    {
+      if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
+        painter->drawRect(QRectF(center-QPointF(w, w), center+QPointF(w, w)));
+      break;
+    }
+  }
+}
+
+/*!
+  If the tracer is connected with a graph (\ref setGraph), this function updates the tracer's \a
+  position to reside on the graph data, depending on the configured key (\ref setGraphKey).
+  
+  It is called automatically on every redraw and normally doesn't need to be called manually. One
+  exception is when you want to read the tracer coordinates via \a position and are not sure that
+  the graph's data (or the tracer key with \ref setGraphKey) hasn't changed since the last redraw.
+  In that situation, call this function before accessing \a position, to make sure you don't get
+  out-of-date coordinates.
+  
+  If there is no graph set on this tracer, this function does nothing.
+*/
+void QCPItemTracer::updatePosition()
+{
+  if (mGraph)
+  {
+    if (mParentPlot->hasPlottable(mGraph))
+    {
+      if (mGraph->data()->size() > 1)
+      {
+        QCPDataMap::const_iterator first = mGraph->data()->constBegin();
+        QCPDataMap::const_iterator last = mGraph->data()->constEnd()-1;
+        if (mGraphKey < first.key())
+          position->setCoords(first.key(), first.value().value);
+        else if (mGraphKey > last.key())
+          position->setCoords(last.key(), last.value().value);
+        else
+        {
+          QCPDataMap::const_iterator it = first;
+          it = mGraph->data()->lowerBound(mGraphKey);
+          if (it != first) // mGraphKey is somewhere between iterators
+          {
+            QCPDataMap::const_iterator prevIt = it-1;
+            if (mInterpolating)
+            {
+              // interpolate between iterators around mGraphKey:
+              double slope = (it.value().value-prevIt.value().value)/(it.key()-prevIt.key());
+              position->setCoords(mGraphKey, (mGraphKey-prevIt.key())*slope+prevIt.value().value);
+            } else
+            {
+              // find iterator with key closest to mGraphKey:
+              if (mGraphKey < (prevIt.key()+it.key())*0.5)
+                it = prevIt;
+              position->setCoords(it.key(), it.value().value);
+            }
+          } else // mGraphKey is exactly on first iterator
+            position->setCoords(it.key(), it.value().value);
+        }
+      } else if (mGraph->data()->size() == 1)
+      {
+        QCPDataMap::const_iterator it = mGraph->data()->constBegin();
+        position->setCoords(it.key(), it.value().value);
+      } else
+        qDebug() << Q_FUNC_INFO << "graph has no data";
+    } else
+      qDebug() << Q_FUNC_INFO << "graph not contained in QCustomPlot instance (anymore)";
+  }
+}
+
+/*! \internal
+
+  Returns the pen that should be used for drawing lines. Returns mPen when the item is not selected
+  and mSelectedPen when it is.
+*/
+QPen QCPItemTracer::mainPen() const
+{
+  return mSelected ? mSelectedPen : mPen;
+}
+
+/*! \internal
+
+  Returns the brush that should be used for drawing fills of the item. Returns mBrush when the item
+  is not selected and mSelectedBrush when it is.
+*/
+QBrush QCPItemTracer::mainBrush() const
+{
+  return mSelected ? mSelectedBrush : mBrush;
+}
+
+
+
+
+
+
+

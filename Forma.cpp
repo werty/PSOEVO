@@ -349,7 +349,11 @@ Forma::Forma() {
     widget.qPlotNSGA_II_PID->setInteractions( QCustomPlot::iSelectLegend | QCustomPlot::iSelectTitle);
     widget.qPlotNSGA_II_PID->xAxis->setLabel("t");
     widget.qPlotNSGA_II_PID->yAxis->setLabel("y(t)");
+    //QCPLa
 
+  //  widget.qPlotNSGA_II_PID->
+   // QCPLayer* layer=new QCPLayer(widget.qPlotNSGA_II_PID,"GOL");
+    widget.qPlotNSGA_II_PID->addLayer("GOL");
     ///////////////////////////////////////////////////////////////////////////////////////
 
     widget.qPlotGGA_PID->setTitle(tr("Odpowiedzi skokowe niezdominowanych rozwiazan"));
@@ -368,6 +372,7 @@ Forma::Forma() {
     widget.qPlotGGA_PID->setInteractions( QCustomPlot::iSelectLegend | QCustomPlot::iSelectTitle);
     widget.qPlotGGA_PID->xAxis->setLabel("t");
     widget.qPlotGGA_PID->yAxis->setLabel("y(t)");
+    widget.qPlotGGA_PID->addLayer("GOL");
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -389,6 +394,7 @@ Forma::Forma() {
     widget.qPlotMOPSO_PID->setInteractions( QCustomPlot::iSelectLegend | QCustomPlot::iSelectTitle);
     widget.qPlotMOPSO_PID->xAxis->setLabel("t");
     widget.qPlotMOPSO_PID->yAxis->setLabel("y(t)");
+    widget.qPlotMOPSO_PID->addLayer("GOL");
 
 
 
@@ -496,7 +502,7 @@ Forma::Forma() {
 
 
     /////////////////////////////////////////
-    gga_ssmodel=new GGA_for_ssmodel(30,32,0.01,0.7,0,{"rodz1","rodz2","rodz3"},{{0},{1},{2}},problem);
+    gga_ssmodel=new GGA_for_ssmodel(30,32,0.01,0.7,6,{"rodz1","rodz2","rodz3"},{{0},{1},{2}},problem);
     //gga_ssmodel->vmax = 100.0;
     //qDebug()<<"il osob "<<gga_ssmodel->populacja.size()<<endl;
     gga_ssmodel->Inicjalizuj();
@@ -2293,7 +2299,7 @@ void Forma::PokazWszystkieFronty()
         widget.qPlotNSGA_II_PID->addGraph();
         widget.qPlotNSGA_II_PID->graph(i)->setPen(QColor(255, tmp*i, 0, 255));
         widget.qPlotNSGA_II_PID->graph(i)->setLineStyle(QCPGraph::lsNone);
-        widget.qPlotNSGA_II_PID->graph(i)->setScatterStyle(QCPGraph::ssPlus);
+        widget.qPlotNSGA_II_PID->graph(i)->setScatterStyle(QCP::ssPlus);
         widget.qPlotNSGA_II_PID->graph(i)->setScatterSize(4);
         widget.qPlotNSGA_II_PID->graph(i)->setName(tr("Rozwiązania przyporządkowane rodzajnikowi 1"));
 
@@ -3315,7 +3321,7 @@ void Forma::on_stworzWykresyGGA_clicked()
         plotSettingsGGA.back().qPlot->addGraph();
         plotSettingsGGA.back().qPlot->graph(i)->setPen(QColor(plotSettingsGGA.back().graphSettings[i].color));
         plotSettingsGGA.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
-        plotSettingsGGA.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsGGA.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plotSettingsGGA.back().qPlot->graph(i)->setScatterStyle((QCP::ScatterStyle)plotSettingsGGA.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
         plotSettingsGGA.back().qPlot->graph(i)->setScatterSize(7);
         plotSettingsGGA.back().qPlot->graph(i)->setName(plotSettingsGGA.back().graphSettings[i].name);
         plotSettingsGGA.back().qPlot->graph(i)->addToLegend();
@@ -4176,7 +4182,7 @@ void Forma::on_stworzWykresyMOPSO_clicked()
         plotSettingsMOPSO.back().qPlot->addGraph();
         plotSettingsMOPSO.back().qPlot->graph(i)->setPen(QColor(plotSettingsMOPSO.back().graphSettings[i].color));
         plotSettingsMOPSO.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
-        plotSettingsMOPSO.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsMOPSO.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plotSettingsMOPSO.back().qPlot->graph(i)->setScatterStyle((QCP::ScatterStyle)plotSettingsMOPSO.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
         plotSettingsMOPSO.back().qPlot->graph(i)->setScatterSize(7);
         plotSettingsMOPSO.back().qPlot->graph(i)->setName(plotSettingsMOPSO.back().graphSettings[i].name);
         plotSettingsMOPSO.back().qPlot->graph(i)->addToLegend();
@@ -4360,7 +4366,7 @@ void Forma::on_stworzWykresyNSGA_II_clicked()
         plotSettingsNSGA_II.back().qPlot->addGraph();
         plotSettingsNSGA_II.back().qPlot->graph(i)->setPen(QColor(plotSettingsNSGA_II.back().graphSettings[i].color));
         plotSettingsNSGA_II.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
-        plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plotSettingsNSGA_II.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterStyle((QCP::ScatterStyle)plotSettingsNSGA_II.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
         plotSettingsNSGA_II.back().qPlot->graph(i)->setScatterSize(7);
         plotSettingsNSGA_II.back().qPlot->graph(i)->setName(plotSettingsNSGA_II.back().graphSettings[i].name);
         plotSettingsNSGA_II.back().qPlot->graph(i)->addToLegend();
@@ -4604,7 +4610,7 @@ void Forma::on_bInicjalizujGGA_clicked()
         widget.qPlotNSGA_II_PID->addGraph();
         widget.qPlotNSGA_II_PID->graph(0)->setPen(QColor(255, 0, 0, 255));
         widget.qPlotNSGA_II_PID->graph(0)->setLineStyle(QCPGraph::lsNone);
-        widget.qPlotNSGA_II_PID->graph(0)->setScatterStyle(QCPGraph::ssCircle);
+        widget.qPlotNSGA_II_PID->graph(0)->setScatterStyle(QCP::ssCircle);
         widget.qPlotNSGA_II_PID->graph(0)->setScatterSize(7);
         widget.qPlotNSGA_II_PID->graph(0)->setName(tr("Rozwiązania przyporządkowane rodzajnikowi 1"));
 
@@ -4612,14 +4618,14 @@ void Forma::on_bInicjalizujGGA_clicked()
         widget.qPlotNSGA_II_PID->addGraph();
         widget.qPlotNSGA_II_PID->graph(1)->setPen(QColor(0, 0, 255, 255));
         widget.qPlotNSGA_II_PID->graph(1)->setLineStyle(QCPGraph::lsNone);
-        widget.qPlotNSGA_II_PID->graph(1)->setScatterStyle(QCPGraph::ssPlus);
+        widget.qPlotNSGA_II_PID->graph(1)->setScatterStyle(QCP::ssPlus);
         widget.qPlotNSGA_II_PID->graph(1)->setScatterSize(7);
         widget.qPlotNSGA_II_PID->graph(1)->setName(tr("Rozwiązania przyporządkowane rodzajnikowi 2"));
 
         widget.qPlotNSGA_II_PID->addGraph();
         widget.qPlotNSGA_II_PID->graph(2)->setPen(QColor(0, 100, 0, 255));
         widget.qPlotNSGA_II_PID->graph(2)->setLineStyle(QCPGraph::lsNone);
-        widget.qPlotNSGA_II_PID->graph(2)->setScatterStyle(QCPGraph::ssPlusCircle);
+        widget.qPlotNSGA_II_PID->graph(2)->setScatterStyle(QCP::ssPlusCircle);
         widget.qPlotNSGA_II_PID->graph(2)->setScatterSize(7);
         widget.qPlotNSGA_II_PID->graph(2)->setName(tr("Front Pareto"));
 
@@ -5102,7 +5108,7 @@ void Forma::on_bStworzOkno2D_clicked()
         plot2DSettings.back().qPlot->addGraph();
         plot2DSettings.back().qPlot->graph(i)->setPen(QColor(plot2DSettings.back().graphSettings[i].color));
         plot2DSettings.back().qPlot->graph(i)->setLineStyle(QCPGraph::lsNone);
-        plot2DSettings.back().qPlot->graph(i)->setScatterStyle((QCPGraph::ScatterStyle)plot2DSettings.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
+        plot2DSettings.back().qPlot->graph(i)->setScatterStyle((QCP::ScatterStyle)plot2DSettings.back().graphSettings[i].patternIndex);//QCPGraph::ssCircle);
         plot2DSettings.back().qPlot->graph(i)->setScatterSize(7);
         plot2DSettings.back().qPlot->graph(i)->setName(plot2DSettings.back().graphSettings[i].name);
         plot2DSettings.back().qPlot->graph(i)->addToLegend();
@@ -5181,6 +5187,18 @@ void Forma::on_pushButton_clicked()
     wskazniki->GOL(mopso_ssmodel->repozytorium,mopso_ssmodel->indSortGOL );
     double val=mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->GOL;
 
+    unsigned int tmp;
+    tmp=widget.qPlotMOPSO_PID->graphCount();
+    if(CheckStabilityOfMySystem(mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->x[0],mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->x[1],mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->x[2])==0)//plotujemy stabilne rozwiazania
+    {
+    GetStepResponse(&sys,mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->x[0],mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->x[1],mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->x[2],time,dt,dataXY);
+
+    AddPlot(widget.qPlotMOPSO_PID,dataXY,""+QVariant(mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(mopso_ssmodel->repozytorium[mopso_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
+
+    widget.qPlotMOPSO_PID->graph(tmp)->setLayer("GOL");
+    }
+
+
     for (int i = 0; i < mopso_ssmodel->repozytorium.size(); ++i) {
         if(CheckStabilityOfMySystem(mopso_ssmodel->repozytorium[i]->x[0],mopso_ssmodel->repozytorium[i]->x[1],mopso_ssmodel->repozytorium[i]->x[2])==0)//plotujemy stabilne rozwiazania
         {
@@ -5188,7 +5206,6 @@ void Forma::on_pushButton_clicked()
 
             if(mopso_ssmodel->indSortGOL[0]==i)
             {
-                AddPlot(widget.qPlotMOPSO_PID,dataXY,""+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(mopso_ssmodel->repozytorium[i]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
 
             }
             else
@@ -5198,6 +5215,10 @@ void Forma::on_pushButton_clicked()
             TRACE;
         }
     }
+
+
+//widget.qPlotMOPSO_PID->replot();
+
 //    dataXY.clear();
 //    for (float  i= 0;  i< time; i+=dt) {
 //        dataXY.push_back({i,1.0} );
@@ -5256,6 +5277,19 @@ void Forma::on_pushButton_2_clicked()
     wskazniki->GOL(gga_ssmodel->rodzice,gga_ssmodel->indSortGOL );
     double val=gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->GOL;
 
+    unsigned int tmp;
+    tmp=widget.qPlotGGA_PID->graphCount();
+
+    if(CheckStabilityOfMySystem(gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->x[0],gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->x[1],gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->x[2])==0)//plotujemy stabilne rozwiazania
+    {
+    GetStepResponse(&sys,gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->x[0],gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->x[1],gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->x[2],time,dt,dataXY);
+
+    AddPlot(widget.qPlotGGA_PID,dataXY,""+QVariant(gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(gga_ssmodel->rodzice[gga_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
+
+    widget.qPlotGGA_PID->graph(tmp)->setLayer("GOL");
+    }
+
+
     for (int i = 0; i < gga_ssmodel->rodzice.size(); ++i) {
 
         if(gga_ssmodel->stopZdominowania[i]==0)
@@ -5266,7 +5300,7 @@ void Forma::on_pushButton_2_clicked()
 
                 if(gga_ssmodel->indSortGOL[0]==i)
                 {
-                    AddPlot(widget.qPlotGGA_PID,dataXY,""+QVariant(gga_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(gga_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(gga_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
+                    //AddPlot(widget.qPlotGGA_PID,dataXY,""+QVariant(gga_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(gga_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(gga_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
 
                 }
                 else
@@ -5316,7 +5350,17 @@ void Forma::on_pushButton_2_clicked()
         qDebug()<<"GOL of rep["<<i<<"]= "<<gga_ssmodel->rodzice[i]->GOL<<endl;
     }
 
+    unsigned int  il_niezdominowanych=0;
+    for (int i = 0; i < gga_ssmodel->rodzice.size(); ++i) {
+        if(gga_ssmodel->stopZdominowania[i]==0){
+            il_niezdominowanych++;
+        }
+    }
 
+    qDebug()<<"il niezdominowanych osob. "<<il_niezdominowanych<<endl;
+    for (int i = 0; i < gga_ssmodel->rozwPrzydzRodzajnikom.size(); ++i) {
+        qDebug()<<"rodzajnik["<<i<<"] il. rozw. : "<< gga_ssmodel->rozwPrzydzRodzajnikom[i].size()<<endl;
+    }
 }
 
 void Forma::on_pushButton_3_clicked()
@@ -5336,6 +5380,18 @@ void Forma::on_pushButton_3_clicked()
     wskazniki->GOL(nsga_ii_ssmodel->rodzice,nsga_ii_ssmodel->indSortGOL );
     double val=nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->GOL;
 
+    unsigned int tmp;
+    tmp=widget.qPlotNSGA_II_PID->graphCount();
+
+    if(CheckStabilityOfMySystem(nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->x[0],nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->x[1],nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->x[2])==0)//plotujemy stabilne rozwiazania
+    {
+    GetStepResponse(&sys,nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->x[0],nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->x[1],nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->x[2],time,dt,dataXY);
+
+    AddPlot(widget.qPlotNSGA_II_PID,dataXY,""+QVariant(nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(nsga_ii_ssmodel->rodzice[nsga_ii_ssmodel->indSortGOL[0]]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
+
+    widget.qPlotNSGA_II_PID->graph(tmp)->setLayer("GOL");
+    }
+
     for (int i = 0; i < nsga_ii_ssmodel->F[0].size(); ++i) {
 
 
@@ -5345,7 +5401,7 @@ void Forma::on_pushButton_3_clicked()
 
             if(nsga_ii_ssmodel->indSortGOL[0]==i)
             {
-                AddPlot(widget.qPlotNSGA_II_PID,dataXY,""+QVariant(nsga_ii_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(nsga_ii_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(nsga_ii_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
+                //AddPlot(widget.qPlotNSGA_II_PID,dataXY,""+QVariant(nsga_ii_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[0]).toString()+" , "+QVariant(nsga_ii_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[1]).toString()+" , "+QVariant(nsga_ii_ssmodel->rodzice[i]->wartFunkcjiKryterialnych[2]).toString(),QColor(Qt::red));
 
             }
             else
@@ -5462,4 +5518,7 @@ void Forma::on_bInicjalizujMOPSO_PID_clicked()
 
         }
     }
+    widget.qPlotMOPSO_PID->replot();
+    widget.qPlotMOPSO_PID->rescaleAxes();
+
 }
