@@ -24,6 +24,12 @@ Forma::Forma() {
     widget.setupUi(this);
 
 
+    //chowamy zbedne rzeczy, które nie dzialaja nie sa potrzebne.Tylko na czas tworzenia screenow pod prace mgr
+    widget.Funkcja->setVisible(false);
+    widget.Funkcje->setVisible(false);
+    widget.F_x_y->setVisible(false);
+    //widget.tab->setVisible(false);
+
 
 
     setLocale(QLocale(QLocale::Polish, QLocale::Poland));
@@ -2466,34 +2472,34 @@ void Forma::currentPlot3DIndexChanged(QObject * ac)
 
     //showWarning(" "+QVariant(((AuxClass*)ac)->col).toString());
 
-    int col=((AuxClass*)ac)->col+1;
-    int row=((AuxClass*)ac)->row;
-    //qDebug()<<"row "<<row<<" col "<<col;
-    //problem->funkcje.size()
-    QComboBox* cb=((QComboBox*) widget.wykresy3D->cellWidget(row, col));
+//    int col=((AuxClass*)ac)->col+1;
+//    int row=((AuxClass*)ac)->row;
+//    //qDebug()<<"row "<<row<<" col "<<col;
+//    //problem->funkcje.size()
+//    QComboBox* cb=((QComboBox*) widget.wykresy3D->cellWidget(row, col));
 
-    //qDebug()<<"1791 "<<cb->count();
-    while(cb->count()!=0)
-    {
-        cb->removeItem(0);
-    }
-    //cb->clear();
-    // qDebug()<<"1793";
-    //qDebug()<<"current index "<<cb->currentIndex();
-    if(((QComboBox*) widget.wykresy3D->cellWidget(row, col-1))->currentIndex()==0)
-    {
+//    //qDebug()<<"1791 "<<cb->count();
+//    while(cb->count()!=0)
+//    {
+//        cb->removeItem(0);
+//    }
+//    //cb->clear();
+//    // qDebug()<<"1793";
+//    //qDebug()<<"current index "<<cb->currentIndex();
+//    if(((QComboBox*) widget.wykresy3D->cellWidget(row, col-1))->currentIndex()==0)
+//    {
 
-        for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
-            cb->addItem("f"+QVariant(i+1).toString());
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < problem->zmienne.size(); ++i) {
-            cb->addItem( QString(problem->zmienne[i]->nazwa.c_str()));
-        }
+//        for (unsigned int i = 0; i < problem->funkcje.size(); ++i) {
+//            cb->addItem("f"+QVariant(i+1).toString());
+//        }
+//    }
+//    else
+//    {
+//        for (unsigned int i = 0; i < problem->zmienne.size(); ++i) {
+//            cb->addItem( QString(problem->zmienne[i]->nazwa.c_str()));
+//        }
 
-    }
+//    }
 
 
 
@@ -2884,6 +2890,7 @@ void Forma::UpdateAllPlots()
             as=&plotSettingsGGA[i].graphSettings[j].axisSettings;
             if(plotSettingsGGA[i].graphSettings[j].all)
             {
+                qDebug()<<"all"<<endl;
                 for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
                     AddDataTo2DGraph(qp->graph(j),as,gga->rodzice[iSol],a,b);
                     if(a<minX)minX=a;
@@ -2907,10 +2914,12 @@ void Forma::UpdateAllPlots()
             }
             else// wysw osob przypisane do rodzajnika
             {
+                qDebug()<<"draw gender "<<endl;
                 for (int iSol = 0; iSol < gga->rodzice.size(); ++iSol) {
-                    if(gga->przydzieloneRodzajniki[iSol]==plotSettingsGGA[i].graphSettings[i].indexOfGender)
+                    if(gga->przydzieloneRodzajniki[iSol]==plotSettingsGGA[i].graphSettings[j].indexOfGender)
                     {
-                        AddDataTo2DGraph(qp->graph(i),as,gga->rodzice[iSol],a,b);
+                        qDebug()<<"add rodzajnik "<<plotSettingsGGA[i].graphSettings[j].indexOfGender<<endl;
+                        AddDataTo2DGraph(qp->graph(j),as,gga->rodzice[iSol],a,b);
                         if(a<minX)minX=a;
                         if(b<minY)minY=b;
                         if(a>maxX)maxX=a;
@@ -3205,7 +3214,7 @@ void Forma::on_stworzWykresyGGA_clicked()
 
     QWidget* w=new QWidget;
     QCustomPlot* qPlot=new QCustomPlot(w);
-    qPlot->setFixedWidth(550);
+    qPlot->setFixedWidth(595);
     qPlot->setFixedHeight(770);
     qPlot->setAutoMargin(false);
     qPlot->setMargin(50,10,10,230);
@@ -3215,6 +3224,9 @@ void Forma::on_stworzWykresyGGA_clicked()
     plotSettingsGGA.push_back(Plot2DSetting());
     plotSettingsGGA.back().qPlot=qPlot;
     plotSettingsGGA.back().tabIndex=widget.Wykresy->count()-1;
+    plotSettingsGGA.back().windowCaption=widget.nazwaOkna2DGGA->text();
+    plotSettingsGGA.back().xAxisCaption=widget.podpisOsiX2DGGA->text();
+    plotSettingsGGA.back().yAxisCaption=widget.podpisOsiY2DGGA->text();
     widget.Wykresy->addTab(w,"GGA");
 
 
@@ -3281,6 +3293,7 @@ void Forma::on_stworzWykresyGGA_clicked()
         {
             tmp=tmp-2;
             plotSettingsGGA.back().graphSettings.back().indexOfGender=tmp;
+            qDebug()<<"gender "<<tmp<<endl;
 
 
         }
@@ -3303,7 +3316,7 @@ void Forma::on_stworzWykresyGGA_clicked()
 
     plotSettingsGGA.back().qPlot->setTitle(tr("Rozwiązania w przestrzeni kryterialnej"));
     plotSettingsGGA.back().qPlot->setAutoMargin(false);
-    plotSettingsGGA.back().qPlot->setMargin(50,10,10,230);
+    plotSettingsGGA.back().qPlot->setMargin(90,10,10,230);
     //  widget.qPlotNSGA_II_PID->setFixedSize(550,550);
     plotSettingsGGA.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
     plotSettingsGGA.back().qPlot->legend->setVisible(true);
@@ -3313,7 +3326,8 @@ void Forma::on_stworzWykresyGGA_clicked()
     plotSettingsGGA.back().qPlot->legend->setPositionStyle(QCPLegend::psManual);
     plotSettingsGGA.back().qPlot->legend->setPosition(QPoint(50,560));
     plotSettingsGGA.back().qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
-
+    plotSettingsGGA.back().qPlot->xAxis->setLabel( plotSettingsGGA.back().xAxisCaption);
+    plotSettingsGGA.back().qPlot->yAxis->setLabel( plotSettingsGGA.back().yAxisCaption);
 
 
 
@@ -3347,12 +3361,12 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
     {
         QWidget* w=new QWidget;
         QCustomPlot* qPlot=new QCustomPlot(w);
-        qPlot->setFixedWidth(550);
+        qPlot->setFixedWidth(595);
         qPlot->setFixedHeight(770);
         qPlot->setAutoMargin(false);
-        qPlot->setMargin(50,10,30,230);
+        qPlot->setMargin(90,10,30,250);
         qPlot->setTitleColor(QColor("black"));
-        qPlot->setTitle("GOL");
+       // qPlot->setTitle("GOL");
         qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
         qPlot->legend->setVisible(true);
         QFont legendFont = font();  // start out with MainWindow's font..
@@ -3361,44 +3375,48 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
         qPlot->legend->setPositionStyle(QCPLegend::psManual);
         qPlot->legend->setPosition(QPoint(50,560));
         qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        qPlot->yAxis->setLabel("globalny poziom optymalności");
+        qPlot->xAxis->setLabel("pokolenia");
+        qPlot->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+        qPlot->setRangeZoom(Qt::Horizontal | Qt::Vertical);
         plotSettingsGOL.qPlot=qPlot;
         plotSettingsGOL.tabIndex=widget.Wykresy->count()-1;
         widget.Wykresy->addTab(w,"GOL");
     }
 
-    if(widget.checkBoxSpacing->isChecked() && plotSettingsSpacing.tabIndex==-1 )
-    {
-        QWidget* w=new QWidget;
-        QCustomPlot* qPlot=new QCustomPlot(w);
-        qPlot->setFixedWidth(550);
-        qPlot->setFixedHeight(770);
-        qPlot->setAutoMargin(false);
-        qPlot->setMargin(50,10,30,230);
-        qPlot->setTitleColor(QColor("black"));
-        qPlot->setTitle("Spacing");
-        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
-        qPlot->legend->setVisible(true);
-        QFont legendFont = font();  // start out with MainWindow's font..
-        legendFont.setPointSize(9); // and make a bit smaller for legend
-        qPlot->legend->setFont(legendFont);
-        qPlot->legend->setPositionStyle(QCPLegend::psManual);
-        qPlot->legend->setPosition(QPoint(50,560));
-        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
-        plotSettingsSpacing.qPlot=qPlot;
-        plotSettingsSpacing.tabIndex=widget.Wykresy->count()-1;
-        widget.Wykresy->addTab(w,"Spacing");
-    }
+//    if(widget.checkBoxSpacing->isChecked() && plotSettingsSpacing.tabIndex==-1 )
+//    {
+//        QWidget* w=new QWidget;
+//        QCustomPlot* qPlot=new QCustomPlot(w);
+//        qPlot->setFixedWidth(550);
+//        qPlot->setFixedHeight(770);
+//        qPlot->setAutoMargin(false);
+//        qPlot->setMargin(50,10,30,230);
+//        qPlot->setTitleColor(QColor("black"));
+//        qPlot->setTitle("Spacing");
+//        qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
+//        qPlot->legend->setVisible(true);
+//        QFont legendFont = font();  // start out with MainWindow's font..
+//        legendFont.setPointSize(9); // and make a bit smaller for legend
+//        qPlot->legend->setFont(legendFont);
+//        qPlot->legend->setPositionStyle(QCPLegend::psManual);
+//        qPlot->legend->setPosition(QPoint(50,560));
+//        qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+//        plotSettingsSpacing.qPlot=qPlot;
+//        plotSettingsSpacing.tabIndex=widget.Wykresy->count()-1;
+//        widget.Wykresy->addTab(w,"Spacing");
+//    }
 
     if(widget.checkBoxD_EC->isChecked() && plotSettingsD_EC.tabIndex==-1 )
     {
         QWidget* w=new QWidget;
         QCustomPlot* qPlot=new QCustomPlot(w);
-        qPlot->setFixedWidth(550);
+        qPlot->setFixedWidth(595);
         qPlot->setFixedHeight(770);
         qPlot->setAutoMargin(false);
-        qPlot->setMargin(50,10,30,230);
+        qPlot->setMargin(90,10,30,250);
         qPlot->setTitleColor(QColor("black"));
-        qPlot->setTitle("D_EC");
+        //qPlot->setTitle("D_EC");
         qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
         qPlot->legend->setVisible(true);
         QFont legendFont = font();  // start out with MainWindow's font..
@@ -3407,6 +3425,10 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
         qPlot->legend->setPositionStyle(QCPLegend::psManual);
         qPlot->legend->setPosition(QPoint(50,560));
         qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        qPlot->yAxis->setLabel("D_EC");
+        qPlot->xAxis->setLabel("pokolenia");
+        qPlot->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+        qPlot->setRangeZoom(Qt::Horizontal | Qt::Vertical);
         plotSettingsD_EC.qPlot=qPlot;
         plotSettingsD_EC.tabIndex=widget.Wykresy->count()-1;
         widget.Wykresy->addTab(w,"D_EC");
@@ -3416,12 +3438,12 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
     {
         QWidget* w=new QWidget;
         QCustomPlot* qPlot=new QCustomPlot(w);
-        qPlot->setFixedWidth(550);
+        qPlot->setFixedWidth(595);
         qPlot->setFixedHeight(770);
         qPlot->setAutoMargin(false);
-        qPlot->setMargin(50,10,30,230);
+        qPlot->setMargin(90,10,30,250);
         qPlot->setTitleColor(QColor("black"));
-        qPlot->setTitle("D_EC_GOL");
+        //qPlot->setTitle("D_EC_GOL");
         qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
         qPlot->legend->setVisible(true);
         QFont legendFont = font();  // start out with MainWindow's font..
@@ -3430,6 +3452,10 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
         qPlot->legend->setPositionStyle(QCPLegend::psManual);
         qPlot->legend->setPosition(QPoint(50,560));
         qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        qPlot->yAxis->setLabel("D_EC_GOL");
+        qPlot->xAxis->setLabel("pokolenia");
+        qPlot->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+        qPlot->setRangeZoom(Qt::Horizontal | Qt::Vertical);
         plotSettingsD_EC_GOL.qPlot=qPlot;
         plotSettingsD_EC_GOL.tabIndex=widget.Wykresy->count()-1;
         widget.Wykresy->addTab(w,"D_EC_GOL");
@@ -3439,12 +3465,12 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
     {
         QWidget* w=new QWidget;
         QCustomPlot* qPlot=new QCustomPlot(w);
-        qPlot->setFixedWidth(550);
+        qPlot->setFixedWidth(595);
         qPlot->setFixedHeight(770);
         qPlot->setAutoMargin(false);
-        qPlot->setMargin(50,10,30,230);
+        qPlot->setMargin(90,10,30,250);
         qPlot->setTitleColor(QColor("black"));
-        qPlot->setTitle("D_EP_GOL");
+        //qPlot->setTitle("D_EP_GOL");
         qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
         qPlot->legend->setVisible(true);
         QFont legendFont = font();  // start out with MainWindow's font..
@@ -3453,6 +3479,10 @@ void Forma::on_pushButtonDodajWskazniki_clicked()
         qPlot->legend->setPositionStyle(QCPLegend::psManual);
         qPlot->legend->setPosition(QPoint(50,560));
         qPlot->legend->setBrush(QBrush(QColor(255,255,255,230)));
+        qPlot->yAxis->setLabel("D_EP_GOL");
+        qPlot->xAxis->setLabel("pokolenia");
+        qPlot->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+        qPlot->setRangeZoom(Qt::Horizontal | Qt::Vertical);
         plotSettingsD_EP_GOL.qPlot=qPlot;
         plotSettingsD_EP_GOL.tabIndex=widget.Wykresy->count()-1;
         widget.Wykresy->addTab(w,"D_EP_GOL");
@@ -3817,10 +3847,10 @@ void Forma::on_bInicjalizujSymulacja_clicked()
     }
 
 
-    if(widget.checkBoxSpacing->isChecked() )
-    {
-        plotSettingsSpacing.qPlot->clearGraphs();
-    }
+//    if(widget.checkBoxSpacing->isChecked() )
+//    {
+//        plotSettingsSpacing.qPlot->clearGraphs();
+//    }
 
 
 
@@ -3858,13 +3888,13 @@ void Forma::on_bInicjalizujSymulacja_clicked()
             AddIndicatorGraphToQCPlot(plotSettingsGOL.qPlot,0);
         }
 
-        if(widget.checkBoxSpacing->isChecked() )
-        {
-            // plotSettingsSpacing.algorithms.push_back(0);
-            plotSettingsSpacing.graphSettings.push_back(GraphSetting());
-            plotSettingsSpacing.graphSettings.back().algorithm=0;
-            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,0);
-        }
+//        if(widget.checkBoxSpacing->isChecked() )
+//        {
+//            // plotSettingsSpacing.algorithms.push_back(0);
+//            plotSettingsSpacing.graphSettings.push_back(GraphSetting());
+//            plotSettingsSpacing.graphSettings.back().algorithm=0;
+//            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,0);
+//        }
     }
 
 
@@ -3902,13 +3932,13 @@ void Forma::on_bInicjalizujSymulacja_clicked()
             AddIndicatorGraphToQCPlot(plotSettingsGOL.qPlot,1);
         }
 
-        if(widget.checkBoxSpacing->isChecked() )
-        {
-            //plotSettingsSpacing.algorithms.push_back(1);
-            plotSettingsSpacing.graphSettings.push_back(GraphSetting());
-            plotSettingsSpacing.graphSettings.back().algorithm=1;
-            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,1);
-        }
+//        if(widget.checkBoxSpacing->isChecked() )
+//        {
+//            //plotSettingsSpacing.algorithms.push_back(1);
+//            plotSettingsSpacing.graphSettings.push_back(GraphSetting());
+//            plotSettingsSpacing.graphSettings.back().algorithm=1;
+//            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,1);
+//        }
 
     }
 
@@ -3944,13 +3974,13 @@ void Forma::on_bInicjalizujSymulacja_clicked()
             plotSettingsGOL.graphSettings.back().algorithm=2;
             AddIndicatorGraphToQCPlot(plotSettingsGOL.qPlot,2);
         }
-        if(widget.checkBoxSpacing->isChecked() )
-        {
-            //plotSettingsSpacing.algorithms.push_back(2);
-            plotSettingsSpacing.graphSettings.push_back(GraphSetting());
-            plotSettingsSpacing.graphSettings.back().algorithm=2;
-            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,2);
-        }
+//        if(widget.checkBoxSpacing->isChecked() )
+//        {
+//            //plotSettingsSpacing.algorithms.push_back(2);
+//            plotSettingsSpacing.graphSettings.push_back(GraphSetting());
+//            plotSettingsSpacing.graphSettings.back().algorithm=2;
+//            AddIndicatorGraphToQCPlot(plotSettingsSpacing.qPlot,2);
+//        }
     }
 
     TRACE;
@@ -4480,6 +4510,27 @@ void Forma::on_bInicjalizujMOPSO_clicked()
         showWarning("Niewlasciwa ilosc hiperkostek");
         return;
     }
+    float c1 = widget.c1->text().toFloat(&ok);
+    if (!ok) {
+        showWarning("Niewlasciwa wartosc c1");
+        return;
+    }
+    float c2 = widget.c2->text().toFloat(&ok);
+    if (!ok) {
+        showWarning("Niewlasciwa wartosc c2");
+        return;
+    }
+    float w = widget.w->text().toFloat(&ok);
+    if (!ok) {
+        showWarning("Niewlasciwa wartosc w");
+        return;
+    }
+    float czi = widget.czi->text().toFloat(&ok);
+    if (!ok) {
+        showWarning("Niewlasciwa wartosc czi");
+        return;
+    }
+
     //wykresGOL->wyczysc();
 
 
@@ -4494,6 +4545,10 @@ void Forma::on_bInicjalizujMOPSO_clicked()
     }
 
     mopso = new MOPSO(populacja, wiel_rep, il_hiper, z_mutacja, problem);
+    mopso->c1=c1;
+    mopso->c2=c2;
+    mopso->czi=czi;
+    mopso->w=w;
 
     connect(mopso, SIGNAL(done()), this, SLOT(sDoneMOPSO()));
     connect(mopso, SIGNAL(finished()), this, SLOT(sFinishedMOPSO()),Qt::QueuedConnection);
@@ -4981,10 +5036,10 @@ void Forma::on_bStworzOkno2D_clicked()
 
     QWidget* w=new QWidget;
     QCustomPlot* qPlot=new QCustomPlot(w);
-    qPlot->setFixedWidth(550);
+    qPlot->setFixedWidth(595);
     qPlot->setFixedHeight(770);
     qPlot->setAutoMargin(false);
-    qPlot->setMargin(50,10,10,230);
+    qPlot->setMargin(90,10,10,230);
 
 
     //plotsSettingsMOPSO.clear();
@@ -5089,7 +5144,7 @@ void Forma::on_bStworzOkno2D_clicked()
 
     plot2DSettings.back().qPlot->setTitle(plot2DSettings.back().windowCaption);
     plot2DSettings.back().qPlot->setAutoMargin(false);
-    plot2DSettings.back().qPlot->setMargin(50,10,10,230);
+    plot2DSettings.back().qPlot->setMargin(90,10,30,230);
     //  widget.qPlotNSGA_II_PID->setFixedSize(550,550);
     plot2DSettings.back().qPlot->setLocale(QLocale(QLocale::Polish, QLocale::Poland));
     plot2DSettings.back().qPlot->legend->setVisible(true);

@@ -48,6 +48,9 @@
     </property>
    </widget>
    <widget class="QComboBox" name="Funkcje">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>690</x>
@@ -135,7 +138,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
@@ -499,7 +502,7 @@
             </rect>
            </property>
            <property name="text">
-            <string>2.8</string>
+            <string>1</string>
            </property>
           </widget>
           <widget class="QLineEdit" name="c2">
@@ -512,7 +515,7 @@
             </rect>
            </property>
            <property name="text">
-            <string>1.3</string>
+            <string>1</string>
            </property>
           </widget>
           <widget class="QLineEdit" name="populacjaMOPSO">
@@ -1152,7 +1155,7 @@
          </rect>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_16">
          <attribute name="title">
@@ -1507,7 +1510,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>130</y>
             <width>601</width>
             <height>211</height>
            </rect>
@@ -1560,7 +1563,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>230</y>
+            <y>360</y>
             <width>98</width>
             <height>27</height>
            </rect>
@@ -1573,7 +1576,7 @@
           <property name="geometry">
            <rect>
             <x>140</x>
-            <y>230</y>
+            <y>360</y>
             <width>131</width>
             <height>27</height>
            </rect>
@@ -1582,6 +1585,85 @@
            <string>Stwórz wykres</string>
           </property>
          </widget>
+         <widget class="QLineEdit" name="nazwaOkna2DGGA">
+          <property name="geometry">
+           <rect>
+            <x>160</x>
+            <y>20</y>
+            <width>451</width>
+            <height>27</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="podpisOsiY2DGGA">
+          <property name="geometry">
+           <rect>
+            <x>160</x>
+            <y>80</y>
+            <width>451</width>
+            <height>27</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_59">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>50</y>
+            <width>91</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Podpis osi x</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="podpisOsiX2DGGA">
+          <property name="geometry">
+           <rect>
+            <x>160</x>
+            <y>50</y>
+            <width>451</width>
+            <height>27</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_60">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>20</y>
+            <width>91</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Nazwa okna</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_61">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>80</y>
+            <width>91</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Podpis osi y</string>
+          </property>
+         </widget>
+         <zorder>plotTableGGA</zorder>
+         <zorder>bDodajWykres</zorder>
+         <zorder>stworzWykresyGGA</zorder>
+         <zorder>qPlotGGA_PID</zorder>
+         <zorder>nazwaOkna2DGGA</zorder>
+         <zorder>podpisOsiY2DGGA</zorder>
+         <zorder>label_59</zorder>
+         <zorder>podpisOsiX2DGGA</zorder>
+         <zorder>label_60</zorder>
+         <zorder>label_61</zorder>
         </widget>
        </widget>
       </widget>
@@ -1761,197 +1843,6 @@
         </property>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_19">
-       <attribute name="title">
-        <string>3D</string>
-       </attribute>
-       <widget class="QLineEdit" name="nazwaOkna3D">
-        <property name="geometry">
-         <rect>
-          <x>110</x>
-          <y>0</y>
-          <width>451</width>
-          <height>27</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="bStworzOkno3D">
-        <property name="geometry">
-         <rect>
-          <x>130</x>
-          <y>350</y>
-          <width>131</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Stwórz okno</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_2">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>91</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Nazwa okna</string>
-        </property>
-       </widget>
-       <widget class="QTableWidget" name="wykresy3D">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>130</y>
-          <width>601</width>
-          <height>211</height>
-         </rect>
-        </property>
-        <column>
-         <property name="text">
-          <string>Algorytm</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Nazwa Wykresu</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Oś 1 rodz</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Oś 1 index</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Oś 2 rodz</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Oś 2 index</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Oś 3 rodz</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Oś 3 index</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Dane</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Wzor</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Kolor</string>
-         </property>
-        </column>
-       </widget>
-       <widget class="QPushButton" name="bDodajWykres3D">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>350</y>
-          <width>98</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Dodaj wykres</string>
-        </property>
-       </widget>
-       <widget class="QLineEdit" name="podpisOsiY3D">
-        <property name="geometry">
-         <rect>
-          <x>110</x>
-          <y>60</y>
-          <width>451</width>
-          <height>27</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_14">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>60</y>
-          <width>91</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Podpis osi y</string>
-        </property>
-       </widget>
-       <widget class="QLineEdit" name="podpisOsiX3D">
-        <property name="geometry">
-         <rect>
-          <x>110</x>
-          <y>30</y>
-          <width>451</width>
-          <height>27</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_18">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>91</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Podpis osi x</string>
-        </property>
-       </widget>
-       <widget class="QLineEdit" name="podpisOsiZ3D">
-        <property name="geometry">
-         <rect>
-          <x>110</x>
-          <y>90</y>
-          <width>451</width>
-          <height>27</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_22">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>90</y>
-          <width>91</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Podpis osi z</string>
-        </property>
-       </widget>
-      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_6">
@@ -1971,24 +1862,11 @@
        <string>GOL</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="checkBoxSpacing">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>60</y>
-        <width>97</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Spacing</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBoxD_EC">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>80</y>
+        <y>60</y>
         <width>97</width>
         <height>22</height>
        </rect>
@@ -2001,7 +1879,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>100</y>
+        <y>80</y>
         <width>97</width>
         <height>22</height>
        </rect>
@@ -2014,7 +1892,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>120</y>
+        <y>100</y>
         <width>97</width>
         <height>22</height>
        </rect>
@@ -2705,7 +2583,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">

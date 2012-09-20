@@ -29,7 +29,7 @@ public:
     bool z_mutacja;
     double fitness_gbest;
     double gbest_pos[2];
-    double c_g, c_p;
+    double c1, c2;
     double vmax;
     double xmin, xmax, ymin, ymax;
     double x_width, y_width;

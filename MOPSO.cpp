@@ -365,9 +365,9 @@ void MOPSO::aktualizuj_predkosci() {
 
            // DINFO;
             populacja[i] ->
-                    v[i_v] = (w * populacja[i] -> v[i_v]
-                    + ((float) qrand() / (float) RAND_MAX) * (pbests[i] -> x[i_v] - populacja[i] -> x[i_v])
-                    + ((float) qrand() / (float) RAND_MAX)
+                    v[i_v] = czi*(w * populacja[i] -> v[i_v]
+                    + (c1*(float) qrand() / (float) RAND_MAX) * (pbests[i] -> x[i_v] - populacja[i] -> x[i_v])
+                    + (c2*(float) qrand() / (float) RAND_MAX)
                     * (repozytorium[hiperkostki[h].czasteczki[h_rep]] -> x[i_v] - populacja[i] -> x[i_v]));
 
 

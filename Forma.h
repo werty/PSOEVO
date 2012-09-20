@@ -437,7 +437,7 @@ private:
 template <typename T>
 void Forma::AddDataTo2DGraph(QCPGraph* graph, QVector<AxisSetting>* as, T *s, float& a, float& b)
 {
-    TRACE;
+   // TRACE;
 
     if((*as)[0].isParam)
     {
@@ -455,9 +455,9 @@ void Forma::AddDataTo2DGraph(QCPGraph* graph, QVector<AxisSetting>* as, T *s, fl
     {
         b=s->wartFunkcjiKryterialnych[(*as)[1].index];
     }
-    qDebug()<<"a "<<a<<" b "<<b;
+  //  qDebug()<<"a "<<a<<" b "<<b;
     graph->addData(a,b);
-    TRACE;
+  //  TRACE;
 }
 
 
