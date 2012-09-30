@@ -361,7 +361,7 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_7">
        <attribute name="title">
@@ -1654,16 +1654,6 @@
            <string>Podpis osi y</string>
           </property>
          </widget>
-         <zorder>plotTableGGA</zorder>
-         <zorder>bDodajWykres</zorder>
-         <zorder>stworzWykresyGGA</zorder>
-         <zorder>qPlotGGA_PID</zorder>
-         <zorder>nazwaOkna2DGGA</zorder>
-         <zorder>podpisOsiY2DGGA</zorder>
-         <zorder>label_59</zorder>
-         <zorder>podpisOsiX2DGGA</zorder>
-         <zorder>label_60</zorder>
-         <zorder>label_61</zorder>
         </widget>
        </widget>
       </widget>

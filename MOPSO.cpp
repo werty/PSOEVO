@@ -174,6 +174,7 @@ void MOPSO::Iteruj() {
 TRACE;
     DEBUG("%s\n","Aktualizuje wartosci");
     WyznaczWartFunkcjiKryterialnych();
+    sprawdz_ograniczenia();
 TRACE;
     WyznaczPrzystosowanie();
 

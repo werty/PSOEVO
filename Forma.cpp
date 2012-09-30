@@ -355,6 +355,8 @@ Forma::Forma() {
     widget.qPlotNSGA_II_PID->setInteractions( QCustomPlot::iSelectLegend | QCustomPlot::iSelectTitle);
     widget.qPlotNSGA_II_PID->xAxis->setLabel("t");
     widget.qPlotNSGA_II_PID->yAxis->setLabel("y(t)");
+    widget.qPlotNSGA_II_PID->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    widget.qPlotNSGA_II_PID->setRangeZoom(Qt::Horizontal | Qt::Vertical);
     //QCPLa
 
   //  widget.qPlotNSGA_II_PID->
@@ -379,6 +381,8 @@ Forma::Forma() {
     widget.qPlotGGA_PID->xAxis->setLabel("t");
     widget.qPlotGGA_PID->yAxis->setLabel("y(t)");
     widget.qPlotGGA_PID->addLayer("GOL");
+    widget.qPlotGGA_PID->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    widget.qPlotGGA_PID->setRangeZoom(Qt::Horizontal | Qt::Vertical);
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -401,6 +405,8 @@ Forma::Forma() {
     widget.qPlotMOPSO_PID->xAxis->setLabel("t");
     widget.qPlotMOPSO_PID->yAxis->setLabel("y(t)");
     widget.qPlotMOPSO_PID->addLayer("GOL");
+    widget.qPlotMOPSO_PID->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    widget.qPlotMOPSO_PID->setRangeZoom(Qt::Horizontal | Qt::Vertical);
 
 
 
@@ -485,7 +491,7 @@ Forma::Forma() {
     problem->zmienne[0]->min=0;
     problem->zmienne[0]->max=10;
     problem->zmienne[1]->min=0;
-    problem->zmienne[1]->max=6;
+    problem->zmienne[1]->max=0.333;
     problem->zmienne[2]->min=0;
     problem->zmienne[2]->max=1;
     problem->cos = 666;
@@ -2231,7 +2237,9 @@ void Forma::AddPlot(QCustomPlot *qPlotNSGA_II_PID,QVector<QPair<double,double> >
 
     qPlotNSGA_II_PID->setRangeDrag(Qt::Horizontal | Qt::Vertical);
     qPlotNSGA_II_PID->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-    qPlotNSGA_II_PID->setInteraction(QCustomPlot::iSelectPlottables); //
+    qPlotNSGA_II_PID->setInteraction(  QCustomPlot::iRangeZoom);
+    qPlotNSGA_II_PID->setInteraction( QCustomPlot::iRangeDrag );
+
 
     // PokazWszystkieFronty();
     qPlotNSGA_II_PID->rescaleAxes();
@@ -2378,7 +2386,7 @@ void Forma::AktualizujWykresParamGGA()
 
     widget.qPlotNSGA_II_PID->setRangeDrag(Qt::Horizontal | Qt::Vertical);
     widget.qPlotNSGA_II_PID->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-    widget.qPlotNSGA_II_PID->setInteraction(QCustomPlot::iSelectPlottables); //
+   // widget.qPlotNSGA_II_PID->setInteraction(QCustomPlot::iSelectPlottables); //
 
     // PokazWszystkieFronty();
 
@@ -2642,7 +2650,7 @@ void Forma::AktualizujWykresFunKrytGGA()
 
     widget.qPlotNSGA_II_PID->setRangeDrag(Qt::Horizontal | Qt::Vertical);
     widget.qPlotNSGA_II_PID->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-    widget.qPlotNSGA_II_PID->setInteraction(QCustomPlot::iSelectPlottables); //
+   // widget.qPlotNSGA_II_PID->setInteraction(QCustomPlot::iSelectPlottables); //
 
     // PokazWszystkieFronty();
 
@@ -2878,7 +2886,7 @@ void Forma::UpdateAllPlots()
         TRACE;
         qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
         qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-        qp->setInteraction(QCustomPlot::iSelectPlottables); //
+       // qp->setInteraction(QCustomPlot::iSelectPlottables); //
         float a,b,minX,maxX,minY,maxY;
         minX=numeric_limits<float>::max();
         maxX=numeric_limits<float>::min();
@@ -2946,7 +2954,7 @@ void Forma::UpdateAllPlots()
         TRACE;
         qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
         qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-        qp->setInteraction(QCustomPlot::iSelectPlottables); //
+      //  qp->setInteraction(QCustomPlot::iSelectPlottables); //
 
         float a,b,minX,maxX,minY,maxY;
         minX=numeric_limits<float>::max();
@@ -3010,7 +3018,7 @@ void Forma::UpdateAllPlots()
         TRACE;
         qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
         qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-        qp->setInteraction(QCustomPlot::iSelectPlottables); //
+       // qp->setInteraction(QCustomPlot::iSelectPlottables); //
 
         float a,b,minX,maxX,minY,maxY;
         minX=numeric_limits<float>::max();
@@ -3066,7 +3074,7 @@ void Forma::Update2DPlots()
         TRACE;
         qp->setRangeDrag(Qt::Horizontal | Qt::Vertical);
         qp->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-        qp->setInteraction(QCustomPlot::iSelectPlottables); //
+      //  qp->setInteraction(QCustomPlot::iSelectPlottables); //
         float a,b,minX,maxX,minY,maxY;
         minX=numeric_limits<float>::max();
         maxX=numeric_limits<float>::min();

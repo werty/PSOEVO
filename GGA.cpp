@@ -286,6 +286,7 @@ void GGA::Inicjalizuj()
     qsrand(QTime::currentTime().msec());
     qDebug() << "P.size() " <<rodzice.size() << "\n";
     for (int i_pop = 0; i_pop <rodzice.size(); i_pop++) {
+        rodzice[i_pop]->il_przek_ograniczen=0;
         // DINFO;
         for (unsigned int i_zmienna = 0; i_zmienna < problem->zmienne.size(); i_zmienna++) {
             //  DINFO;
@@ -816,4 +817,58 @@ void GGA::setNum_iter(int num_iter)
 
 int GGA::getNum_iter() const
 {
+}
+
+void GGA::sprawdz_ograniczenia() {
+    double val_left, val_right;
+
+    for (unsigned int ind_pop = 0; ind_pop < rodzice.size(); ind_pop++) {
+        for (unsigned int ind_ogr = 0; ind_ogr < problem -> ograniczenia.size(); ind_ogr++) {
+            rodzice[ind_pop] -> il_przek_ograniczen = 0;
+
+            for (int x_ind = 0; x_ind < problem->zmienne.size(); x_ind++) {
+                problem -> zmienne[x_ind] -> zmienna = rodzice[ind_pop] -> x[x_ind];
+            }
+
+            val_left = problem -> ograniczenia[ind_ogr] -> lewa_funkcja -> Eval();
+            val_right = problem -> ograniczenia[ind_ogr] -> prawa_funkcja -> Eval();
+
+            switch (problem -> ograniczenia[ind_ogr] -> rodzaj) { // sprawdzamy czy ograniczenie nie zostalo przekroczone
+                case 0: // <
+                    if (val_left >= val_right) {
+                        rodzice[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 1: // <=
+                    if (val_left > val_right) {
+                        rodzice[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 2: // =
+                    if (val_left != val_right) {
+                        rodzice[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 3: // >=
+                    if (val_left < val_right) {
+                        rodzice[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 4: // >
+                    if (val_left <= val_right) {
+                        rodzice[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+            }
+        }
+    }
 }

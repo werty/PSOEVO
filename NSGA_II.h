@@ -64,6 +64,7 @@ public slots:
     void stop();
     void setNum_iter(int num_iter);
     int getNum_iter() const;
+    void sprawdz_ograniczenia();
 
 };
 

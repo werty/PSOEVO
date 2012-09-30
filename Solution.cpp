@@ -85,15 +85,58 @@ Solution::~Solution() {
 }
 bool Solution::Dominate(const Solution & b)
 {
-    for (int i = 0; i < il_funkcji; i++) {
-       // qDebug()<<"? "<<b.przystosowaniePrzeskalowane[i]<<">="<<this->przystosowaniePrzeskalowane[i]<<"\n";
-           if (b.przystosowaniePrzeskalowane[i] >= this->przystosowaniePrzeskalowane[i]){
-              // qDebug()<<"false\n";
-               return false;
-           }
+//    for (int i = 0; i < il_funkcji; i++) {
+//       // qDebug()<<"? "<<b.przystosowaniePrzeskalowane[i]<<">="<<this->przystosowaniePrzeskalowane[i]<<"\n";
+//           if (b.przystosowaniePrzeskalowane[i] >= this->przystosowaniePrzeskalowane[i]){
+//              // qDebug()<<"false\n";
+//               return false;
+//           }
+//    }
+//       // qDebug()<<"true\n";
+//   return true;
+
+    if(this->il_przek_ograniczen<b.il_przek_ograniczen)
+    {
+        return true;
+
     }
-       // qDebug()<<"true\n";
-   return true;
+    else if(this->il_przek_ograniczen>b.il_przek_ograniczen)
+    {
+        return false;
+
+    }
+    else
+    {
+
+       // cout<<"check domination "<<endl;
+       /// cout<<"osob a "<<a.przystosowanie[0]<<" "<<a.przystosowanie[1]<<" "<<a.przystosowanie[2]<<endl;
+
+       // cout<<"osob b "<<b.przystosowanie[0]<<" "<<b.przystosowanie[1]<<" "<<b.przystosowanie[2]<<endl;
+    for (int i = 0; i < il_funkcji; i++) {
+        // qDebug() << b.przystosowaniePrzeskalowane[i] << " " <<[i] << "\n";
+
+
+            if (b.wartFunkcjiKryterialnych[i] >= this->wartFunkcjiKryterialnych[i]) {
+
+                //cout<<"return 0"<<endl;
+                return false;
+            }
+
+//        else {//min
+//            if (b.wartFunkcjiKryterialnych[i] <= a.wartFunkcjiKryterialnych[i]) {
+
+//                return 0;
+//            }
+
+
+//        }
+
+    }
+
+    }
+    //cout<<"return 1"<<endl;
+    return true;
+
 
 }
 bool Solution::Dominate(const Solution & b,QVector<unsigned int> vChosenFunctions)
@@ -112,13 +155,55 @@ bool Solution::Dominate(const Solution & b,QVector<unsigned int> vChosenFunction
 
 bool Solution::operator > (const Solution & b)
 {
-     for (int i = 0; i < il_funkcji; i++) {
-        // qDebug()<<"? "<<b.przystosowaniePrzeskalowane[i]<<">="<<this->przystosowaniePrzeskalowane[i]<<"\n";
-            if (b.przystosowaniePrzeskalowane[i] >= this->przystosowaniePrzeskalowane[i]){ 
-               // qDebug()<<"false\n";
+//     for (int i = 0; i < il_funkcji; i++) {
+//        // qDebug()<<"? "<<b.przystosowaniePrzeskalowane[i]<<">="<<this->przystosowaniePrzeskalowane[i]<<"\n";
+//            if (b.przystosowaniePrzeskalowane[i] >= this->przystosowaniePrzeskalowane[i]){
+//               // qDebug()<<"false\n";
+//                return false;
+//            }
+//     }
+//        // qDebug()<<"true\n";
+//    return true;
+
+    if(this->il_przek_ograniczen<b.il_przek_ograniczen)
+    {
+        return true;
+
+    }
+    else if(this->il_przek_ograniczen>b.il_przek_ograniczen)
+    {
+        return false;
+
+    }
+    else
+    {
+
+       // cout<<"check domination "<<endl;
+       /// cout<<"osob a "<<a.przystosowanie[0]<<" "<<a.przystosowanie[1]<<" "<<a.przystosowanie[2]<<endl;
+
+       // cout<<"osob b "<<b.przystosowanie[0]<<" "<<b.przystosowanie[1]<<" "<<b.przystosowanie[2]<<endl;
+    for (int i = 0; i < il_funkcji; i++) {
+        // qDebug() << b.przystosowaniePrzeskalowane[i] << " " <<[i] << "\n";
+
+
+            if (b.przystosowaniePrzeskalowane[i] >= this->przystosowaniePrzeskalowane[i]) {
+
+                //cout<<"return 0"<<endl;
                 return false;
-            }   
-     }
-        // qDebug()<<"true\n";
-    return true; 
+            }
+
+//        else {//min
+//            if (b.wartFunkcjiKryterialnych[i] <= a.wartFunkcjiKryterialnych[i]) {
+
+//                return 0;
+//            }
+
+
+//        }
+
+    }
+
+    }
+    //cout<<"return 1"<<endl;
+    return true;
 }

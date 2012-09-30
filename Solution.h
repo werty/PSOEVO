@@ -21,6 +21,7 @@ public:
     int ranga;
     double GOL;
     double fi;//dla GGA znormalizowany stopien suboptymalnosci
+    unsigned int il_przek_ograniczen;
     QVector<Chromosome> genotyp;
     QVector<double> x;//fenotyp
     QVector<double> wartFunkcjiKryterialnych;

@@ -188,6 +188,7 @@ public slots:
      * @return int
      */
     int getNum_iter() const;
+    void sprawdz_ograniczenia();
 
 };
 

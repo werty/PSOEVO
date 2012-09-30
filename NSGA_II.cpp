@@ -107,6 +107,7 @@ void NSGA_II::DekodujGenotyp() {
 
 void NSGA_II::WyznaczWartFunkcjiKryterialnych() {
     for (int i = 0; i <pokolenie.size(); i++) {
+        pokolenie[i]->il_przek_ograniczen=0;
         for (unsigned int x_ind = 0; x_ind < problem->zmienne.size(); x_ind++) {
             problem -> zmienne[x_ind] -> zmienna =pokolenie[i] ->x[x_ind];
         }
@@ -210,6 +211,7 @@ void NSGA_II::Inicjalizuj() {
     qsrand(QTime::currentTime().msec());
     qDebug() << "P.size() " <<rodzice.size() << "\n";
     for (int i_pop = 0; i_pop <rodzice.size(); i_pop++) {
+        rodzice[i_pop]->il_przek_ograniczen=0;
         // DINFO;
         for (unsigned int i_zmienna = 0; i_zmienna < problem->zmienne.size(); i_zmienna++) {
             //  DINFO;
@@ -241,6 +243,7 @@ void NSGA_II::Inicjalizuj() {
     DEBUG("%s\n","wyznaczam wart funkcji kryt ... ");
     WyznaczWartFunkcjiKryterialnych();
 
+    sprawdz_ograniczenia();
     DEBUG("%s\n","wyznaczam przystosowanie ... ");
     WyznaczPrzystosowanie();
 
@@ -445,6 +448,7 @@ void NSGA_II::Iteruj() {
     // WyswietlFenotyp(&pokolenie);
     DEBUG("%s\n","wyznaczam wart funkcji kryt ... ");
     WyznaczWartFunkcjiKryterialnych();
+    sprawdz_ograniczenia();
 
     DEBUG("%s\n","wyznaczam przystosowanie ... ");
     WyznaczPrzystosowanie();
@@ -608,4 +612,57 @@ void NSGA_II::run() {
 void NSGA_II::stop() {
     QMutexLocker locker(&mutex);
     stopIteration = true;
+}
+void NSGA_II::sprawdz_ograniczenia() {
+    double val_left, val_right;
+
+    for (unsigned int ind_pop = 0; ind_pop < pokolenie.size(); ind_pop++) {
+        for (unsigned int ind_ogr = 0; ind_ogr < problem -> ograniczenia.size(); ind_ogr++) {
+            pokolenie[ind_pop] -> il_przek_ograniczen = 0;
+
+            for (int x_ind = 0; x_ind < problem->zmienne.size(); x_ind++) {
+                problem -> zmienne[x_ind] -> zmienna = pokolenie[ind_pop] -> x[x_ind];
+            }
+
+            val_left = problem -> ograniczenia[ind_ogr] -> lewa_funkcja -> Eval();
+            val_right = problem -> ograniczenia[ind_ogr] -> prawa_funkcja -> Eval();
+
+            switch (problem -> ograniczenia[ind_ogr] -> rodzaj) { // sprawdzamy czy ograniczenie nie zostalo przekroczone
+                case 0: // <
+                    if (val_left >= val_right) {
+                        pokolenie[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 1: // <=
+                    if (val_left > val_right) {
+                        pokolenie[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 2: // =
+                    if (val_left != val_right) {
+                        pokolenie[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 3: // >=
+                    if (val_left < val_right) {
+                        pokolenie[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+
+                case 4: // >
+                    if (val_left <= val_right) {
+                        pokolenie[ind_pop] -> il_przek_ograniczen++;
+                    }
+
+                    break;
+            }
+        }
+    }
 }
